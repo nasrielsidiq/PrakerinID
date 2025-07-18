@@ -31,7 +31,19 @@ class AuthController extends Controller
         }
 
         if (Auth::attempt($request->only('email', 'password'))) {
-            $token = Auth::user()->createToken('Auth Token')->plainTextToken;
+            if (Auth::user()->role === "student") {
+                $token = Auth::user()->createToken('Auth Token', ['student:access'])->plainTextToken;
+                return response()->json(['token' => $token, "role" => 'student'], 200);
+            }
+            if (Auth::user()->role === "school") {
+                $token = Auth::user()->createToken('Auth Token', ['school:access'])->plainTextToken;
+                return response()->json(['token' => $token, "role" => 'school'], 200);
+            }
+            if (Auth::user()->role === "industry") {
+                $token = Auth::user()->createToken('Auth Token', ['industry:access'])->plainTextToken;
+                return response()->json(['token' => $token, "role" => 'industry'], 200);
+            }
+            $token = Auth::user()->createToken('Auth Token', ['admin:access'])->plainTextToken;
 
             return response()->json(['token' => $token], 200);
         }
@@ -90,15 +102,29 @@ class AuthController extends Controller
             $data['user_id'] = $userCreate->id;
             $model::create($data);
             if (Auth::attempt($request->only('email', 'password'))) {
-                $token = Auth::user()->createToken('Auth Token')->plainTextToken;
-                return response()->json(['token' => $token, ], 200);
+                if (Auth::user()->role === "student") {
+                    $token = Auth::user()->createToken('Auth Token', ['student:access'])->plainTextToken;
+                    return response()->json(['token' => $token, "role" => 'student'], 200);
+                }
+                if (Auth::user()->role === "school") {
+                    $token = Auth::user()->createToken('Auth Token', ['school:access'])->plainTextToken;
+                    return response()->json(['token' => $token, "role" => 'school'], 200);
+                }
+                if (Auth::user()->role === "industry") {
+                    $token = Auth::user()->createToken('Auth Token', ['industry:access'])->plainTextToken;
+                    return response()->json(['token' => $token, "role" => 'industry'], 200);
+                }
+                $token = Auth::user()->createToken('Auth Token', ['admin:access'])->plainTextToken;
+
+                return response()->json(['token' => $token], 200);
             }
         } catch (\Throwable $th) {
             return response()->json(['error' => 'failed to Register', 'message' => $th], 422);
         }
     }
 
-    public function logout(Request $request){
+    public function logout(Request $request)
+    {
         $request->user()->currentAccessToken()->delete();
         return response()->json(['message' => 'logout success'], 200);
     }

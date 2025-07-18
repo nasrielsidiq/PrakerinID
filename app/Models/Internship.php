@@ -8,6 +8,7 @@ use Illuminate\Database\Eloquent\Model;
 class Internship extends Model
 {
     /** @use HasFactory<\Database\Factories\InternshipFactory> */
+    use HasFactory;
     protected $fillable = [
         'title',
         'description',
@@ -15,6 +16,15 @@ class Internship extends Model
         'end_date',
         'company_id',
         'kuota',
+        'grade',
+        'bidang'
     ];
-    use HasFactory;
+
+    public function company(){
+        return $this->belongsTo(Company::class);
+    }
+    public function slugs()
+    {
+        return $this->belongsToMany(Slug::class);
+    }
 }

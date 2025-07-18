@@ -17,6 +17,9 @@ return new class extends Migration
             $table->text('description');
             $table->dateTime('start_date');
             $table->dateTime('end_date');
+            $table->enum('grade', ['SMK', 'Mahasiswa', 'all'])->default('all');
+            $table->enum('bidang', ['IT', 'Embedding', 'Other'])->default('Other');
+            $table->enum('type', ['wfh', 'full time', 'hybrid']);
             $table->foreignId('company_id')->constrained()->onDelete('cascade');
             $table->integer('kuota')->default(3);
             $table->timestamps();

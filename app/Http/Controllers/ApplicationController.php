@@ -24,6 +24,11 @@ class ApplicationController extends Controller
      */
     public function store(Request $request)
     {
+        if ($request->user()->tokenCant('application:create')) {
+            return response()->json([
+                'error' => "you can't access this route"
+            ], 403);
+        }
         $validator = Validator::make($request->all(), [
             'internship_id' =>  'required|numeric',
             'cv' => 'required|mimes:pdf,docx,doc,txt,rtf,tex|max:2082'
@@ -34,8 +39,9 @@ class ApplicationController extends Controller
         }
 
         $data = $request->only('internship_id');
-        $data['student_id'] = $request->user()->id;
-        if (Application::where('internship_id', $data['internship_id'])->where('student_id', $data['student_id'])->get()) {
+        // return dd($request->user()->student);
+        $data['student_id'] = $request->user()->student?->id;
+        if (Application::where('internship_id', $data['internship_id'])->where('student_id', $data['student_id'])->exists()) {
             return response()->json([
                 'error' => 'Kamu tidak bisa melamar dua kali'
             ], 403);

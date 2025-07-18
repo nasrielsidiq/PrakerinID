@@ -34,6 +34,9 @@ class DatabaseSeeder extends Seeder
         School::factory(5)->create();
         Student::factory(10)->create();
         Company::factory(15)->create();
-        Internship::factory(20)->create();
+        // Internship::factory(20)->create();
+        $this->call([
+            InternshipSeeder::class,
+        ]);
     }
 }

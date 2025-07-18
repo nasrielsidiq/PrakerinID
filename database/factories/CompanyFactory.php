@@ -15,8 +15,10 @@ class CompanyFactory extends Factory
         return [
             'name' => $this->faker->company(),
             'address' => $this->faker->address(),
+            'kota' => $this->faker->randomElement(['bandung', 'jakarta', 'tangerang', 'bekasi']),
+            'provinsi' => $this->faker->randomElement(['jawa barat', 'jawa tengah', 'jawa selatan']),
             'phone_number' => $this->faker->phoneNumber(),
-            'user_id' => User::factory(),
+            'user_id' => User::factory()->create(["role" => "industry"]),
             'logo' => $this->faker->imageUrl(200, 200, 'business', true, 'logo'),
             'is_verified' => $this->faker->boolean(),
             'sector' => $this->faker->randomElement([

@@ -18,9 +18,12 @@ class InternshipFactory extends Factory
             'title' => $this->faker->jobTitle(),
             'description' => $this->faker->paragraph(4),
             'start_date' => $this->faker->dateTimeBetween('now', '+1 month')->format('Y-m-d'),
-            'end_date' => $this->faker->dateTimeBetween('+2 months', '+6 months')->format('Y-m-d'),
+            'end_date' => $this->faker->dateTimeBetween('+2 months', '+9 months')->format('Y-m-d'),
             'company_id' => Company::inRandomOrder()->first()?->id ?? Company::factory(),
             'kuota' => $this->faker->numberBetween(1, 20),
+            'grade' => $this->faker->randomElement(['SMK', 'Mahasiswa', 'all']),
+            'bidang' => $this->faker->randomElement(['IT', 'Embedding']),
+            'type' => $this->faker->randomElement(['wfh', 'full time', 'hybrid'])
         ];
     }
 

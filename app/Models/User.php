@@ -38,6 +38,12 @@ class User extends Authenticatable
     public function student(){
         return $this->hasOne(Student::class, 'user_id');
     }
+    public function school(){
+        return $this->hasOne(School::class, 'user_id');
+    }
+    public function company(){
+        return $this->hasOne(Company::class, 'user_id');
+    }
 
     /**
      * Get the attributes that should be cast.

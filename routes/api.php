@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\ApplicationController;
 use App\Http\Controllers\AuthController;
+use App\Http\Controllers\InternshipController;
 use App\Http\Controllers\SchoolController;
 use App\Http\Controllers\StudentController;
 use Illuminate\Http\Request;
@@ -14,10 +15,15 @@ Route::get('/user', function (Request $request) {
     return $request->user();
 })->middleware('auth:sanctum');
 
+
 Route::get('/logout', [AuthController::class, 'logout'])->middleware('auth:sanctum');
+Route::get('/internships/{slug}', [InternshipController::class, 'getSlug']);
+Route::get('/internships', [InternshipController::class, 'index']);
 Route::middleware('auth:sanctum')->group(function () {
     Route::apiResource('/school', SchoolController::class);
-    Route::apiResource('/student', StudentController::class);
-    Route::apiResource('/application', ApplicationController::class);
+    Route::apiResource('/students', StudentController::class);
+    Route::apiResource('/applications', ApplicationController::class)->middleware('abilities:student:access');
+    Route::apiResource('/internships', InternshipController::class)->except('index');
 });
+
 
