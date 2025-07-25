@@ -20,7 +20,6 @@ class SchoolFactory extends Factory
             'phone_number' => $this->faker->phoneNumber(),
             'is_verified' => $this->faker->boolean(), // random true / false
             'user_id' => User::factory()->create(["role" => "school"]), // otomatis nyieun user lamun henteu dipasihan
-            'logo' => $this->faker->imageUrl(200, 200, 'education', true, 'school') // logo dummy
         ];
     }
 }

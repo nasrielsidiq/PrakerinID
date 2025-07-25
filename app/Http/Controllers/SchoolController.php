@@ -16,6 +16,10 @@ class SchoolController extends Controller
         return response()->json(["data" => $school::with('user')->get()]);
     }
 
+    public function school_name(){
+        return response()->json(['data' => School::select('id', 'name')->get()]);
+    }
+
     /**
      * Store a newly created resource in storage.
      */
@@ -45,6 +49,8 @@ class SchoolController extends Controller
 
         return response()->json(['data' => $result], 200);
     }
+
+
 
     /**
      * Display the specified resource.

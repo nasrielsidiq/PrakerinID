@@ -5,6 +5,7 @@ use App\Http\Controllers\AuthController;
 use App\Http\Controllers\InternshipController;
 use App\Http\Controllers\SchoolController;
 use App\Http\Controllers\StudentController;
+use App\Models\School;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -19,6 +20,7 @@ Route::get('/user', function (Request $request) {
 Route::get('/logout', [AuthController::class, 'logout'])->middleware('auth:sanctum');
 Route::get('/internships/{slug}', [InternshipController::class, 'getSlug']);
 Route::get('/internships', [InternshipController::class, 'index']);
+Route::get('/school_name', [SchoolController::class, 'school_name']);
 Route::middleware('auth:sanctum')->group(function () {
     Route::apiResource('/school', SchoolController::class);
     Route::apiResource('/students', StudentController::class);

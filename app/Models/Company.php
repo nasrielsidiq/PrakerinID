@@ -15,7 +15,6 @@ class Company extends Model
         'address',
         'phone_number',
         'user_id',
-        'logo',
         'is_verified',
         'sector',
     ];

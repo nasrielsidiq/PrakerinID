@@ -16,7 +16,6 @@ class School extends Model
         'phone_number',
         'is_verified',
         'user_id',
-        'logo'
     ];
 
     public function user(){
