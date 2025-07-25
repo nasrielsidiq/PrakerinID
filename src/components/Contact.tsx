@@ -1,17 +1,17 @@
 export default function ContactPage() {
     return (
-        <section id="contact" className="py-16 bg-gray-50">
+        <section id="contact" className="py-16 ">
             <div className="container mx-auto px-4">
                 <div className="mb-12">
                     <h2 className="text-3xl md:text-4xl font-bold text-accent mb-4">Hubungi Kami</h2>
-                    <p className="text-gray-600 mb-5">Punya ide, pertanyaan, atau sekadar ingin menyapa sepukat magang?
+                    <p className="text-gray-600 mb-5">Punya ide, pertanyaan, atau sekadar ingin menyapa seputar magang?
                         Kami senang mendengarnya! Silakan hubungi kami kapan saja.</p>
                     <div className="w-[170px] h-0 border-2 border-accent"></div>
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
                     {/* Info Kontak */}
-                    <div className="space-y-6">
+                    <div className="space-y-9">
                         <div className="bg-white rounded-2xl p-6 shadow-lg hover-lift">
                             <h3 className="font-bold text-gray-800 mb-4 flex items-center">
                                 <svg className="w-5 h-5 mr-2 text-prakerin" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -63,7 +63,7 @@ export default function ContactPage() {
                     </div>
 
                     {/* Form Kontak */}
-                    <div className="bg-white rounded-2xl p-8 shadow-lg flex flex-col justify-between">
+                    <div className="bg-white md:col-span-2 rounded-2xl p-8 shadow-lg flex flex-col justify-between">
                         <form className="space-y-6">
                             <div>
                                 <label className="block text-sm font-medium text-gray-700 mb-2">Nama</label>
@@ -91,13 +91,12 @@ export default function ContactPage() {
                     </div>
 
                     {/* Map */}
-                    <div className="bg-white rounded-2xl p-4 shadow-lg flex items-center justify-center">
+                    <div className="bg-white md:col-span-3 rounded-2xl p-4 shadow-lg flex items-center justify-center">
                         <iframe
                             src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d247.52204155400318!2d107.65891012411763!3d-6.9676570406016225!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x2e68e9465bf21013%3A0x52be50500715e36c!2sPT.%20Makerindo%20Prima%20Solusi!5e0!3m2!1sid!2sid!4v1752132302971!5m2!1sid!2sid"
                             className="w-full h-60 md:h-72 rounded-2xl border-0"
                             allowFullScreen
                             loading="lazy"
-                            referrerPolicy="no-referrer-when-downgrade"
                         ></iframe>
                     </div>
                 </div>

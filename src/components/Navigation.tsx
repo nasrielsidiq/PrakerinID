@@ -2,14 +2,13 @@
 
 import { Dispatch, SetStateAction } from "react";
 import { useRouter } from "next/navigation";
-import ThemeToggle from "./themeToggle";
 
 interface NavigationProps {
     section: string;
     setSection: Dispatch<SetStateAction<string>>;
 }
 
-export default function Navigation({ section, setSection }: NavigationProps) {
+export default function Navigation({ setSection }: NavigationProps) {
     const router = useRouter();
 
     const handleNavigation = (section: string) => {
@@ -27,7 +26,10 @@ export default function Navigation({ section, setSection }: NavigationProps) {
                 document.getElementById("mitra")?.scrollIntoView({ behavior: "smooth" });
             }, 500); // delay agar halaman sempat render
         }
-    } else {
+    } else if (section === "about") {
+        router.push("/tentangKami")
+    } 
+    else {
         router.push("/");
     }
 };
@@ -51,10 +53,10 @@ export default function Navigation({ section, setSection }: NavigationProps) {
                     </div>
 
                     <div className="hidden md:flex space-x-4">
-                        <button className="px-4 py-2 font-semibold border border-accent text-accent text-prakerin rounded-lg hover:bg-accent-light hover:border-accent-light hover:text-white transition-all duration-300">
+                        <button onClick={() => {router.push("/daftar")}} className="px-4 py-2 font-semibold border border-accent text-accent text-prakerin rounded-lg hover:bg-accent-light hover:border-accent-light hover:text-white transition-all duration-300">
                             Daftar
                         </button>
-                        <button className="px-4 py-2 font-semibold bg-gradient-to-r from-accent to-accent-light text-white rounded-lg hover:from-accent-light hover:to-accent-light duration-300 transition-all">
+                        <button onClick={() => {router.push("/masuk")}} className="px-4 py-2 font-semibold bg-gradient-to-r from-accent to-accent-light text-white rounded-lg hover:from-accent-light hover:to-accent-light duration-300 transition-all">
                             Login
                         </button>
                     </div>
@@ -84,10 +86,10 @@ export default function Navigation({ section, setSection }: NavigationProps) {
                     <button type="button" onClick={() => handleNavigation("internship")} className="block py-2 text-gray-700 hover:text-prakerin transition-colors duration-300">Lowongan</button>
                     <button type="button" onClick={() => handleNavigation("mou")} className="block py-2 text-gray-700 hover:text-prakerin transition-colors duration-300">Mitra</button>
                     <div className="flex flex-col gap-2 mt-2">
-                        <button className="w-full px-4 py-2 font-semibold border border-accent text-accent text-prakerin rounded-lg hover:bg-accent-light hover:border-accent-light hover:text-white transition-all duration-300">
+                        <button onClick={() => {router.push("/daftar")}} className="w-full px-4 py-2 font-semibold border border-accent text-accent text-prakerin rounded-lg hover:bg-accent-light hover:border-accent-light hover:text-white transition-all duration-300">
                             Daftar
                         </button>
-                        <button className="w-full px-4 py-2 font-semibold bg-gradient-to-r from-accent to-accent-light text-white rounded-lg hover:from-accent-light hover:to-accent-light duration-300 transition-all">
+                        <button onClick={() => {router.push("/masuk")}} className="w-full px-4 py-2 font-semibold bg-gradient-to-r from-accent to-accent-light text-white rounded-lg hover:from-accent-light hover:to-accent-light duration-300 transition-all">
                             Login
                         </button>
                     </div>

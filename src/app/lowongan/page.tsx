@@ -3,14 +3,81 @@ import ContactPage from "@/components/Contact";
 import FooterPage from "@/components/Footer";
 import Navigation from "@/components/Navigation";
 import ThemeToggle from "@/components/themeToggle";
-import { useState } from "react";
+import axios from "axios";
+import { useEffect, useState } from "react";
+import { ENDPOINTS } from "../../../utils/config";
+import dayjs from "dayjs";
 
 export default function InternshipPage() {
     const [openFilter, setOpenFilter] = useState<string | null>(null);
+    const [data, setData] = useState<any[]>([]); // Replace 'any' with your actual data type
+    const [search, setSearch] = useState<string>("");
+    const [inputSearch, setInputSearch] = useState<string>("");
+
+    const [filters, setFilters] = useState({
+        provinsi: [] as string[],
+        kota: [] as string[],
+        pendidikan: [] as string[],
+        durasi: [] as string[],
+    });
+
+    useEffect(() => {
+        const delayDebounce = setTimeout(() => {
+            const fetchData = async () => {
+                try {
+                    const response = await axios.get(ENDPOINTS.INTERNSHIPS, {
+                        headers: {
+                            "Content-Type": "application/json",
+                        },
+                        params: {
+                            provinsi: filters.provinsi.join(","),
+                            kota: filters.kota.join(","),
+                            grade: filters.pendidikan.join(","),
+                            slug: search,
+                            durasi: filters.durasi.join(","),
+                        }
+                    });
+                    setData(response.data.data);
+                    console.log("Data fetched successfully:", response.data.data);
+                } catch (error) {
+                    console.error("Error fetching data:", error);
+                }
+            };
+
+            fetchData();
+        }, 1000); // Delay selama 1000ms (1 detik)
+
+        return () => clearTimeout(delayDebounce); // Bersihkan timeout kalau filters/search berubah
+    }, [filters, search]);
+
 
     const handleToggle = (filter: string) => {
         setOpenFilter(openFilter === filter ? null : filter);
     };
+
+    const handleFilterChange = (filterKey: keyof typeof filters, value: string) => {
+        setFilters(prev => {
+            const arr = prev[filterKey];
+            if (arr.includes(value)) {
+                // Hapus jika sudah ada
+                return { ...prev, [filterKey]: arr.filter(v => v !== value) };
+            } else {
+                // Tambah jika belum ada
+                return { ...prev, [filterKey]: [...arr, value] };
+            }
+        });
+
+    };
+
+    const handleSearchChange = () => {
+        setSearch(inputSearch);
+    }
+
+    
+
+    // console.log(data);
+    // console.log(filters);
+
 
     return (
         <>
@@ -22,14 +89,18 @@ export default function InternshipPage() {
                 <div className="flex flex-col sm:flex-row gap-4 mt-8">
                     <div className="relative flex border border-gray-300 rounded-full items-center">
                         <div className="relative flex-1">
-                            <input type="text"
+                            <input
+                                type="text"
+                                value={inputSearch}
+                                onChange={e => setInputSearch(e.target.value)}
                                 placeholder="Cari lowongan magang impian anda..."
-                                className="md:w-150 text-gray-600 dark:text-white px-4 py-3 pl-12 focus:outline-none focus:ring-2 focus:ring-prakerin focus:border-transparent transition-all duration-300" />
+                                className="md:w-150 text-gray-600 dark:text-white px-4 py-3 pl-12 focus:outline-none focus:ring-2 focus:ring-prakerin focus:border-transparent transition-all duration-300"
+                            />
                             <svg className="absolute left-4 top-3.5 w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
                             </svg>
                         </div>
-                        <button className="relative bg-accent-dark w-8 h-8 ms-4 me-2 rounded-full text-white hover:bg-prakerin-dark transition-all duration-300 transform hover:scale-105 shadow-lg">
+                        <button onClick={handleSearchChange} className="relative bg-accent-dark w-8 h-8 ms-4 me-2 rounded-full text-white hover:bg-prakerin-dark transition-all duration-300 transform hover:scale-105 shadow-lg">
                             <svg className="absolute inset-0 w-8 h-8 m-auto" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 16 16">
                                 <path fillRule="evenodd" d="M4 8a.5.5 0 0 1 .5-.5h5.793L8.146 5.354a.5.5 0 1 1 .708-.708l3 3a.5.5 0 0 1 0 .708l-3 3a.5.5 0 0 1-.708-.708L10.293 8.5H4.5A.5.5 0 0 1 4 8" />
                             </svg>
@@ -46,132 +117,39 @@ export default function InternshipPage() {
             </section>
             <section className="px-4 md:px-10 lg:px-20 py-10">
                 <h5 className="text-sm text-gray-600">
-                    lowongan ditemukan: <span className="text-gray-800 font-bold">15</span>
+                    lowongan ditemukan: <span className="text-gray-800 font-bold">{data.length}</span>
                 </h5>
                 <div className="flex flex-col lg:flex-row gap-8  min-h-screen items-stretch">
                     {/* Card List */}
                     <div className="w-full lg:flex-1 flex flex-col gap-6 mt-3">
                         {/* card */}
-                        <div className="bg-white rounded-xl shadow-md p-6 space-y-4 grid grid-cols-1 md:grid-cols-10 gap-2">
-                            <div className="flex items-start gap-4 col-span-6">
-                                <img
-                                    src="/Makerindo_PS.png"
-                                    alt="Makerindo"
-                                    className="w-16 h-16"
-                                />
-                                <div>
-                                    <h2 className="text-xl font-bold text-cyan-700">FrontEnd Developer</h2>
-                                    <p className="text-gray-600 whitespace-pre-line">Lorem ipsum dolor sit amet consectetur adipisicing elit. Consequuntur nihil culpa natus odit similique dolores! Saepe iure nihil magni eos.</p>
+                        {data && data.map((item, index) => (
+                            <div key={index} className="bg-white rounded-xl shadow-md p-6 space-y-4 grid grid-cols-1 md:grid-cols-10 gap-2">
+                                <div className="flex items-start gap-4 col-span-6">
+                                    <img
+                                        src="/Makerindo_PS.png"
+                                        alt="Makerindo"
+                                        className="w-16 h-16"
+                                    />
+                                    <div>
+                                        <h2 className="text-xl font-bold text-cyan-700">{item.title}</h2>
+                                        <p className="text-gray-600 whitespace-pre-line">{item.description}</p>
+                                    </div>
+                                </div>
+                                <div className="flex col-span-4 items-center flex-wrap gap-4 text-sm text-gray-600">
+                                    <div className="flex items-center gap-1">👥 {item.kuota} - {item.type} - {item.grade === "all" ? "Semua Tingkat" : `Tingkat ${item.grade}`} - {dayjs(item.end_date).diff(dayjs(item.start_date), "month")} bulan</div>
+                                    <div className="flex items-center gap-1">{`${item.company.address}, ${item.company.kota}, ${item.company.provinsi}`}</div>
+                                    <div className="flex items-center gap-1">💰 Paid</div>
+                                    <button className="px-4 py-2 rounded-md border border-gray-300 hover:bg-gray-100">
+                                        💾 Simpan
+                                    </button>
+                                    <button className="px-4 py-2 rounded-md bg-cyan-700 text-white hover:bg-cyan-800">
+                                        Lamar Sekarang
+                                    </button>
                                 </div>
                             </div>
-                            <div className="flex col-span-4 items-center flex-wrap gap-4 text-sm text-gray-600">
-                                <div className="flex items-center gap-1">👥 5 - full time - Level Pemula - 6 bulan</div>
-                                <div className="flex items-center gap-1">📍 Komplek Pesona Ciganitri Blok A39, Cipagalo, Kec. Bojongsoang, Kabupaten Bandung, Jawa Barat 40287</div>
-                                <div className="flex items-center gap-1">💰 Paid</div>
-                                <button className="px-4 py-2 rounded-md border border-gray-300 hover:bg-gray-100">
-                                    💾 Simpan
-                                </button>
-                                <button className="px-4 py-2 rounded-md bg-cyan-700 text-white hover:bg-cyan-800">
-                                    Lamar Sekarang
-                                </button>
-                            </div>
-                        </div>
-                        <div className="bg-white rounded-xl shadow-md p-6 space-y-4 grid grid-cols-1 md:grid-cols-10 gap-2">
-                            <div className="flex items-start gap-4 col-span-6">
-                                <img
-                                    src="/Makerindo_PS.png"
-                                    alt="Makerindo"
-                                    className="w-16 h-16"
-                                />
-                                <div>
-                                    <h2 className="text-xl font-bold text-cyan-700">FrontEnd Developer</h2>
-                                    <p className="text-gray-600 whitespace-pre-line">Lorem ipsum dolor sit amet consectetur adipisicing elit. Consequuntur nihil culpa natus odit similique dolores! Saepe iure nihil magni eos.</p>
-                                </div>
-                            </div>
-                            <div className="flex col-span-4 items-center flex-wrap gap-4 text-sm text-gray-600">
-                                <div className="flex items-center gap-1">👥 5 - full time - Level Pemula - 6 bulan</div>
-                                <div className="flex items-center gap-1">📍 Komplek Pesona Ciganitri Blok A39, Cipagalo, Kec. Bojongsoang, Kabupaten Bandung, Jawa Barat 40287</div>
-                                <div className="flex items-center gap-1">💰 Paid</div>
-                                <button className="px-4 py-2 rounded-md border border-gray-300 hover:bg-gray-100">
-                                    💾 Simpan
-                                </button>
-                                <button className="px-4 py-2 rounded-md bg-cyan-700 text-white hover:bg-cyan-800">
-                                    Lamar Sekarang
-                                </button>
-                            </div>
-                        </div>
-                        <div className="bg-white rounded-xl shadow-md p-6 space-y-4 grid grid-cols-1 md:grid-cols-10 gap-2">
-                            <div className="flex items-start gap-4 col-span-6">
-                                <img
-                                    src="/Makerindo_PS.png"
-                                    alt="Makerindo"
-                                    className="w-16 h-16"
-                                />
-                                <div>
-                                    <h2 className="text-xl font-bold text-cyan-700">FrontEnd Developer</h2>
-                                    <p className="text-gray-600 whitespace-pre-line">Lorem ipsum dolor sit amet consectetur adipisicing elit. Consequuntur nihil culpa natus odit similique dolores! Saepe iure nihil magni eos.</p>
-                                </div>
-                            </div>
-                            <div className="flex col-span-4 items-center flex-wrap gap-4 text-sm text-gray-600">
-                                <div className="flex items-center gap-1">👥 5 - full time - Level Pemula - 6 bulan</div>
-                                <div className="flex items-center gap-1">📍 Komplek Pesona Ciganitri Blok A39, Cipagalo, Kec. Bojongsoang, Kabupaten Bandung, Jawa Barat 40287</div>
-                                <div className="flex items-center gap-1">💰 Paid</div>
-                                <button className="px-4 py-2 rounded-md border border-gray-300 hover:bg-gray-100">
-                                    💾 Simpan
-                                </button>
-                                <button className="px-4 py-2 rounded-md bg-cyan-700 text-white hover:bg-cyan-800">
-                                    Lamar Sekarang
-                                </button>
-                            </div>
-                        </div>
-                        <div className="bg-white rounded-xl shadow-md p-6 space-y-4 grid grid-cols-1 md:grid-cols-10 gap-2">
-                            <div className="flex items-start gap-4 col-span-6">
-                                <img
-                                    src="/Makerindo_PS.png"
-                                    alt="Makerindo"
-                                    className="w-16 h-16"
-                                />
-                                <div>
-                                    <h2 className="text-xl font-bold text-cyan-700">FrontEnd Developer</h2>
-                                    <p className="text-gray-600 whitespace-pre-line">Lorem ipsum dolor sit amet consectetur adipisicing elit. Consequuntur nihil culpa natus odit similique dolores! Saepe iure nihil magni eos.</p>
-                                </div>
-                            </div>
-                            <div className="flex col-span-4 items-center flex-wrap gap-4 text-sm text-gray-600">
-                                <div className="flex items-center gap-1">👥 5 - full time - Level Pemula - 6 bulan</div>
-                                <div className="flex items-center gap-1">📍 Komplek Pesona Ciganitri Blok A39, Cipagalo, Kec. Bojongsoang, Kabupaten Bandung, Jawa Barat 40287</div>
-                                <div className="flex items-center gap-1">💰 Paid</div>
-                                <button className="px-4 py-2 rounded-md border border-gray-300 hover:bg-gray-100">
-                                    💾 Simpan
-                                </button>
-                                <button className="px-4 py-2 rounded-md bg-cyan-700 text-white hover:bg-cyan-800">
-                                    Lamar Sekarang
-                                </button>
-                            </div>
-                        </div>
-                        <div className="bg-white rounded-xl shadow-md p-6 space-y-4 grid grid-cols-1 md:grid-cols-10 gap-2">
-                            <div className="flex items-start gap-4 col-span-6">
-                                <img
-                                    src="/Makerindo_PS.png"
-                                    alt="Makerindo"
-                                    className="w-16 h-16"
-                                />
-                                <div>
-                                    <h2 className="text-xl font-bold text-cyan-700">FrontEnd Developer</h2>
-                                    <p className="text-gray-600 whitespace-pre-line">Lorem ipsum dolor sit amet consectetur adipisicing elit. Consequuntur nihil culpa natus odit similique dolores! Saepe iure nihil magni eos.</p>
-                                </div>
-                            </div>
-                            <div className="flex col-span-4 items-center flex-wrap gap-4 text-sm text-gray-600">
-                                <div className="flex items-center gap-1">👥 5 - full time - Level Pemula - 6 bulan</div>
-                                <div className="flex items-center gap-1">📍 Komplek Pesona Ciganitri Blok A39, Cipagalo, Kec. Bojongsoang, Kabupaten Bandung, Jawa Barat 40287</div>
-                                <div className="flex items-center gap-1">💰 Paid</div>
-                                <button className="px-4 py-2 rounded-md border border-gray-300 hover:bg-gray-100">
-                                    💾 Simpan
-                                </button>
-                                <button className="px-4 py-2 rounded-md bg-cyan-700 text-white hover:bg-cyan-800">
-                                    Lamar Sekarang
-                                </button>
-                            </div>
-                        </div>
+                        ))}
+
                     </div>
                     {/* Filter Box */}
                     <div className="w-full lg:w-1/4 mt-8 lg:mt-0">
@@ -193,13 +171,28 @@ export default function InternshipPage() {
                                 {openFilter === "provinsi" && (
                                     <div className="filter-dropdown space-y-2">
                                         <label className="flex items-center">
-                                            <input type="checkbox" className="mr-2" /> Jawa Barat
+                                            <input
+                                                type="checkbox"
+                                                className="mr-2"
+                                                checked={filters.provinsi.includes("Jawa Barat")}
+                                                onChange={() => handleFilterChange("provinsi", "Jawa Barat")}
+                                            /> Jawa Barat
                                         </label>
                                         <label className="flex items-center">
-                                            <input type="checkbox" className="mr-2" /> Jakarta
+                                            <input
+                                                type="checkbox"
+                                                className="mr-2"
+                                                checked={filters.provinsi.includes("Jawa Selatan")}
+                                                onChange={() => handleFilterChange("provinsi", "Jawa Selatan")}
+                                            /> Jawa Selatan
                                         </label>
                                         <label className="flex items-center">
-                                            <input type="checkbox" className="mr-2" /> Jawa Timur
+                                            <input
+                                                type="checkbox"
+                                                className="mr-2"
+                                                checked={filters.provinsi.includes("Jawa Tengah")}
+                                                onChange={() => handleFilterChange("provinsi", "Jawa Tengah")}
+                                            /> Jawa Tengah
                                         </label>
                                     </div>
                                 )}
@@ -220,13 +213,28 @@ export default function InternshipPage() {
                                 {openFilter === "kota" && (
                                     <div className="filter-dropdown space-y-2">
                                         <label className="flex items-center">
-                                            <input type="checkbox" className="mr-2" /> Kota Bandung
+                                            <input
+                                                type="checkbox"
+                                                className="mr-2"
+                                                checked={filters.kota.includes("Bandung")}
+                                                onChange={() => handleFilterChange("kota", "Bandung")}
+                                            /> Bandung
                                         </label>
                                         <label className="flex items-center">
-                                            <input type="checkbox" className="mr-2" /> Kabupaten Bandung Barat
+                                            <input
+                                                type="checkbox"
+                                                className="mr-2"
+                                                checked={filters.kota.includes("Bekasi")}
+                                                onChange={() => handleFilterChange("kota", "Bekasi")}
+                                            /> Bekasi
                                         </label>
                                         <label className="flex items-center">
-                                            <input type="checkbox" className="mr-2" /> Kota Cimahi
+                                            <input
+                                                type="checkbox"
+                                                className="mr-2"
+                                                checked={filters.kota.includes("Tangerang")}
+                                                onChange={() => handleFilterChange("kota", "Tangerang")}
+                                            /> Tangerang
                                         </label>
                                     </div>
                                 )}
@@ -247,34 +255,20 @@ export default function InternshipPage() {
                                 {openFilter === "pendidikan" && (
                                     <div className="filter-dropdown space-y-2">
                                         <label className="flex items-center">
-                                            <input type="checkbox" className="mr-2" /> SMK
+                                            <input
+                                                type="checkbox"
+                                                className="mr-2"
+                                                checked={filters.pendidikan.includes("smk")}
+                                                onChange={() => handleFilterChange("pendidikan", "smk")}
+                                            /> SMK
                                         </label>
                                         <label className="flex items-center">
-                                            <input type="checkbox" className="mr-2" /> Mahasiswa
-                                        </label>
-                                    </div>
-                                )}
-                            </div>
-
-                            {/* Bidang */}
-                            <div className="mb-6">
-                                <button
-                                    type="button"
-                                    onClick={() => handleToggle("bidang")}
-                                    className="w-full flex items-center justify-between text-left font-medium text-gray-700 mb-3"
-                                >
-                                    Bidang Magang
-                                    <svg className={`w-4 h-4 transform transition-transform ${openFilter === "bidang" ? "rotate-180" : ""}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7"></path>
-                                    </svg>
-                                </button>
-                                {openFilter === "bidang" && (
-                                    <div className="filter-dropdown space-y-2">
-                                        <label className="flex items-center">
-                                            <input type="checkbox" className="mr-2" /> IT
-                                        </label>
-                                        <label className="flex items-center">
-                                            <input type="checkbox" className="mr-2" /> Embedding
+                                            <input
+                                                type="checkbox"
+                                                className="mr-2"
+                                                checked={filters.pendidikan.includes("Mahasiswa")}
+                                                onChange={() => handleFilterChange("pendidikan", "Mahasiswa")}
+                                            /> Mahasiswa
                                         </label>
                                     </div>
                                 )}
@@ -295,13 +289,28 @@ export default function InternshipPage() {
                                 {openFilter === "durasi" && (
                                     <div className="filter-dropdown space-y-2">
                                         <label className="flex items-center">
-                                            <input type="checkbox" className="mr-2" /> 3 Bulan
+                                            <input
+                                                type="checkbox"
+                                                className="mr-2"
+                                                checked={filters.durasi.includes("3")}
+                                                onChange={() => handleFilterChange("durasi", "3")}
+                                            /> 3 Bulan
                                         </label>
                                         <label className="flex items-center">
-                                            <input type="checkbox" className="mr-2" /> 6 Bulan
+                                            <input
+                                                type="checkbox"
+                                                className="mr-2"
+                                                checked={filters.durasi.includes("6")}
+                                                onChange={() => handleFilterChange("durasi", "6")}
+                                            /> 6 Bulan
                                         </label>
                                         <label className="flex items-center">
-                                            <input type="checkbox" className="mr-2" /> 8 Bulan
+                                            <input
+                                                type="checkbox"
+                                                className="mr-2"
+                                                checked={filters.durasi.includes("8")}
+                                                onChange={() => handleFilterChange("durasi", "8")}
+                                            /> 8 Bulan
                                         </label>
                                     </div>
                                 )}

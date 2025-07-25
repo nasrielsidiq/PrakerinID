@@ -1,9 +1,10 @@
 "use client";
 
+
 export default function LandingPage() {
-    return ( 
+    return (
         <>
-        <section id="beranda" className="container mx-auto px-4 py-16">
+            <section id="beranda" className="container mx-auto px-4 py-16">
                 <div className="grid md:grid-cols-2 gap-12 items-center">
                     <div className="space-y-6  animate-slide-in-left">
                         <div className=" md:max-w-90 flex items-center text-sm text-prakerin font-medium border-1 border-gray-200 rounded-full">
@@ -126,7 +127,7 @@ export default function LandingPage() {
                 </div>
             </section>
 
-            <section id="mitra" className="py-16 bg-white">
+            <section id="mitra" className="py-16 ">
                 <div className="container mx-auto px-4">
                     <div className="mb-12">
                         <h2 className="text-3xl md:text-4xl font-bold text-accent mb-4">Mitra</h2>
@@ -137,21 +138,21 @@ export default function LandingPage() {
                     <div className="grid md:grid-cols-3 gap-8">
                         <div className="text-center transition-all duration-300 transform hover:scale-105 hover-lift bg-gray-50 border border-gray-100 shadow-2xl rounded-2xl p-8 animate-fade-in-up">
                             <div className="w-50 h-50 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                                <img src={"Makerindo_PS.png"} />
+                                <img src={"Makerindo_PS.png"} alt="" />
                             </div>
                             <h3 className="font-bold text-gray-800 mb-2">PT Makerindo Cipta Solusi</h3>
                             <p className="text-gray-600 text-sm">Software Company</p>
                         </div>
                         <div className="text-center transition-all duration-300 transform hover:scale-105 hover-lift bg-gray-50 border border-gray-100 shadow-2xl rounded-2xl p-8 animate-fade-in-up">
                             <div className="w-50 h-50 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                                <img src={"Makerindo_PS.png"} />
+                                <img src={"Makerindo_PS.png"} alt="" />
                             </div>
                             <h3 className="font-bold text-gray-800 mb-2">PT Makerindo Cipta Solusi</h3>
                             <p className="text-gray-600 text-sm">Software Company</p>
                         </div>
                         <div className="text-center transition-all duration-300 transform hover:scale-105 hover-lift bg-gray-50 border border-gray-100 shadow-2xl rounded-2xl p-8 animate-fade-in-up">
                             <div className="w-50 h-50 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                                <img src={"Makerindo_PS.png"} />
+                                <img src={"Makerindo_PS.png"} alt="" />
                             </div>
                             <h3 className="font-bold text-gray-800 mb-2">PT Makerindo Cipta Solusi</h3>
                             <p className="text-gray-600 text-sm">Software Company</p>
@@ -160,10 +161,63 @@ export default function LandingPage() {
                 </div>
             </section>
 
+            <section className="py-16 bg-gray-50">
+                <div className="container mx-auto px-4">
+                    <div className="mb-12">
+                        <h2 className="text-3xl md:text-4xl font-bold text-accent mb-4">Feedback Siswa/Mahasiswa</h2>
+                        <p className="text-gray-600 mb-5">Apa kata mereka yang sudah magang melalui Prakerin?</p>
+                        <div className="w-[170px] h-0 border-2 border-accent"></div>
+                    </div>
+                    <div className="flex space-x-8 overflow-x-auto scrollbar-hide p-5">
+                        <div className="bg-white md:min-w-80 space-y-5 rounded-2xl shadow-lg p-8 flex flex-col items-center text-center animate-fade-in-up">
+                            {/* <img src="/avatar1.png" alt="Avatar Siswa" className="w-16 h-16 rounded-full mb-4" /> */}
+                            <svg xmlns="http://www.w3.org/2000/svg" fill="currentColor" className="w-16 h-16 text-white bg-gray-400 p-2 rounded-full" viewBox="0 0 16 16">
+                                <path d="M3 14s-1 0-1-1 1-4 6-4 6 3 6 4-1 1-1 1zm5-6a3 3 0 1 0 0-6 3 3 0 0 0 0 6" />
+                            </svg>
+                            <p className="text-gray-700 mb-4">"Magang di Prakerin sangat membantu saya mendapatkan pengalaman kerja nyata dan memperluas relasi di dunia industri."</p>
+                            <span className="font-semibold text-prakerin">Rizky, Mahasiswa Informatika</span>
+                        </div>
+                        <div className="bg-white md:min-w-80 space-y-5 rounded-2xl shadow-lg p-8 flex flex-col items-center text-center animate-fade-in-up">
+                            {/* <img src="/avatar1.png" alt="Avatar Siswa" className="w-16 h-16 rounded-full mb-4" /> */}
+                            <svg xmlns="http://www.w3.org/2000/svg" fill="currentColor" className="w-16 h-16 text-white bg-gray-400 p-2 rounded-full" viewBox="0 0 16 16">
+                                <path d="M3 14s-1 0-1-1 1-4 6-4 6 3 6 4-1 1-1 1zm5-6a3 3 0 1 0 0-6 3 3 0 0 0 0 6" />
+                            </svg>
+                            <p className="text-gray-700 mb-4">"Magang di Prakerin sangat membantu saya mendapatkan pengalaman kerja nyata dan memperluas relasi di dunia industri."</p>
+                            <span className="font-semibold text-prakerin">Rizky, Mahasiswa Informatika</span>
+                        </div>
+                        <div className="bg-white md:min-w-80 space-y-5 rounded-2xl shadow-lg p-8 flex flex-col items-center text-center animate-fade-in-up">
+                            {/* <img src="/avatar1.png" alt="Avatar Siswa" className="w-16 h-16 rounded-full mb-4" /> */}
+                            <svg xmlns="http://www.w3.org/2000/svg" fill="currentColor" className="w-16 h-16 text-white bg-gray-400 p-2 rounded-full" viewBox="0 0 16 16">
+                                <path d="M3 14s-1 0-1-1 1-4 6-4 6 3 6 4-1 1-1 1zm5-6a3 3 0 1 0 0-6 3 3 0 0 0 0 6" />
+                            </svg>
+                            <p className="text-gray-700 mb-4">"Magang di Prakerin sangat membantu saya mendapatkan pengalaman kerja nyata dan memperluas relasi di dunia industri."</p>
+                            <span className="font-semibold text-prakerin">Rizky, Mahasiswa Informatika</span>
+                        </div>
+                        <div className="bg-white md:min-w-80 space-y-5 rounded-2xl shadow-lg p-8 flex flex-col items-center text-center animate-fade-in-up">
+                            {/* <img src="/avatar1.png" alt="Avatar Siswa" className="w-16 h-16 rounded-full mb-4" /> */}
+                            <svg xmlns="http://www.w3.org/2000/svg" fill="currentColor" className="w-16 h-16 text-white bg-gray-400 p-2 rounded-full" viewBox="0 0 16 16">
+                                <path d="M3 14s-1 0-1-1 1-4 6-4 6 3 6 4-1 1-1 1zm5-6a3 3 0 1 0 0-6 3 3 0 0 0 0 6" />
+                            </svg>
+                            <p className="text-gray-700 mb-4">"Magang di Prakerin sangat membantu saya mendapatkan pengalaman kerja nyata dan memperluas relasi di dunia industri."</p>
+                            <span className="font-semibold text-prakerin">Rizky, Mahasiswa Informatika</span>
+                        </div>
+                        <div className="bg-white md:min-w-80 space-y-5 rounded-2xl shadow-lg p-8 flex flex-col items-center text-center animate-fade-in-up">
+                            {/* <img src="/avatar1.png" alt="Avatar Siswa" className="w-16 h-16 rounded-full mb-4" /> */}
+                            <svg xmlns="http://www.w3.org/2000/svg" fill="currentColor" className="w-16 h-16 text-white bg-gray-400 p-2 rounded-full" viewBox="0 0 16 16">
+                                <path d="M3 14s-1 0-1-1 1-4 6-4 6 3 6 4-1 1-1 1zm5-6a3 3 0 1 0 0-6 3 3 0 0 0 0 6" />
+                            </svg>
+                            <p className="text-gray-700 mb-4">"Magang di Prakerin sangat membantu saya mendapatkan pengalaman kerja nyata dan memperluas relasi di dunia industri."</p>
+                            <span className="font-semibold text-prakerin">Rizky, Mahasiswa Informatika</span>
+                        </div>
+                        
+                    </div>
+                </div>
+            </section>
+
             <section className="bg-gradient-to-br to-accent from-cyan-200 md:m-15 md:rounded-3xl text-white md:py-16 py-10">
                 <div className="container flex flex-col md:flex-row items-center justify-between mx-auto md:px-20 px-4 gap-6">
                     <div className="text-center md:text-left">
-                        <h2 className="text-3xl md:text-4xl font-bold mb-4">Let's Grow Together!</h2>
+                        <h2 className="text-3xl md:text-4xl font-bold mb-4">Let&apos;s Grow Together!</h2>
                         <p className="text-lg opacity-90">
                             Mulai wujudkan impianmu! Prakerin siap mendukung langkah kariermu.
                         </p>
@@ -174,9 +228,42 @@ export default function LandingPage() {
                 </div>
             </section>
 
-            
+            <section className="py-16">
+                <div className="container mx-auto px-4">
+                    <div className="mb-12">
+                        <h2 className="text-3xl md:text-4xl font-bold text-accent mb-4">Sering di tanyakan</h2>
+                        <p className="text-gray-600 mb-5">Punya ide, pertanyaan, atau sekadar ingin menyapa seputar magang? Berikut adalah pertanyaan yang sering diajukan:</p>
+                        <div className="w-[170px] h-0 border-2 border-accent"></div>
+                    </div>
+                </div>
 
-            
-            </>
+                <div className="container mx-auto px-4">
+                    <div className="grid md:grid-cols-2 gap-8">
+                        <div className="space-y-6">
+                            <div className="bg-white rounded-lg shadow-lg p-6 hover:shadow-xl transition-shadow duration-300">
+                                <h3 className="text-lg font-semibold text-gray-800 mb-2">Bagaimana cara mendaftar magang di Prakerin?</h3>
+                                <p className="text-gray-600">Anda dapat mendaftar melalui website kami dengan mengisi formulir pendaftaran dan melengkapi dokumen yang diperlukan.</p>
+                            </div>
+                            <div className="bg-white rounded-lg shadow-lg p-6 hover:shadow-xl transition-shadow duration-300">
+                                <h3 className="text-lg font-semibold text-gray-800 mb-2">Apa saja syarat untuk mendaftar magang?</h3>
+                                <p className="text-gray-600">Syarat umum meliputi usia minimal 18 tahun, memiliki KTP, dan sedang menempuh pendidikan di perguruan tinggi atau sekolah menengah.</p>
+                            </div>
+                        </div>
+                        <div className="space-y-6">
+                            <div className="bg-white rounded-lg shadow-lg p-6 hover:shadow-xl transition-shadow duration-300">
+                                <h3 className="text-lg font-semibold text-gray-800 mb-2">Berapa lama durasi magang di Prakerin?</h3>
+                                <p className="text-gray-600">Durasi magang bervariasi tergantung program, mulai dari 1 bulan hingga 6 bulan.</p>
+                            </div>
+                            <div className="bg-white rounded-lg shadow-lg p-6 hover:shadow-xl transition-shadow duration-300">
+                                <h3 className="text-lg font-semibold text-gray-800 mb-2">Apakah ada biaya untuk mendaftar magang?</h3>
+                                <p className="text-gray-600">Tidak ada biaya pendaftaran. Semua layanan kami gratis bagi peserta magang.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+
+        </>
     )
 }

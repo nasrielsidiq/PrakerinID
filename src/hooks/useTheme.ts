@@ -8,7 +8,7 @@ export default function useTheme(): [string, (theme: string) => void] {
       const saved = localStorage.getItem("theme");
       return saved === "dark" || saved === "light" ? saved : "system";
     }
-    return "system";
+    return "light";
   });
 
   useEffect(() => {

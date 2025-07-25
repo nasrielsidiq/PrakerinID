@@ -3,7 +3,7 @@
 import useTheme from "@/hooks/useTheme";
 
 export default function ThemeToggle() {
-  const [theme, setTheme] = useTheme();
+  const [, setTheme] = useTheme();
 
   return (
     <div className="flex gap-2">
