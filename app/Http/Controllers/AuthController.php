@@ -97,15 +97,15 @@ class AuthController extends Controller
                 : $data = $request->only('name', 'address', 'phone_number', 'user_id', 'sector');
             $validator->addRules([
                 'name' => 'required|string|max:255',
-                'phone_number' => 'required|numeric',
+                // 'phone_number' => 'required|numeric',
                 'address' => 'required|string',
                 // 'user_id' => 'required|max:20',
                 'is_verified' => 'boolean',
             ]);
 
-            $request->role == 'industry' ? $validator->addRules([
-                'sector' => 'required'
-            ]) :  null;
+            // $request->role == 'industry' ? $validator->addRules([
+            //     'sector' => 'required'
+            // ]) :  null;
         }
 
         if ($validator->fails()) {

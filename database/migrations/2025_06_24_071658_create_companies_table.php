@@ -17,8 +17,8 @@ return new class extends Migration
             $table->id();
             $table->string('name');
             $table->text('address')->nullable();
-            $table->string('kota');
-            $table->string('provinsi');
+            $table->string('kota')->nullable();
+            $table->string('provinsi')->nullable();
             $table->string('phone_number')->nullable();
             $table->boolean('is_verified')->default(false);
             $table->foreignId('user_id')->constrained()->onDelete('cascade');
