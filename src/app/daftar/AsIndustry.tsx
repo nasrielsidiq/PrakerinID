@@ -1,23 +1,24 @@
 "use client";
-import React, { useState, ChangeEvent } from 'react';
+import React, { useState, ChangeEvent, useRef } from 'react';
 import { Upload, User, Mail, Lock, School, Eye, EyeOff } from 'lucide-react';
+import axios from 'axios';
+import { ENDPOINTS } from '../../../utils/config';
+import ReCAPTCHA from 'react-google-recaptcha';
 
 interface FormData {
   username: string;
-  fullName: string;
-  school: string;
+  name: string;
+  address: string;
   email: string;
   password: string;
-  confirmPassword: string;
+  password_confirmation: string;
+  recaptcha_token: string;
+  image?: File | null;
+  role: string; // Optional, can be used to differentiate roles if needed
 }
 
 interface FormErrors {
-  username?: string;
-  fullName?: string;
-  school?: string;
-  email?: string;
-  password?: string;
-  confirmPassword?: string;
+  [key: string]: string | undefined;
 }
 
 interface PrakerinRegistrationFormProps {
@@ -27,18 +28,22 @@ interface PrakerinRegistrationFormProps {
 const PrakerinRegistrationIndustryForm: React.FC<PrakerinRegistrationFormProps> = ({ setShowForm }) => {
   const [formData, setFormData] = useState<FormData>({
     username: '',
-    fullName: '',
-    school: '',
+    name: '',
+    address: '',
     email: '',
     password: '',
-    confirmPassword: ''
+    password_confirmation: '',
+    recaptcha_token: '',
+    role: 'industry',
   });
-  
+
   const [showPassword, setShowPassword] = useState<boolean>(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState<boolean>(false);
   const [profileImage, setProfileImage] = useState<string | null>(null);
   const [errors, setErrors] = useState<FormErrors>({});
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
+  const recaptchaRef = useRef<any>(null);
+
 
   const handleInputChange = (e: ChangeEvent<HTMLInputElement | HTMLSelectElement>): void => {
     const { name, value } = e.target;
@@ -46,7 +51,7 @@ const PrakerinRegistrationIndustryForm: React.FC<PrakerinRegistrationFormProps> 
       ...prev,
       [name]: value
     }));
-    
+
     // Clear error when user starts typing
     if (errors[name as keyof FormErrors]) {
       setErrors(prev => ({
@@ -64,13 +69,13 @@ const PrakerinRegistrationIndustryForm: React.FC<PrakerinRegistrationFormProps> 
         alert('File size must be less than 2MB');
         return;
       }
-      
+
       // Check file type
       if (!file.type.startsWith('image/')) {
         alert('Please select a valid image file');
         return;
       }
-      
+
       const reader = new FileReader();
       reader.onload = (e: ProgressEvent<FileReader>) => {
         if (e.target?.result) {
@@ -78,73 +83,116 @@ const PrakerinRegistrationIndustryForm: React.FC<PrakerinRegistrationFormProps> 
         }
       };
       reader.readAsDataURL(file);
+
+      setFormData(prev => ({
+        ...prev,
+        image: file
+      }));
     }
   };
 
   const validateForm = (): boolean => {
     const newErrors: FormErrors = {};
-    
+
     if (!formData.username.trim()) {
       newErrors.username = 'Username is required';
     } else if (formData.username.length < 3) {
       newErrors.username = 'Username must be at least 3 characters';
     }
-    
-    if (!formData.fullName.trim()) {
+
+    if (!formData.name.trim()) {
       newErrors.fullName = 'Full name is required';
     }
-    
-    if (!formData.school) {
+
+    if (!formData.address) {
       newErrors.school = 'Please select a school/university';
     }
-    
+
     if (!formData.email.trim()) {
       newErrors.email = 'Email is required';
     } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
       newErrors.email = 'Please enter a valid email address';
     }
-    
+
     if (!formData.password) {
       newErrors.password = 'Password is required';
     } else if (formData.password.length < 6) {
       newErrors.password = 'Password must be at least 6 characters';
     }
-    
-    if (!formData.confirmPassword) {
+
+    if (!formData.password_confirmation) {
       newErrors.confirmPassword = 'Please confirm your password';
-    } else if (formData.password !== formData.confirmPassword) {
+    } else if (formData.password !== formData.password_confirmation) {
       newErrors.confirmPassword = 'Passwords do not match';
     }
-    
+
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
 
   const handleSubmit = async (): Promise<void> => {
     if (!validateForm()) return;
-    
+
     setIsSubmitting(true);
-    
+    const token = await recaptchaRef.current.executeAsync();
+    recaptchaRef.current.reset();
+    formData.recaptcha_token = token
+
     try {
       // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
+      const response = await axios.post(ENDPOINTS.REGISTER, formData, {
+        withCredentials: true,
+        withXSRFToken: true,
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        }
+      });
+
+      if (response.status === 422) {
+        const errorData = response.data;
+        const newErrors: FormErrors = {};
+
+        // Map backend validation errors to form errors
+        for (const key in errorData) {
+          if (errorData.hasOwnProperty(key)) {
+            newErrors[key] = errorData[key].join(', ');
+          }
+        }
+
+        setErrors(newErrors);
+        return;
+      }
+
+      if (response.status === 200) {
+        alert('Registration successful!');
+        setShowForm(""); // Reset to initial form state
+      } else {
+        alert('Registration failed. Please try again.');
+      }
+      console.log('Form submitted:', {
+        json: response.data,
+        profileImage: formData.image
+      });
+
       console.log('Form submitted:', {
         ...formData,
         profileImage: profileImage ? 'Image uploaded' : 'No image'
       });
-      
+
       // Reset form after successful submission
       setFormData({
         username: '',
-        fullName: '',
-        school: '',
+        name: '',
+        address: '',
         email: '',
         password: '',
-        confirmPassword: ''
+        password_confirmation: '',
+        recaptcha_token: '',
+        image: null,
+        role: 'industry',
       });
       setProfileImage(null);
-      
+
       alert('Registration successful!');
     } catch (error) {
       console.error('Submission error:', error);
@@ -163,7 +211,7 @@ const PrakerinRegistrationIndustryForm: React.FC<PrakerinRegistrationFormProps> 
       <div className="bg-white rounded-2xl shadow-xl p-8 w-full max-w-4xl">
         {/* Header */}
         <div className="text-center mb-8">
-          <img src="PrakerinID_ico.svg" alt="Prakerin ID Logo" className="mx-auto w-50 mb-4" />
+          <img src="PrakerinID_ico.svg" alt="" className="lg:w-50 mb-4 mx-auto" />
           <h2 className="text-2xl font-semibold text-gray-700">Daftar Industry Magang</h2>
         </div>
 
@@ -212,9 +260,8 @@ const PrakerinRegistrationIndustryForm: React.FC<PrakerinRegistrationFormProps> 
                     value={formData.username}
                     onChange={handleInputChange}
                     placeholder="Masukan Username anda disini"
-                    className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-teal-500 outline-none transition-colors ${
-                      errors.username ? 'border-red-500' : 'border-gray-300'
-                    }`}
+                    className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-teal-500 outline-none transition-colors ${errors.username ? 'border-red-500' : 'border-gray-300'
+                      }`}
                   />
                   {errors.username && (
                     <p className="mt-1 text-sm text-red-500">{errors.username}</p>
@@ -226,13 +273,12 @@ const PrakerinRegistrationIndustryForm: React.FC<PrakerinRegistrationFormProps> 
                   </label>
                   <input
                     type="text"
-                    name="fullName"
-                    value={formData.fullName}
+                    name="name"
+                    value={formData.name}
                     onChange={handleInputChange}
                     placeholder="Masukan Nama anda disini"
-                    className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-teal-500 outline-none transition-colors ${
-                      errors.fullName ? 'border-red-500' : 'border-gray-300'
-                    }`}
+                    className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-teal-500 outline-none transition-colors ${errors.fullName ? 'border-red-500' : 'border-gray-300'
+                      }`}
                   />
                   {errors.fullName && (
                     <p className="mt-1 text-sm text-red-500">{errors.fullName}</p>
@@ -244,34 +290,18 @@ const PrakerinRegistrationIndustryForm: React.FC<PrakerinRegistrationFormProps> 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Asal Sekolah / Universitas<span className="text-red-500">*</span>
+                    Alamat<span className="text-red-500">*</span>
                   </label>
                   <div className="relative">
-                    <select
-                      name="school"
-                      value={formData.school}
+                    <input
+                      name="address"
+                      type='text'
+                      placeholder='Masukan alamat industry anda disini'
+                      value={formData.address}
                       onChange={handleInputChange}
-                      className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-teal-500 outline-none transition-colors appearance-none bg-white ${
-                        errors.school ? 'border-red-500' : 'border-gray-300'
-                      }`}
-                    >
-                      <option value="">Pilih Sekolah/Univ anda</option>
-                      <option value="smk1">SMK Negeri 1 Bandung</option>
-                      <option value="smk2">SMK Negeri 2 Bandung</option>
-                      <option value="smk3">SMK Negeri 3 Bandung</option>
-                      <option value="smk4">SMK Negeri 4 Bandung</option>
-                      <option value="smk5">SMK Negeri 5 Bandung</option>
-                      <option value="univ1">Universitas Pendidikan Indonesia</option>
-                      <option value="univ2">Institut Teknologi Bandung</option>
-                      <option value="univ3">Universitas Islam Negri</option>
-                      <option value="univ4">Universitas Islam Bandung</option>
-                      <option value="other">Lainnya</option>
-                    </select>
-                    <div className="absolute inset-y-0 right-0 flex items-center px-2 pointer-events-none">
-                      <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                      </svg>
-                    </div>
+                      className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-teal-500 outline-none transition-colors appearance-none bg-white ${errors.school ? 'border-red-500' : 'border-gray-300'
+                        }`}
+                    />
                   </div>
                   {errors.school && (
                     <p className="mt-1 text-sm text-red-500">{errors.school}</p>
@@ -287,9 +317,8 @@ const PrakerinRegistrationIndustryForm: React.FC<PrakerinRegistrationFormProps> 
                     value={formData.email}
                     onChange={handleInputChange}
                     placeholder="Masukan Email anda disini"
-                    className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-teal-500 outline-none transition-colors ${
-                      errors.email ? 'border-red-500' : 'border-gray-300'
-                    }`}
+                    className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-teal-500 outline-none transition-colors ${errors.email ? 'border-red-500' : 'border-gray-300'
+                      }`}
                   />
                   {errors.email && (
                     <p className="mt-1 text-sm text-red-500">{errors.email}</p>
@@ -310,9 +339,8 @@ const PrakerinRegistrationIndustryForm: React.FC<PrakerinRegistrationFormProps> 
                       value={formData.password}
                       onChange={handleInputChange}
                       placeholder="Masukan Password anda disini"
-                      className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-teal-500 outline-none transition-colors pr-12 ${
-                        errors.password ? 'border-red-500' : 'border-gray-300'
-                      }`}
+                      className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-teal-500 outline-none transition-colors pr-12 ${errors.password ? 'border-red-500' : 'border-gray-300'
+                        }`}
                     />
                     <button
                       type="button"
@@ -333,13 +361,12 @@ const PrakerinRegistrationIndustryForm: React.FC<PrakerinRegistrationFormProps> 
                   <div className="relative">
                     <input
                       type={showConfirmPassword ? "text" : "password"}
-                      name="confirmPassword"
-                      value={formData.confirmPassword}
+                      name="password_confirmation"
+                      value={formData.password_confirmation}
                       onChange={handleInputChange}
                       placeholder="Masukan Password anda disini"
-                      className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-teal-500 outline-none transition-colors pr-12 ${
-                        errors.confirmPassword ? 'border-red-500' : 'border-gray-300'
-                      }`}
+                      className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-teal-500 outline-none transition-colors pr-12 ${errors.confirmPassword ? 'border-red-500' : 'border-gray-300'
+                        }`}
                     />
                     <button
                       type="button"
@@ -373,6 +400,12 @@ const PrakerinRegistrationIndustryForm: React.FC<PrakerinRegistrationFormProps> 
               disabled={isSubmitting}
               className="px-6 py-3 bg-accent text-white rounded-lg hover:bg-accent-hover transition-colors font-medium flex items-center space-x-2 disabled:opacity-50 disabled:cursor-not-allowed"
             >
+              <ReCAPTCHA
+                sitekey="6LejCYsrAAAAAI_2Pf0-3czAPUaswYA4_GZDaGiy"
+                size="invisible"
+                className="mb-4"
+                ref={recaptchaRef}
+              />
               <span>{isSubmitting ? 'Mendaftar...' : 'Daftar'}</span>
               {!isSubmitting && (
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">

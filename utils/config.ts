@@ -1,4 +1,4 @@
-const API_BASE_URL = "http://localhost:8000"; // ganti dengan URL API Anda
+const API_BASE_URL = "http://192.168.1.28:8000"; // ganti dengan URL API Anda
 
 export const ENDPOINTS = {
     INTERNSHIPS: `${API_BASE_URL}/api/internships`,

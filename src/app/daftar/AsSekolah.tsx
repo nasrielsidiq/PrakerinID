@@ -1,23 +1,24 @@
 "use client";
-import React, { useState, ChangeEvent } from 'react';
+import React, { useState, ChangeEvent, useRef } from 'react';
 import { Upload, User, Mail, Lock, School, Eye, EyeOff } from 'lucide-react';
+import axios from 'axios';
+import { ENDPOINTS } from '../../../utils/config';
+import ReCAPTCHA from 'react-google-recaptcha';
 
 interface FormData {
   username: string;
-  fullName: string;
-  school: string;
+  name: string;
+  address: string;
   email: string;
   password: string;
-  confirmPassword: string;
+  password_confirmation: string;
+  role: string; // Optional field for role selection
+  image?: File | null;
+  recaptcha_token: string; // For reCAPTCHA token
 }
 
 interface FormErrors {
-  username?: string;
-  fullName?: string;
-  school?: string;
-  email?: string;
-  password?: string;
-  confirmPassword?: string;
+  [key: string]: string | undefined;
 }
 
 interface PrakerinRegistrationFormProps {
@@ -27,11 +28,13 @@ interface PrakerinRegistrationFormProps {
 const PrakerinRegistrationSekolahForm: React.FC<PrakerinRegistrationFormProps> = ({ setShowForm }) => {
   const [formData, setFormData] = useState<FormData>({
     username: '',
-    fullName: '',
-    school: '',
+    name: '',
+    address: '',
     email: '',
     password: '',
-    confirmPassword: ''
+    password_confirmation: '',
+    role: 'school', // Default role
+    recaptcha_token: '',
   });
 
   const [showPassword, setShowPassword] = useState<boolean>(false);
@@ -39,6 +42,7 @@ const PrakerinRegistrationSekolahForm: React.FC<PrakerinRegistrationFormProps> =
   const [profileImage, setProfileImage] = useState<string | null>(null);
   const [errors, setErrors] = useState<FormErrors>({});
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
+  const recaptchaRef = useRef<any>(null);
 
   const handleInputChange = (e: ChangeEvent<HTMLInputElement | HTMLSelectElement>): void => {
     const { name, value } = e.target;
@@ -78,73 +82,109 @@ const PrakerinRegistrationSekolahForm: React.FC<PrakerinRegistrationFormProps> =
         }
       };
       reader.readAsDataURL(file);
+
+      setFormData(prev => ({
+        ...prev,
+        image: file
+      }));
     }
   };
 
-  const validateForm = (): boolean => {
-    const newErrors: FormErrors = {};
-    
+  // const validateForm = (): boolean => {
+  //   const newErrors: FormErrors = {};
 
-    // if (!formData.username.trim()) {
-    //   newErrors.username = 'Username is required';
-    // } else if (formData.username.length < 3) {
-    //   newErrors.username = 'Username must be at least 3 characters';
-    // }
 
-    // if (!formData.fullName.trim()) {
-    //   newErrors.fullName = 'Full name is required';
-    // }
+  //   // if (!formData.username.trim()) {
+  //   //   newErrors.username = 'Username is required';
+  //   // } else if (formData.username.length < 3) {
+  //   //   newErrors.username = 'Username must be at least 3 characters';
+  //   // }
 
-    // if (!formData.school) {
-    //   newErrors.school = 'Please select a school/university';
-    // }
+  //   // if (!formData.fullName.trim()) {
+  //   //   newErrors.fullName = 'Full name is required';
+  //   // }
 
-    // if (!formData.email.trim()) {
-    //   newErrors.email = 'Email is required';
-    // } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
-    //   newErrors.email = 'Please enter a valid email address';
-    // }
+  //   // if (!formData.school) {
+  //   //   newErrors.school = 'Please select a school/university';
+  //   // }
 
-    // if (!formData.password) {
-    //   newErrors.password = 'Password is required';
-    // } else if (formData.password.length < 6) {
-    //   newErrors.password = 'Password must be at least 6 characters';
-    // }
+  //   // if (!formData.email.trim()) {
+  //   //   newErrors.email = 'Email is required';
+  //   // } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
+  //   //   newErrors.email = 'Please enter a valid email address';
+  //   // }
 
-    // if (!formData.confirmPassword) {
-    //   newErrors.confirmPassword = 'Please confirm your password';
-    // } else if (formData.password !== formData.confirmPassword) {
-    //   newErrors.confirmPassword = 'Passwords do not match';
-    // }
+  //   // if (!formData.password) {
+  //   //   newErrors.password = 'Password is required';
+  //   // } else if (formData.password.length < 6) {
+  //   //   newErrors.password = 'Password must be at least 6 characters';
+  //   // }
 
-    setErrors(newErrors);
-    return Object.keys(newErrors).length === 0;
-  };
+  //   // if (!formData.confirmPassword) {
+  //   //   newErrors.confirmPassword = 'Please confirm your password';
+  //   // } else if (formData.password !== formData.confirmPassword) {
+  //   //   newErrors.confirmPassword = 'Passwords do not match';
+  //   // }
+
+  //   setErrors(newErrors);
+  //   return Object.keys(newErrors).length === 0;
+  // };
 
   const handleSubmit = async (): Promise<void> => {
     // if (!validateForm()) return;
 
     setIsSubmitting(true);
+    const token = await recaptchaRef.current.executeAsync();
+    recaptchaRef.current.reset();
+    formData.recaptcha_token = token
 
     try {
       // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      const response = await axios.post(ENDPOINTS.REGISTER, formData, {
+        withCredentials: true,
+        withXSRFToken: true,
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        }
+      });
 
+      if (response.status === 422) {
+        const errorData = response.data;
+        const newErrors: FormErrors = {};
+
+        // Map backend validation errors to form errors
+        for (const key in errorData) {
+          if (errorData.hasOwnProperty(key)) {
+            newErrors[key] = errorData[key].join(', ');
+          }
+        }
+
+        setErrors(newErrors);
+        return;
+      }
+
+      if (response.status === 200) {
+        alert('Registration successful!');
+        setShowForm(""); // Reset to initial form state
+      } else {
+        alert('Registration failed. Please try again.');
+      }
       console.log('Form submitted:', {
-        ...formData,
-        profileImage: profileImage ? 'Image uploaded' : 'No image'
+        json: response.data,
+        profileImage: formData.image
       });
 
-      // Reset form after successful submission
-      setFormData({
-        username: '',
-        fullName: '',
-        school: '',
-        email: '',
-        password: '',
-        confirmPassword: ''
-      });
-      setProfileImage(null);
+
+      // // Reset form after successful submission
+      // setFormData({
+      //   username: '',
+      //   fullName: '',
+      //   school: '',
+      //   email: '',
+      //   password: '',
+      //   confirmPassword: ''
+      // });
+      // setProfileImage(null);
 
       alert('Registration successful!');
     } catch (error) {
@@ -164,7 +204,7 @@ const PrakerinRegistrationSekolahForm: React.FC<PrakerinRegistrationFormProps> =
       <div className="bg-white rounded-2xl shadow-xl p-8 w-full max-w-4xl">
         {/* Header */}
         <div className="text-center mb-8">
-          <img src="PrakerinID_ico.svg" alt="Prakerin ID Logo" className="mx-auto w-50 mb-4" />
+          <img src="PrakerinID_ico.svg" alt="" className="lg:w-50 mb-4 mx-auto" />
           <h2 className="text-2xl font-semibold text-gray-700">Daftar Sekolah Magang</h2>
         </div>
 
@@ -222,14 +262,14 @@ const PrakerinRegistrationSekolahForm: React.FC<PrakerinRegistrationFormProps> =
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Nama Lengkap<span className="text-red-500">*</span>
+                    Nama Sekolah<span className="text-red-500">*</span>
                   </label>
                   <input
                     type="text"
-                    name="fullName"
-                    value={formData.fullName}
+                    name="name"
+                    value={formData.name}
                     onChange={handleInputChange}
-                    placeholder="Masukan Nama anda disini"
+                    placeholder="Masukan Nama Sekolah anda"
                     className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-teal-500 outline-none transition-colors ${errors.fullName ? 'border-red-500' : 'border-gray-300'
                       }`}
                   />
@@ -243,33 +283,23 @@ const PrakerinRegistrationSekolahForm: React.FC<PrakerinRegistrationFormProps> =
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Asal Sekolah / Universitas<span className="text-red-500">*</span>
+                    Alamat<span className="text-red-500">*</span>
                   </label>
                   <div className="relative">
-                    <select
-                      name="school"
-                      value={formData.school}
+                    <input
+                      type="text"
+                      placeholder="Masukan alamat sekolah anda"
+                      name="address"
+                      value={formData.address}
                       onChange={handleInputChange}
                       className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-teal-500 outline-none transition-colors appearance-none bg-white ${errors.school ? 'border-red-500' : 'border-gray-300'
                         }`}
-                    >
-                      <option value="">Pilih Sekolah/Univ anda</option>
-                      <option value="smk1">SMK Negeri 1 Bandung</option>
-                      <option value="smk2">SMK Negeri 2 Bandung</option>
-                      <option value="smk3">SMK Negeri 3 Bandung</option>
-                      <option value="smk4">SMK Negeri 4 Bandung</option>
-                      <option value="smk5">SMK Negeri 5 Bandung</option>
-                      <option value="univ1">Universitas Pendidikan Indonesia</option>
-                      <option value="univ2">Institut Teknologi Bandung</option>
-                      <option value="univ3">Universitas Islam Negri</option>
-                      <option value="univ4">Universitas Islam Bandung</option>
-                      <option value="other">Lainnya</option>
-                    </select>
-                    <div className="absolute inset-y-0 right-0 flex items-center px-2 pointer-events-none">
+                    />
+                    {/* <div className="absolute inset-y-0 right-0 flex items-center px-2 pointer-events-none">
                       <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
                       </svg>
-                    </div>
+                    </div> */}
                   </div>
                   {errors.school && (
                     <p className="mt-1 text-sm text-red-500">{errors.school}</p>
@@ -329,8 +359,8 @@ const PrakerinRegistrationSekolahForm: React.FC<PrakerinRegistrationFormProps> =
                   <div className="relative">
                     <input
                       type={showConfirmPassword ? "text" : "password"}
-                      name="confirmPassword"
-                      value={formData.confirmPassword}
+                      name="password_confirmation"
+                      value={formData.password_confirmation}
                       onChange={handleInputChange}
                       placeholder="Masukan Password anda disini"
                       className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-teal-500 outline-none transition-colors pr-12 ${errors.confirmPassword ? 'border-red-500' : 'border-gray-300'
@@ -368,6 +398,12 @@ const PrakerinRegistrationSekolahForm: React.FC<PrakerinRegistrationFormProps> =
               disabled={isSubmitting}
               className="px-6 py-3 bg-accent text-white rounded-lg hover:bg-accent-hover transition-colors font-medium flex items-center space-x-2 disabled:opacity-50 disabled:cursor-not-allowed"
             >
+              <ReCAPTCHA
+                sitekey="6LejCYsrAAAAAI_2Pf0-3czAPUaswYA4_GZDaGiy"
+                size="invisible"
+                className="mb-4"
+                ref={recaptchaRef}
+              />
               <span>{isSubmitting ? 'Mendaftar...' : 'Daftar'}</span>
               {!isSubmitting && (
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">

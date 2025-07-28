@@ -4,7 +4,7 @@ import axios from "axios";
 import { Eye, EyeOff, LockKeyhole, UserRound } from "lucide-react";
 import ReCAPTCHA from "react-google-recaptcha";
 import Link from "next/link";
-import { useEffect, useRef, useState } from "react";
+import { useRef, useState } from "react";
 import { ENDPOINTS } from "../../../utils/config";
 
 interface FormData {
@@ -37,43 +37,32 @@ export default function LoginPage() {
         });
     };
 
-
     const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
-        if (!validateForm()) return;
         e.preventDefault();
-        console.log(data);
+        if (!validateForm()) return;
 
         const token = await recaptchaRef.current.executeAsync();
         recaptchaRef.current.reset();
-        data.recaptcha_token = token
+        data.recaptcha_token = token;
 
+        try {
+            const response = await axios.post(ENDPOINTS.LOGIN, {
+                email: data.email,
+                password: data.password,
+                recaptcha_token: data.recaptcha_token
+            }, {
+                withCredentials: true,
+                withXSRFToken: true,
+            });
 
-        // await axios.get(ENDPOINTS.COOKIES, {
-        //     withCredentials: true, // Ensure cookies are sent with the request
-        //     // withXSRFToken: true, // Include XSRF token if needed
-        // }).then((response) => {
-        //     console.log("Cookies set successfully:", response);
-        // }).catch((error) => {
-        //     console.error("Error setting cookies:", error);
-        // });
-
-        const response = await axios.post(ENDPOINTS.LOGIN, {
-            email: data.email,
-            password: data.password,
-            recaptcha_token: data.recaptcha_token
-        }, {
-            withCredentials: true,
-            withXSRFToken: true,
-        });
-        if (response.status === 200) {
-            // Handle successful login, e.g., redirect to dashboard or show success message
-            console.log("Login successful:", response.data);
-        } else {
-            // Handle login error, e.g., show error message
-            console.error("Login failed:", response.data);
+            if (response.status === 200) {
+                console.log("Login successful:", response.data);
+            } else {
+                console.error("Login failed:", response.data);
+            }
+        } catch (error) {
+            console.error("Login error:", error);
         }
-        console.log(data);
-
     };
 
     const validateForm = (): boolean => {
@@ -93,29 +82,39 @@ export default function LoginPage() {
 
         setErrors(newErrors);
         return Object.keys(newErrors).length === 0;
-    }
+    };
 
     return (
         <>
             <div className="hidden">
                 <ThemeToggle />
             </div>
-            <section className="flex items-center justify-center min-h-screen">
-                <div className="space-y-5 bg-background shadow-2xl md:p-10 rounded-xl flex flex-col items-center md:min-w-100">
-                    <img src="PrakerinID_ico.svg" alt="" className="lg:w-50 " />
-                    <h1 className="text-2xl font-bold">Login</h1>
-                    <form className=" md:min-w-75 w-100" onSubmit={handleSubmit}>
-                        <div className="mb-4">
+            <section className="flex items-center justify-center min-h-screen bg-background px-4">
+                <div className="w-full max-w-md space-y-6 bg-white shadow-2xl p-6 md:p-10 rounded-xl">
+                    <div className="flex justify-center">
+                        <img src="/PrakerinID_ico.svg" alt="Logo" className="w-28 md:w-48" />
+                    </div>
+                    <h1 className="text-2xl font-bold text-center">Login</h1>
+                    <form onSubmit={handleSubmit} className="space-y-5">
+                        <div>
                             <label htmlFor="email" className="block text-sm font-medium">Email</label>
-                            <div className="flex-1 relative">
-                                <input name="email" placeholder="Masukan username kamu disini" onChange={handleChange} type="email" id="email" className="mt-1 block w-full p-3 px-12 border border-gray-300 rounded-xl" />
+                            <div className="relative">
+                                <input
+                                    name="email"
+                                    placeholder="Masukan email kamu"
+                                    onChange={handleChange}
+                                    type="email"
+                                    id="email"
+                                    className="mt-1 block w-full p-3 px-12 border border-gray-300 rounded-xl"
+                                />
                                 <UserRound className="text-accent absolute left-4 top-3.5 w-5 h-5" />
                             </div>
                             {errors.email && (
                                 <p className="mt-1 text-sm text-red-500">{errors.email}</p>
                             )}
                         </div>
-                        <div className=" mb-8">
+
+                        <div>
                             <label htmlFor="password" className="block text-sm font-medium">Password</label>
                             <div className="relative">
                                 <input
@@ -123,15 +122,14 @@ export default function LoginPage() {
                                     name="password"
                                     value={data.password}
                                     onChange={handleChange}
-                                    placeholder="Masukan Password anda disini"
-                                    className={`w-full px-12 py-3 border rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-teal-500 outline-none transition-colors pr-12 ${errors.password ? 'border-red-500' : 'border-gray-300'
-                                        }`}
+                                    placeholder="Masukan password kamu"
+                                    className={`w-full px-12 py-3 border rounded-lg pr-12 focus:ring-2 focus:ring-teal-500 focus:border-teal-500 outline-none transition-colors ${errors.password ? 'border-red-500' : 'border-gray-300'}`}
                                 />
                                 <LockKeyhole className="text-accent absolute left-4 top-3.5 w-5 h-5" />
                                 <button
                                     type="button"
                                     onClick={() => setShowPassword(!showPassword)}
-                                    className="absolute inset-y-0 right-0 flex items-center px-3 text-gray-400 hover:text-gray-600"
+                                    className="absolute inset-y-0 right-0 flex items-center px-3"
                                 >
                                     {showPassword ? <EyeOff className="w-5 h-5 text-accent" /> : <Eye className="w-5 h-5 text-accent" />}
                                 </button>
@@ -140,22 +138,30 @@ export default function LoginPage() {
                                 <p className="mt-1 text-sm text-red-500">{errors.password}</p>
                             )}
                         </div>
-                        <input type="checkbox" name="rember" className="me-2 mt-4" id="" />Remember me
+
+                        <div className="flex items-center space-x-2">
+                            <input type="checkbox" name="remember" id="remember" className="h-4 w-4" />
+                            <label htmlFor="remember" className="text-sm">Remember me</label>
+                        </div>
+
                         <ReCAPTCHA
                             sitekey="6LejCYsrAAAAAI_2Pf0-3czAPUaswYA4_GZDaGiy"
                             size="invisible"
-                            className="mb-4"
                             ref={recaptchaRef}
                         />
-                        <button type="submit" className="w-full bg-accent text-white py-2 rounded-md">Login</button>
-                        <div className="mt-4">
-                            <p className="text-sm ">
-                                Belum memilik akun? <Link href="/daftar" className="text-blue-500">Daftar</Link>
+
+                        <button type="submit" className="w-full bg-accent text-white py-2 rounded-md hover:bg-accent/90 transition">
+                            Login
+                        </button>
+
+                        <div className="text-center">
+                            <p className="text-sm">
+                                Belum memiliki akun? <Link href="/daftar" className="text-blue-500 hover:underline">Daftar</Link>
                             </p>
                         </div>
                     </form>
-                </div >
-            </section >
+                </div>
+            </section>
         </>
-    )
+    );
 }

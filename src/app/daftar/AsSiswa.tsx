@@ -18,7 +18,7 @@ interface FormData {
   image?: File | null;
 }
 
-interface SchoolData{
+interface SchoolData {
   id: string;
   name: string;
 }
@@ -104,7 +104,7 @@ const PrakerinRegistrationSiswaForm: React.FC<PrakerinRegistrationFormProps> = (
       };
       reader.readAsDataURL(file);
       console.log(file);
-      
+
       setFormData(prev => ({
         ...prev,
         image: file
@@ -151,7 +151,7 @@ const PrakerinRegistrationSiswaForm: React.FC<PrakerinRegistrationFormProps> = (
         alert('Registration failed. Please try again.');
       }
       console.log('Form submitted:', {
-        json: response.data.data,
+        json: response.data,
         profileImage: formData.image
       });
 
@@ -174,7 +174,7 @@ const PrakerinRegistrationSiswaForm: React.FC<PrakerinRegistrationFormProps> = (
       <div className="bg-white rounded-2xl shadow-xl p-8 w-full max-w-4xl">
         {/* Header */}
         <div className="text-center mb-8">
-          <img src="PrakerinID_ico.svg" alt="Prakerin ID Logo" className="mx-auto w-50 mb-4" />
+          <img src="PrakerinID_ico.svg" alt="" className="lg:w-50 mb-4 mx-auto" />
           <h2 className="text-2xl font-semibold text-gray-700">Daftar Siswa Magang</h2>
         </div>
 

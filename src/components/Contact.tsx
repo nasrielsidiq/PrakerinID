@@ -1,4 +1,48 @@
+"use client";
+import emailJs from 'emailjs-com';
+import { useRef, useState } from 'react';
+import ReCAPTCHA from 'react-google-recaptcha';
+
+interface contactFormData {
+    name: string;
+    email: string;
+    message: string;
+}
+
 export default function ContactPage() {
+    const formRef = useRef<HTMLFormElement>(null);
+    const recaptchaRef = useRef<ReCAPTCHA>(null);
+
+    const handleSubmit = async (e: React.FormEvent) => {
+        e.preventDefault();
+        if (!recaptchaRef.current) return;
+
+        // Jalankan reCAPTCHA invisible
+        const token = await recaptchaRef.current.executeAsync();
+        if (!token) {
+            recaptchaRef.current.reset();
+            alert("Please complete the reCAPTCHA.");
+            return;
+        }
+
+        if (!formRef.current) return;
+
+        emailJs
+            .sendForm(
+                "service_t598gze",
+                "template_w76bqwl",
+                formRef.current,
+                "Q_nxvshDO3z0nsyVg"
+            )
+            .then(() => {
+                alert("Pesan berhasil dikirim!");
+                formRef.current?.reset();
+            })
+            .catch((err) => {
+                console.error(err);
+                alert("Gagal mengirim pesan.");
+            });
+    };
     return (
         <section id="contact" className="py-16 ">
             <div className="container mx-auto px-4">
@@ -64,27 +108,35 @@ export default function ContactPage() {
 
                     {/* Form Kontak */}
                     <div className="bg-white md:col-span-2 rounded-2xl p-8 shadow-lg flex flex-col justify-between">
-                        <form className="space-y-6">
+                        <form className="space-y-6" ref={formRef} onSubmit={handleSubmit}>
                             <div>
                                 <label className="block text-sm font-medium text-gray-700 mb-2">Nama</label>
                                 <input type="text"
+                                    name="name"
                                     className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-prakerin focus:border-transparent transition-all duration-300"
                                     placeholder="Masukkan nama lengkap" />
                             </div>
                             <div>
                                 <label className="block text-sm font-medium text-gray-700 mb-2">Email</label>
                                 <input type="email"
+                                    name='email'
                                     className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-prakerin focus:border-transparent transition-all duration-300"
                                     placeholder="nama@email.com" />
                             </div>
                             <div>
                                 <label className="block text-sm font-medium text-gray-700 mb-2">Pesan</label>
                                 <textarea
+                                    name='message'
                                     className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-prakerin focus:border-transparent transition-all duration-300"
                                     placeholder="Tulis pesan Anda di sini..." rows={3}></textarea>
                             </div>
+                            <ReCAPTCHA
+                                sitekey="6LejCYsrAAAAAI_2Pf0-3czAPUaswYA4_GZDaGiy"
+                                size="invisible"
+                                ref={recaptchaRef}
+                            />
                             <button type="submit"
-                                className="w-full bg-prakerin text-white py-3 rounded-lg font-medium hover:bg-prakerin-dark transition-all duration-300 transform hover:scale-105">
+                                className="w-full bg-prakerin bg-accent text-white py-3 rounded-lg font-medium hover:bg-prakerin-dark transition-all duration-300 transform hover:scale-105">
                                 Kirim Pesan
                             </button>
                         </form>
