@@ -132,18 +132,6 @@ const PrakerinRegistrationSiswaForm: React.FC<PrakerinRegistrationFormProps> = (
         }
       });
 
-      if (response.status === 422) {
-        const errorData = response.data.errors;
-        const newErrors: FormErrors = {};
-        for (const key in errorData) {
-          if (errorData.hasOwnProperty(key)) {
-            newErrors[key] = errorData[key][0];
-          }
-        }
-        setErrors(newErrors);
-        return;
-      }
-
       if (response.status === 200) {
         alert('Registration successful!');
         setShowForm(""); // Reset to initial form state
@@ -157,7 +145,19 @@ const PrakerinRegistrationSiswaForm: React.FC<PrakerinRegistrationFormProps> = (
 
 
 
-    } catch (error) {
+    } catch (error: any) {
+      if (error.response && error.response.status === 422) {
+        const errorData = error.response.data.errors;
+        const newErrors: FormErrors = {};
+        for (const key in errorData) {
+          if (errorData.hasOwnProperty(key)) {
+            newErrors[key] = errorData[key][0];
+          }
+        }
+        setErrors(newErrors);
+        return;
+      }
+
       console.error('Submission error:', error);
       alert('Registration failed. Please try again.');
     } finally {
