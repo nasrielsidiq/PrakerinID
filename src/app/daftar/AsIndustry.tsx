@@ -91,47 +91,8 @@ const PrakerinRegistrationIndustryForm: React.FC<PrakerinRegistrationFormProps> 
     }
   };
 
-  const validateForm = (): boolean => {
-    const newErrors: FormErrors = {};
-
-    if (!formData.username.trim()) {
-      newErrors.username = 'Username is required';
-    } else if (formData.username.length < 3) {
-      newErrors.username = 'Username must be at least 3 characters';
-    }
-
-    if (!formData.name.trim()) {
-      newErrors.fullName = 'Full name is required';
-    }
-
-    if (!formData.address) {
-      newErrors.school = 'Please select a school/university';
-    }
-
-    if (!formData.email.trim()) {
-      newErrors.email = 'Email is required';
-    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
-      newErrors.email = 'Please enter a valid email address';
-    }
-
-    if (!formData.password) {
-      newErrors.password = 'Password is required';
-    } else if (formData.password.length < 6) {
-      newErrors.password = 'Password must be at least 6 characters';
-    }
-
-    if (!formData.password_confirmation) {
-      newErrors.confirmPassword = 'Please confirm your password';
-    } else if (formData.password !== formData.password_confirmation) {
-      newErrors.confirmPassword = 'Passwords do not match';
-    }
-
-    setErrors(newErrors);
-    return Object.keys(newErrors).length === 0;
-  };
 
   const handleSubmit = async (): Promise<void> => {
-    if (!validateForm()) return;
 
     setIsSubmitting(true);
     const token = await recaptchaRef.current.executeAsync();
@@ -148,20 +109,6 @@ const PrakerinRegistrationIndustryForm: React.FC<PrakerinRegistrationFormProps> 
         }
       });
 
-      if (response.status === 422) {
-        const errorData = response.data;
-        const newErrors: FormErrors = {};
-
-        // Map backend validation errors to form errors
-        for (const key in errorData) {
-          if (errorData.hasOwnProperty(key)) {
-            newErrors[key] = errorData[key].join(', ');
-          }
-        }
-
-        setErrors(newErrors);
-        return;
-      }
 
       if (response.status === 200) {
         alert('Registration successful!');
@@ -194,7 +141,19 @@ const PrakerinRegistrationIndustryForm: React.FC<PrakerinRegistrationFormProps> 
       setProfileImage(null);
 
       alert('Registration successful!');
-    } catch (error) {
+    } catch (error: any) {
+      if (error.response && error.response.status === 422) {
+        const errorData = error.response.data.errors;
+        const newErrors: FormErrors = {};
+        for (const key in errorData) {
+          if (errorData.hasOwnProperty(key)) {
+            newErrors[key] = errorData[key][0];
+          }
+        }
+        setErrors(newErrors);
+        return;
+      }
+
       console.error('Submission error:', error);
       alert('Registration failed. Please try again.');
     } finally {
