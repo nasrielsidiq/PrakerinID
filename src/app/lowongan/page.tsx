@@ -1,18 +1,24 @@
 "use client";
-import ContactPage from "@/components/Contact";
-import FooterPage from "@/components/Footer";
-import Navigation from "@/components/Navigation";
-import ThemeToggle from "@/components/themeToggle";
 import axios from "axios";
 import { useEffect, useState } from "react";
 import { ENDPOINTS } from "../../../utils/config";
 import dayjs from "dayjs";
+import { useRouter, useSearchParams } from "next/navigation";
+
 
 export default function InternshipPage() {
     const [openFilter, setOpenFilter] = useState<string | null>(null);
     const [data, setData] = useState<any[]>([]); // Replace 'any' with your actual data type
     const [search, setSearch] = useState<string>("");
     const [inputSearch, setInputSearch] = useState<string>("");
+    const router = useRouter();
+    const searchParams = useSearchParams();
+    const keyword = searchParams.get('search') || "";
+
+    useEffect(() => {
+        setInputSearch(keyword);
+        setSearch(keyword);
+    }, [keyword])
 
     const [filters, setFilters] = useState({
         provinsi: [] as string[],
@@ -22,32 +28,29 @@ export default function InternshipPage() {
     });
 
     useEffect(() => {
-        const delayDebounce = setTimeout(() => {
-            const fetchData = async () => {
-                try {
-                    const response = await axios.get(ENDPOINTS.INTERNSHIPS, {
-                        headers: {
-                            "Content-Type": "application/json",
-                        },
-                        params: {
-                            provinsi: filters.provinsi.join(","),
-                            kota: filters.kota.join(","),
-                            grade: filters.pendidikan.join(","),
-                            slug: search,
-                            durasi: filters.durasi.join(","),
-                        }
-                    });
-                    setData(response.data.data);
-                    console.log("Data fetched successfully:", response.data.data);
-                } catch (error) {
-                    console.error("Error fetching data:", error);
-                }
-            };
+        const fetchData = async () => {
+            try {
+                const response = await axios.get(ENDPOINTS.INTERNSHIPS, {
+                    headers: {
+                        "Content-Type": "application/json",
+                    },
+                    params: {
+                        provinsi: filters.provinsi.join(","),
+                        kota: filters.kota.join(","),
+                        grade: filters.pendidikan.join(","),
+                        slug: search,
+                        durasi: filters.durasi.join(","),
+                    }
+                });
+                setData(response.data.data);
+                console.log("Data fetched successfully:", response.data.data);
+            } catch (error) {
+                console.error("Error fetching data:", error);
+            }
+        };
 
-            fetchData();
-        }, 1000); // Delay selama 1000ms (1 detik)
+        fetchData();
 
-        return () => clearTimeout(delayDebounce); // Bersihkan timeout kalau filters/search berubah
     }, [filters, search]);
 
 
@@ -73,7 +76,7 @@ export default function InternshipPage() {
         setSearch(inputSearch);
     }
 
-    
+
 
     // console.log(data);
     // console.log(filters);
@@ -81,8 +84,6 @@ export default function InternshipPage() {
 
     return (
         <>
-            <ThemeToggle />
-            <Navigation section="internship" setSection={() => null} />
             <section className="flex flex-col items-center text-center justify-center mt-15">
                 <h1 className="text-3xl font-bold text-accent mb-5">Lowongan Magang</h1>
                 <p className="text-gray-500 text-xl">Temukan peluang magang dari berbagai perusahaan ternama. Daftar, lamar, dan mulai perjalanan kariermu bersama kami.</p>
@@ -143,8 +144,8 @@ export default function InternshipPage() {
                                     <button className="px-4 py-2 rounded-md border border-gray-300 hover:bg-gray-100">
                                         💾 Simpan
                                     </button>
-                                    <button className="px-4 py-2 rounded-md bg-cyan-700 text-white hover:bg-cyan-800">
-                                        Lamar Sekarang
+                                    <button onClick={() => router.push(`/lowongan/${item.id}`)} className="px-4 py-2 rounded-md bg-cyan-700 text-white hover:bg-cyan-800">
+                                        Lihat Detail
                                     </button>
                                 </div>
                             </div>
@@ -319,8 +320,7 @@ export default function InternshipPage() {
                     </div>
                 </div>
             </section>
-            <ContactPage />
-            <FooterPage />
+
         </>
     );
 }

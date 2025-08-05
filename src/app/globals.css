@@ -84,3 +84,17 @@ body {
 .scrollbar-hide::-webkit-scrollbar {
   display: none; /* Chrome, Safari, Opera */
 }
+
+/* styles/editor.css */
+#editorjs h1, h2, h3 {
+  font-weight: bold;
+  margin-bottom: 0.5rem;
+}
+#editorjs p {
+  margin-bottom: 0.5rem;
+  line-height: 1.6;
+}
+#editorjs ul {
+  padding-left: 1.5rem;
+  list-style: disc;
+}

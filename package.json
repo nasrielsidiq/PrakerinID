@@ -6,9 +6,14 @@
     "dev": "next dev --turbopack",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "postinstall": "mkdir -p public/pdfjs && cp node_modules/pdfjs-dist/legacy/build/pdf.worker.min.js public/pdfjs/pdf.worker.min.js"
   },
   "dependencies": {
+    "@editorjs/editorjs": "^2.30.8",
+    "@editorjs/header": "^2.8.8",
+    "@editorjs/link": "^2.6.2",
+    "@editorjs/list": "^2.0.8",
     "axios": "^1.10.0",
     "dayjs": "^1.11.13",
     "emailjs-com": "^3.2.0",
