@@ -14,7 +14,7 @@ return new class extends Migration
         Schema::create('internships', function (Blueprint $table) {
             $table->id();
             $table->string('title');
-            $table->text('description');
+            $table->longText('description');
             $table->dateTime('start_date');
             $table->dateTime('end_date');
             $table->enum('grade', ['SMK', 'Mahasiswa', 'all'])->default('all');

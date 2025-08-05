@@ -19,13 +19,17 @@ Route::get('/user', function (Request $request) {
 
 Route::get('/logout', [AuthController::class, 'logout'])->middleware('auth:sanctum');
 Route::get('/internships/{slug}', [InternshipController::class, 'getSlug']);
-Route::get('/internships', [InternshipController::class, 'index']);
+Route::get('internships', [InternshipController::class, 'index']);
+Route::get('internships/show/{id}', [InternshipController::class, 'show']);
+Route::get('/titit', function () {
+    return response()->json(['message' => "pantek"], 200);
+});
 Route::get('/school_name', [SchoolController::class, 'school_name']);
 Route::middleware('auth:sanctum')->group(function () {
-    Route::apiResource('/school', SchoolController::class);
-    Route::apiResource('/students', StudentController::class);
-    Route::apiResource('/applications', ApplicationController::class)->middleware('abilities:student:access');
-    Route::apiResource('/internships', InternshipController::class)->except('index');
+    Route::apiResource('school', SchoolController::class);
+    Route::apiResource('students', StudentController::class);
+    Route::apiResource('applications', ApplicationController::class)->middleware('abilities:student:access');
+    Route::apiResource('internships', InternshipController::class)->except('index', 'show');
 });
 
 

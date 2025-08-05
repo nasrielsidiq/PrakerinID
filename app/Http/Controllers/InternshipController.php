@@ -5,7 +5,11 @@ namespace App\Http\Controllers;
 use App\Models\Company;
 use App\Models\Internship;
 use App\Models\Slug;
+use App\Models\User;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Validator;
 
 class InternshipController extends Controller
 {
@@ -73,7 +77,7 @@ class InternshipController extends Controller
 
         // Filter grade
         if ($grade) {
-            if (str_contains($grade,',')) {
+            if (str_contains($grade, ',')) {
                 // dd(explode(',', $grade));
                 $internshipQuery->whereIn('grade', explode(',', $grade));
             } else {
@@ -110,7 +114,10 @@ class InternshipController extends Controller
 
         $data = $internshipQuery->limit(10)->get();
 
-        return response()->json(["data" => $data]);
+        return response()->json([
+            'message' => 'sukkkkes',
+            "data" => $data
+        ]);
     }
 
     /**
@@ -131,32 +138,52 @@ class InternshipController extends Controller
      */
     public function store(Request $request)
     {
-        //
+        $validator = $request->validate([
+            'title' => 'string|required',
+            'description' => 'array|required',
+            'start_date' => 'date|required',
+            'end_date' => 'date|required',
+            'grade' => 'in:SMK,Mahasiswa,all|required',
+            'type' => 'in:hybrid,full time,wfh|required',
+            'bidang' => 'in:Embedding,IT,Other|required',
+            'kuota' => 'numeric|required'
+        ]);
+
+        $data = $validator;
+        $data['company_id'] = Auth::user()->company->id;
+        $data['description'] = json_encode($request->description);
+        $internship = Internship::create($data);
+        return response()->json([
+            'message' => 'success create data',
+            'data' => $internship
+        ], 200);
     }
 
     /**
      * Display the specified resource.
      */
-    public function show(Internship $internship)
+    public function show($id)
     {
-        //
+        $data = Internship::where('id', $id)->with('company')->first();
+        $data->description = json_decode($data->description);
+        $data->close = Carbon::parse($data->start_date)->copy()->subWeek()->toDateTimeString();
+        return response()->json(
+            [
+                'message' => 'sukes',
+                'data' => $data
+            ],
+
+            200
+        );
+
+        // return response()->json(['kontol'],200);
     }
 
-    /**
-     * Show the form for editing the specified resource.
-     */
-    public function edit(Internship $internship)
-    {
-        //
-    }
 
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, Internship $internship)
-    {
-        //
-    }
+    public function update(Request $request, Internship $internship) {}
 
     /**
      * Remove the specified resource from storage.
