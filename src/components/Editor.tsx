@@ -6,7 +6,8 @@ import Header from '@editorjs/header';
 import List from '@editorjs/list';
 import LinkTool from '@editorjs/link';
 
-interface EditorProps {
+
+export interface EditorProps {
   onChange: (data: any) => void;
   initialData?: any;
 }

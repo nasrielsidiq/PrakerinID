@@ -6,8 +6,7 @@
     "dev": "next dev --turbopack",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint",
-    "postinstall": "mkdir -p public/pdfjs && cp node_modules/pdfjs-dist/legacy/build/pdf.worker.min.js public/pdfjs/pdf.worker.min.js"
+    "lint": "next lint"
   },
   "dependencies": {
     "@editorjs/editorjs": "^2.30.8",
