@@ -26,7 +26,7 @@ Route::get('/titit', function () {
 });
 Route::get('/school_name', [SchoolController::class, 'school_name']);
 Route::middleware('auth:sanctum')->group(function () {
-    Route::apiResource('school', SchoolController::class);
+    Route::apiResource('school', SchoolController::class); 
     Route::apiResource('students', StudentController::class);
     Route::apiResource('applications', ApplicationController::class)->middleware('abilities:student:access');
     Route::apiResource('internships', InternshipController::class)->except('index', 'show');
