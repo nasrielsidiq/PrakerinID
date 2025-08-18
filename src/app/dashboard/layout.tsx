@@ -1,5 +1,5 @@
 'use client';
-import { useState } from "react";
+import { useEffect, useState, useRef } from "react"; // TAMBAHKAN: useRef
 import {
     Home,
     Briefcase,
@@ -8,19 +8,23 @@ import {
     CheckSquare,
     MessageSquare,
     Award,
-    User,
+    User, // Sudah ada
     Menu,
     X,
-    Clock
+    Clock,
+    LogOut, // TAMBAHKAN: LogOut
 } from 'lucide-react';
 import Link from "next/link";
 
+import Cookies from "js-cookie";
+
+// Interface MenuItem tidak perlu diubah
 interface MenuItem {
     icon: React.ComponentType<any>;
     label: string;
     active: boolean;
     href: string;
-}[];
+}
 
 export default function DashboardLayout({
     children,
@@ -30,39 +34,66 @@ export default function DashboardLayout({
 
     const [sidebarOpen, setSidebarOpen] = useState(false);
     const [menuItems, setMenuItems] = useState<MenuItem[]>([
-        { icon: Home, label: 'Dashboard', active: true , href: '/dashboard' },
-        { icon: Briefcase, label: 'Lowongan', active: false , href: '/dashboard/lowongan' },
-        { icon: FileText, label: 'Curriculum Vitae', active: false , href: '/dashboard/cv' },
-        { icon: Building, label: 'Perusahaan', active: false , href: '/dashboard/perusahaan' },
-        { icon: CheckSquare, label: 'Task List', active: false , href: '/dashboard/tasklist' },
-        { icon: MessageSquare, label: 'Feedback', active: false , href: '/dashboard/feedback' },
-        { icon: Award, label: 'Sertifikat', active: false , href: '/dashboard/sertifikat' },
-        { icon: User, label: 'Profile', active: false , href: '/dashboard/profile' }
+        { icon: Home, label: 'Dashboard', active: true, href: '/dashboard' },
+        { icon: Briefcase, label: 'Lowongan', active: false, href: '/dashboard/lowongan' },
+        { icon: FileText, label: 'Curriculum Vitae', active: false, href: '/dashboard/cv' },
+        { icon: Building, label: 'Perusahaan', active: false, href: '/dashboard/perusahaan' },
+        { icon: CheckSquare, label: 'Task List', active: false, href: '/dashboard/tasklist' },
+        { icon: MessageSquare, label: 'Feedback', active: false, href: '/dashboard/feedback' },
+        { icon: Award, label: 'Sertifikat', active: false, href: '/dashboard/sertifikat' },
+        { icon: User, label: 'Profile', active: false, href: '/dashboard/profile' }
     ]);
+    
+    // --- TAMBAHKAN LOGIKA DROPDOWN DI SINI ---
+    const [isDropdownOpen, setDropdownOpen] = useState(false);
+    const dropdownRef = useRef<HTMLDivElement>(null);
+
+    useEffect(() => {
+        const handleClickOutside = (event: MouseEvent) => {
+            if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+                setDropdownOpen(false);
+            }
+        };
+        document.addEventListener('mousedown', handleClickOutside);
+        return () => {
+            document.removeEventListener('mousedown', handleClickOutside);
+        };
+    }, []);
+    // --- AKHIR DARI LOGIKA DROPDOWN ---
+
+    useEffect(() => {
+        if (Cookies.get("authorization") === "industry") {
+            setMenuItems([
+                { icon: Home, label: 'Dashboard', active: true, href: '/dashboard' },
+                { icon: Briefcase, label: 'Lowongan', active: false, href: '/dashboard/lowongan' },
+                { icon: Briefcase, label: 'Lamaran', active: false, href: '/dashboard/lamaran' },
+                { icon: CheckSquare, label: 'Task List', active: false, href: '/dashboard/tasklist' },
+                { icon: Award, label: 'Penghargaan', active: false, href: '/dashboard/penghargaan' },
+                { icon: User, label: 'Profile', active: false, href: '/dashboard/profile' }
+
+            ])
+        }
+    }, [])
 
     return (
         <div className="min-h-screen bg-blue-50">
-            {/* Fixed Sidebar */}
+            {/* Sidebar tidak berubah */}
             <div className={`fixed inset-y-0 left-0 z-50 w-64 bg-white shadow-lg transform ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'} transition-transform duration-300 ease-in-out lg:translate-x-0`}>
+                {/* ... Konten sidebar Anda tetap sama ... */}
                 <div className="flex items-center justify-between h-16 px-6">
                     <div className="flex items-center space-x-2">
-                        <img src="PrakerinID_ico.svg" alt="" className="lg:w-50 " />
+                        <img src="/PrakerinID_ico.svg" alt="Prakerin.ID Logo" className="lg:w-50" />
                     </div>
-
-                    <button
-                        onClick={() => setSidebarOpen(false)}
-                        className="lg:hidden text-gray-600"
-                    >
+                    <button onClick={() => setSidebarOpen(false)} className="lg:hidden text-gray-600">
                         <X className="w-6 h-6" />
                     </button>
                 </div>
-
                 <nav className="mt-8 h-full overflow-y-auto pb-20 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
                     <div className="flex bg-accent-light/15 mx-6 p-3 rounded-xl text-accent-dark justify-center space-x-2 ">
                         <Clock className="w-7 my-auto h-7 " />
                         <div className="">
                             <h3 className="font-medium">9:35:17</h3>
-                            <h3 className="text-xs">Jumat, 13 Juni 2025</h3>
+                            <h3 className="text-xs">Jumat, 15 Agustus 2025</h3>
                         </div>
                     </div>
                     {menuItems.map((item, index) => (
@@ -79,7 +110,7 @@ export default function DashboardLayout({
                                 );
                                 setSidebarOpen(false);
                             }}
-                            className={`flex rounded-xl items-center mx-6 p-3 my-3 text-gray-700 ${!item.active ?'hover:bg-accent/10 hover:text-accent': ''} transition-colors ${item.active ? 'bg-accent !text-white shadow-lg font-bold ' : ''}`}
+                            className={`flex rounded-xl items-center mx-6 p-3 my-3 text-gray-700 ${!item.active ? 'hover:bg-accent/10 hover:text-accent' : ''} transition-colors ${item.active ? 'bg-accent !text-white shadow-lg font-bold ' : ''}`}
                         >
                             <item.icon className="w-5 h-5 mr-3" />
                             {item.label}
@@ -89,8 +120,8 @@ export default function DashboardLayout({
             </div>
 
             {/* Main Content Area */}
-            <div className="lg:ml-64">
-                {/* Fixed Header */}
+            <div className="lg:ml-64 flex flex-col min-h-screen">
+                {/* --- MODIFIKASI BAGIAN HEADER DI SINI --- */}
                 <header className="fixed top-0 right-0 left-0 lg:left-64 z-40 bg-accent text-white shadow-sm border-b">
                     <div className="flex items-center justify-between px-6 py-4">
                         <div className="flex items-center space-x-4">
@@ -103,30 +134,76 @@ export default function DashboardLayout({
                         </div>
 
                         <div className="flex items-center space-x-4">
-                            <div className="relative">
-                                <button className="flex items-center space-x-2 ">
-                                    <span className="text-sm font-bold">Immanuel Never</span>
-                                    <div className="w-8 h-8 bg-gray-300 rounded-full"></div>
+                            <div className="relative" ref={dropdownRef}>
+                                <button 
+                                    onClick={() => setDropdownOpen(!isDropdownOpen)}
+                                    className="flex items-center space-x-3"
+                                >
+                                    <div className='text-right hidden sm:block'>
+                                        <span className="text-sm font-bold block">Immanuel Never</span>
+                                        <span className="text-xs text-gray-200 block">Siswa</span>
+                                    </div>
+                                    <img
+                                        src="https://i.pravatar.cc/150?u=immanuel"
+                                        alt="Profile"
+                                        className="w-10 h-10 rounded-full object-cover"
+                                    />
                                 </button>
+                                
+                                {isDropdownOpen && (
+                                    <div className="absolute right-0 mt-2 w-56 bg-white rounded-md shadow-lg py-1 z-50 text-gray-800">
+                                        <div className="px-4 py-2 border-b">
+                                            <p className="text-sm font-semibold">Immanuel Never</p>
+                                            <p className="text-xs text-gray-500">immanuel.never@example.com</p>
+                                        </div>
+                                        <Link
+                                            href="/dashboard/profile"
+                                            className="flex items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                                        >
+                                            <User className="w-4 h-4 mr-2" />
+                                            Profile
+                                        </Link>
+                                        <Link
+                                            href="/lapor-bug" // Ganti dengan link yang sesuai
+                                            className="flex items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                                        >
+                                            <FileText className="w-4 h-4 mr-2" />
+                                            Laporan Bug
+                                        </Link>
+                                        <Link
+                                            href="/hubungi-cs" // Ganti dengan link yang sesuai
+                                            className="flex items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                                        >
+                                            <MessageSquare className="w-4 h-4 mr-2" />
+                                            Hubungi CS
+                                        </Link>
+                                        <div className="border-t border-gray-100 my-1"></div>
+                                        <button
+                                            // onClick={handleLogout} // Buat fungsi logout jika perlu
+                                            className="flex items-center w-full px-4 py-2 text-sm text-red-600 hover:bg-gray-100"
+                                        >
+                                            <LogOut className="w-4 h-4 mr-2" />
+                                            Logout
+                                        </button>
+                                    </div>
+                                )}
                             </div>
                         </div>
                     </div>
                 </header>
+                {/* --- AKHIR DARI MODIFIKASI HEADER --- */}
 
-                {/* Content with proper spacing for fixed header */}
-                <main className="pt-16">
+                <main className="pt-20 px-6 pb-6 flex-grow">
                     {children}
                 </main>
 
-                {/* Footer */}
-                <footer className="bg-white border-t py-4 px-6 mt-8">
+                <footer className="bg-white border-t py-4 px-6">
                     <p className="text-center text-sm text-gray-500">
                         © 2025 Prakerin ID. All rights reserved.
                     </p>
                 </footer>
             </div>
 
-            {/* Mobile Overlay */}
             {sidebarOpen && (
                 <div
                     className="fixed inset-0 bg-black/50 z-40 lg:hidden"

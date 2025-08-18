@@ -1,11 +1,12 @@
 "use client";
 import ThemeToggle from "@/components/themeToggle";
-import axios from "axios";
 import { Eye, EyeOff, LockKeyhole, UserRound } from "lucide-react";
 import ReCAPTCHA from "react-google-recaptcha";
 import Link from "next/link";
 import { useRef, useState } from "react";
-import { ENDPOINTS } from "../../../utils/config";
+import { API, ENDPOINTS } from "../../../utils/config";
+import Cookies from 'js-cookie';
+import { useRouter } from "next/navigation";
 
 interface FormData {
     email: string;
@@ -24,7 +25,7 @@ export default function LoginPage() {
         password: "",
         recaptcha_token: ""
     });
-
+    const router = useRouter();
     const [errors, setErrors] = useState<FormErrors>({});
     const [showPassword, setShowPassword] = useState<boolean>(false);
 
@@ -46,17 +47,25 @@ export default function LoginPage() {
         data.recaptcha_token = token;
 
         try {
-            const response = await axios.post(ENDPOINTS.LOGIN, {
+            const response = await API.post('/api/login', {
                 email: data.email,
                 password: data.password,
                 recaptcha_token: data.recaptcha_token
-            }, {
-                withCredentials: true,
-                withXSRFToken: true,
             });
 
             if (response.status === 200) {
                 console.log("Login successful:", response.data);
+                Cookies.set("userToken", response.data.token, {
+                    expires: 1,
+                    path: '/',
+                    sameSite: 'strict'
+                })
+                Cookies.set("authorization", response.data.role, {
+                    expires: 1,
+                    path: '/'
+                })
+                router.push('/dashboard');
+                
             } else {
                 console.error("Login failed:", response.data);
             }
@@ -123,7 +132,7 @@ export default function LoginPage() {
                                     value={data.password}
                                     onChange={handleChange}
                                     placeholder="Masukan password kamu"
-                                    className={`w-full px-12 py-3 border rounded-lg pr-12 focus:ring-2 focus:ring-teal-500 focus:border-teal-500 outline-none transition-colors ${errors.password ? 'border-red-500' : 'border-gray-300'}`}
+                                    className={`w-full px-12 py-3 border rounded-lg pr-12 focus:ring-2 outline-none transition-colors ${errors.password ? 'border-red-500' : 'border-gray-300'}`}
                                 />
                                 <LockKeyhole className="text-accent absolute left-4 top-3.5 w-5 h-5" />
                                 <button

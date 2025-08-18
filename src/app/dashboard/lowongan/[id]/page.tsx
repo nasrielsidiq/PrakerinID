@@ -4,11 +4,11 @@ import Link from "next/link";
 const DetailLowongan: React.FC = () => {
     return (
         <main className="p-6">
-            <h1 className="text-accent-dark text-sm mb-5">Lowongan</h1>
+            <h1 className="text-accent-dark text-sm mb-5">Lowongan/Detail Lowongan</h1>
             <div className="mb-8">
                 <div className="flex items-center space-x-2 font-extrabold text-accent">
                     <BriefcaseBusiness className="w-5 h-5" />
-                    <h2 className="text-2xl">Detail Lowongan</h2>
+                    <h2 className="text-2xl mt-2">Detail Lowongan</h2>
                 </div>
             </div>
             <div className="mb-8">

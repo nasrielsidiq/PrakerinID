@@ -7,16 +7,14 @@ import ContactPage from "@/components/Contact";
 import FooterPage from "@/components/Footer";
 import ServiceButton from "@/components/Service";
 import axios from "axios";
-import { ENDPOINTS } from "../../utils/config";
+import { API, ENDPOINTS } from "../../utils/config";
 
 export default function HomePage() {
   const [activeSection, setActiveSection] = useState("home");
 
   useEffect(() => {
     const fetchData = async () => {
-      await axios.get(ENDPOINTS.COOKIES, {
-          withCredentials: true, // Ensure cookies are sent with the request
-          // withXSRFToken: true, // Include XSRF token if needed
+      await API.get('/sanctum/csrf-cookie', {
         }).then((response) => {
           console.log("Cookies set successfully:", response);
         }).catch((error) => {

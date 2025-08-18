@@ -6,7 +6,7 @@ const ApplyLowongan: React.FC = () => {
             <h1 className="text-accent-dark text-sm mb-5">Lowongan </h1>
                 <div className="flex items-center mb-8 space-x-2 font-extrabold text-accent">
                     <Briefcase className="w-5 h-5" />
-                    <h2 className="text-2xl">Detail Lowongan</h2>
+                    <h2 className="text-2xl mt-2">Detail Lowongan</h2>
                 </div>
                 <div className="bg-white md:w-7/10 m-auto rounded-lg shadow-sm border p-6">
                     {/* Job Info */}

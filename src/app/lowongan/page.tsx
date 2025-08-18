@@ -1,9 +1,9 @@
 "use client";
-import axios from "axios";
 import { useEffect, useState } from "react";
-import { ENDPOINTS } from "../../../utils/config";
+import { API, ENDPOINTS } from "../../../utils/config";
 import dayjs from "dayjs";
 import { useRouter, useSearchParams } from "next/navigation";
+import DescriptionRendererLite from "@/components/RenderBlocksLite";
 
 
 export default function InternshipPage() {
@@ -30,7 +30,7 @@ export default function InternshipPage() {
     useEffect(() => {
         const fetchData = async () => {
             try {
-                const response = await axios.get(ENDPOINTS.INTERNSHIPS, {
+                const response = await API.get(ENDPOINTS.INTERNSHIPS, {
                     headers: {
                         "Content-Type": "application/json",
                     },
@@ -110,10 +110,10 @@ export default function InternshipPage() {
                 </div>
 
                 <div className="flex flex-wrap gap-2 mt-6">
-                    <span className="px-3 py-1 bg-white rounded-full text-sm text-gray-600 shadow-sm">Magang Popular</span>
-                    <span className="px-3 py-1 bg-white rounded-full text-sm text-gray-600 shadow-sm">Frontend Developer</span>
-                    <span className="px-3 py-1 bg-white rounded-full text-sm text-gray-600 shadow-sm">Digital Marketing</span>
-                    <span className="px-3 py-1 bg-white rounded-full text-sm text-gray-600 shadow-sm">Backend Developer</span>
+                    <button onClick={() => setInputSearch("Magang Popular")} className="px-3 py-1 bg-white rounded-full text-sm text-gray-600 shadow-sm">Magang Popular</button>
+                    <button onClick={() => setInputSearch("Digital Marketing")} className="px-3 py-1 bg-white rounded-full text-sm text-gray-600 shadow-sm">Frontend Developer</button>
+                    <button onClick={() => setInputSearch("Backhand Developer")} className="px-3 py-1 bg-white rounded-full text-sm text-gray-600 shadow-sm">Digital Marketing</button>
+                    <button onClick={() => setInputSearch("Frontend Developer")} className="px-3 py-1 bg-white rounded-full text-sm text-gray-600 shadow-sm">Backend Developer</button>
                 </div>
             </section>
             <section className="px-4 md:px-10 lg:px-20 py-10">
@@ -134,7 +134,11 @@ export default function InternshipPage() {
                                     />
                                     <div>
                                         <h2 className="text-xl font-bold text-cyan-700">{item.title}</h2>
-                                        <p className="text-gray-600 whitespace-pre-line">{item.description}</p>
+                                        {/* <p className="text-gray-600 whitespace-pre-line">{item.description}</p> */}
+                                        <div className="mt-6 text-gray-600">
+                                            {/* <iframe src="/doc/taksonomi prakerin id.pdf" className="w-full h-screen border-0 bg-white/0" ></iframe> */}
+                                            <DescriptionRendererLite data={item.description} />
+                                        </div>
                                     </div>
                                 </div>
                                 <div className="flex col-span-4 items-center flex-wrap gap-4 text-sm text-gray-600">

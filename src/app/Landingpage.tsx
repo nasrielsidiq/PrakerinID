@@ -35,6 +35,7 @@ export default function LandingPage() {
                                     <div className="relative flex-1">
                                         <input type="text"
                                             onChange={e => setInputSearch(e.target.value)}
+                                            value={inputSearch}
                                             placeholder="Cari lowongan magang impian anda..."
                                             className="w-full px-4 py-3 pl-12 focus:outline-none focus:ring-2 focus:ring-prakerin focus:border-transparent transition-all duration-300" />
                                         <svg className="absolute left-4 top-3.5 w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -51,10 +52,10 @@ export default function LandingPage() {
                             </div>
 
                             <div className="flex flex-wrap gap-2 mt-6">
-                                <span className="px-3 py-1 bg-white rounded-full text-sm text-gray-600 shadow-sm">Magang Popular</span>
-                                <span className="px-3 py-1 bg-white rounded-full text-sm text-gray-600 shadow-sm">Frontend Developer</span>
-                                <span className="px-3 py-1 bg-white rounded-full text-sm text-gray-600 shadow-sm">Digital Marketing</span>
-                                <span className="px-3 py-1 bg-white rounded-full text-sm text-gray-600 shadow-sm">Backend Developer</span>
+                                <button onClick={() => setInputSearch("Magang Popular")} className="px-3 py-1 bg-white rounded-full text-sm text-gray-600 shadow-sm">Magang Popular</button>
+                                <button onClick={() => setInputSearch("Digital Marketing")} className="px-3 py-1 bg-white rounded-full text-sm text-gray-600 shadow-sm">Digital Marketing</button>
+                                <button onClick={() => setInputSearch("Backhand Developer")} className="px-3 py-1 bg-white rounded-full text-sm text-gray-600 shadow-sm">Backend Developer</button>
+                                <button onClick={() => setInputSearch("Frontend Developer")} className="px-3 py-1 bg-white rounded-full text-sm text-gray-600 shadow-sm">Frontend Developer</button>
                             </div>
                         </div>
 

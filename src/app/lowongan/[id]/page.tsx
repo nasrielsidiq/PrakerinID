@@ -3,7 +3,7 @@ import axios from "axios";
 import { Bookmark, Clock4, Lock, MapPin, MessageCircle } from "lucide-react";
 import Link from "next/link";
 import { useEffect, useState } from "react";
-import { ENDPOINTS } from "../../../../utils/config";
+import { API, ENDPOINTS } from "../../../../utils/config";
 import { useParams } from "next/navigation";
 import DescriptionRenderer from "@/components/RenderBlocks";
 import dayjs from "dayjs";
@@ -18,7 +18,7 @@ const DetailLowonganPage = () => {
     useEffect(() => {
         const fetchData = async () => {
             try {
-                const response = await axios.get(ENDPOINTS.INTERNSHIPS + `/show/${id}`, {
+                const response = await API.get(ENDPOINTS.INTERNSHIPS + `/show/${id}`, {
                     headers: {
                         "Content-Type": "application/json",
                     },
