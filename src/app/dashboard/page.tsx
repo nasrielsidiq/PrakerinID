@@ -9,6 +9,7 @@ import {
 import SiswaDashboard from '@/components/roleComponents/SiswaDashboard';
 
 import Cookies from 'js-cookie';
+import IndustryDashboard from '@/components/roleComponents/industryDashboard';
 
 const Dashboard: React.FC = () => {
 
@@ -19,7 +20,7 @@ const Dashboard: React.FC = () => {
   }, [])
 
   const RolePage: React.FC = () => {
-    if (role === "industry") return null
+    if (role === "industry") return (<IndustryDashboard />)
     if (role === "student") return(<SiswaDashboard />)
     if (role === "school") return null
   }
@@ -30,7 +31,7 @@ const Dashboard: React.FC = () => {
       {/* Welcome Section */}
       <h1 className="text-accent-dark mb-5 font-medium">Dashboard</h1>
 
-      <div className="bg-gradient-to-r from-accent-light to-accent rounded-lg p-6 text-white mb-8">
+       <div className="bg-gradient-to-r from-accent-light to-accent rounded-lg p-6 text-white mb-8">
         <div className="flex items-center space-x-4">
           <div className="w-16 h-16 bg-white bg-opacity-20 rounded-full flex items-center justify-center">
             <User className="w-8 h-8" />

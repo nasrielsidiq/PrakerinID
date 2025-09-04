@@ -42,5 +42,5 @@ export default function Editor({ onChange, initialData }: EditorProps) {
     };
   }, []);
 
-  return <div id="editorjs" className="border rounded p-4" />;
+  return <div id="editorjs" className="border border-gray-400 rounded-2xl p-4 px-2" />;
 }

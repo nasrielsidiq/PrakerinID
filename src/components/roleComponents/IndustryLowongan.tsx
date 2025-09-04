@@ -1,5 +1,6 @@
 import { Bookmark, Building, CirclePlus, MapPin, X } from "lucide-react";
 import { Timestamp } from "next/dist/server/lib/cache-handlers/types";
+import { useRouter } from "next/navigation";
 import { useState } from "react";
 
 interface Lowongan {
@@ -12,9 +13,7 @@ interface Lowongan {
 }
 
 export function IndustryLowongan() {
-    const [close, setClose] = useState<boolean>(true)
-    const [feedback, setFeedback] = useState('');
-
+    const route = useRouter();
     const [lowongan, setLowongan] = useState<Lowongan[]>([
         {
             title: "Social Media Marketing",
@@ -60,7 +59,7 @@ export function IndustryLowongan() {
     return (
         <>
             <div className="flex justify-end mb-6">
-                <button className="text-white bg-accent rounded-xl p-3 px-5 flex items-center space-x-2">
+                <button onClick={() => route.push('/dashboard/industry/tambah_lowongan')} className="text-white bg-accent rounded-xl p-3 px-5 flex items-center space-x-2">
                     <CirclePlus className="w-5 h-5 " />
                     <span>Tambah Lowongan</span>
                 </button>

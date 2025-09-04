@@ -62,7 +62,8 @@ export default function LoginPage() {
                 })
                 Cookies.set("authorization", response.data.role, {
                     expires: 1,
-                    path: '/'
+                    path: '/',
+                    sameSite: 'strict'
                 })
                 router.push('/dashboard');
                 

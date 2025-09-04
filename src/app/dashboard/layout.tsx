@@ -12,7 +12,9 @@ import {
     Menu,
     X,
     Clock,
-    LogOut, // TAMBAHKAN: LogOut
+    LogOut,
+    UsersRound,
+    MapPin, // TAMBAHKAN: LogOut
 } from 'lucide-react';
 import Link from "next/link";
 
@@ -43,7 +45,7 @@ export default function DashboardLayout({
         { icon: Award, label: 'Sertifikat', active: false, href: '/dashboard/sertifikat' },
         { icon: User, label: 'Profile', active: false, href: '/dashboard/profile' }
     ]);
-    
+
     // --- TAMBAHKAN LOGIKA DROPDOWN DI SINI ---
     const [isDropdownOpen, setDropdownOpen] = useState(false);
     const dropdownRef = useRef<HTMLDivElement>(null);
@@ -61,16 +63,32 @@ export default function DashboardLayout({
     }, []);
     // --- AKHIR DARI LOGIKA DROPDOWN ---
 
+    const handleLogout = () => {
+        console.log('logout!');
+
+        Cookies.remove('userToken');
+        Cookies.remove('authorization');
+    }
+
     useEffect(() => {
-        if (Cookies.get("authorization") === "industry") {
+        const authorization = Cookies.get("authorization")
+        if (authorization === "industry") {
             setMenuItems([
                 { icon: Home, label: 'Dashboard', active: true, href: '/dashboard' },
                 { icon: Briefcase, label: 'Lowongan', active: false, href: '/dashboard/lowongan' },
-                { icon: Briefcase, label: 'Lamaran', active: false, href: '/dashboard/lamaran' },
+                { icon: Briefcase, label: 'Lamaran', active: false, href: '/dashboard/industry/lamaran' },
                 { icon: CheckSquare, label: 'Task List', active: false, href: '/dashboard/tasklist' },
                 { icon: Award, label: 'Penghargaan', active: false, href: '/dashboard/penghargaan' },
                 { icon: User, label: 'Profile', active: false, href: '/dashboard/profile' }
-
+            ])
+        } else if (authorization === "school") {
+            setMenuItems([
+                { icon: Home, label: 'Dashboard', active: true, href: '/dashboard' },
+                { icon: UsersRound, label: 'Daftar Siswa', active: false, href: '/dashboard/school/daftarsiswa' },
+                { icon: MapPin, label: 'Penempatan', active: false, href: '/dashboard/school/penempatan' },
+                { icon: Building, label: 'Perusahaan', active: false, href: '/dashboard/perusahaan' },
+                { icon: Award, label: 'Penghargaan', active: false, href: '/dashboard/penghargaan' },
+                { icon: User, label: 'Profile', active: false, href: '/dashboard/profile' }
             ])
         }
     }, [])
@@ -135,7 +153,7 @@ export default function DashboardLayout({
 
                         <div className="flex items-center space-x-4">
                             <div className="relative" ref={dropdownRef}>
-                                <button 
+                                <button
                                     onClick={() => setDropdownOpen(!isDropdownOpen)}
                                     className="flex items-center space-x-3"
                                 >
@@ -149,7 +167,7 @@ export default function DashboardLayout({
                                         className="w-10 h-10 rounded-full object-cover"
                                     />
                                 </button>
-                                
+
                                 {isDropdownOpen && (
                                     <div className="absolute right-0 mt-2 w-56 bg-white rounded-md shadow-lg py-1 z-50 text-gray-800">
                                         <div className="px-4 py-2 border-b">
@@ -179,7 +197,7 @@ export default function DashboardLayout({
                                         </Link>
                                         <div className="border-t border-gray-100 my-1"></div>
                                         <button
-                                            // onClick={handleLogout} // Buat fungsi logout jika perlu
+                                            onClick={handleLogout} // Buat fungsi logout jika perlu
                                             className="flex items-center w-full px-4 py-2 text-sm text-red-600 hover:bg-gray-100"
                                         >
                                             <LogOut className="w-4 h-4 mr-2" />
