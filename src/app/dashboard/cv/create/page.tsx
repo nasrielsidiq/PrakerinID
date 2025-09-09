@@ -28,6 +28,11 @@ const CreatePage: React.FC = () => {
         }
     };
 
+    const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+        e.preventDefault();
+        console.log("Submitting form with data:", formData);
+    }
+
     return (
         <main className="p-6">
             <h1 className="text-accent-dark text-sm mb-5">Curiculum Vitae</h1>
