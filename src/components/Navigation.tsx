@@ -1,8 +1,9 @@
 "use client";
 
-import { Dispatch, SetStateAction, useEffect } from "react";
+import { Dispatch, SetStateAction } from "react";
 import { useRouter } from "next/navigation";
 import Cookies from "js-cookie";
+import Link from "next/link";
 
 interface NavigationProps {
   section: string;
@@ -38,13 +39,6 @@ export default function Navigation({ setSection }: NavigationProps) {
     }
   };
 
-  useEffect(() => {
-    const userToken = Cookies.get("userToken");
-    console.log("User Token:", !!userToken);
-    // if (!userToken) {
-    //   router.push("/masuk");
-    // }
-  }, []);
   return (
     <nav className="bg-white/80 backdrop-blur-lg shadow-lg sticky top-0 z-50 transition-all duration-300">
       <div className="container mx-auto px-4 py-4">
@@ -53,10 +47,6 @@ export default function Navigation({ setSection }: NavigationProps) {
             <img src="/PrakerinID_ico.svg" alt="" />
           </div>
 
-          {/* href="#beranda"
-                    href="#tentang"
-                    href="#lowongan"
-                    href="#mitra" */}
           <div className="hidden md:flex space-x-8">
             <button
               type="button"
@@ -90,32 +80,26 @@ export default function Navigation({ setSection }: NavigationProps) {
 
           <div className="hidden md:flex space-x-4">
             {Cookies.get("userToken") ? (
-              <button
-                onClick={() => {
-                  router.push("/dashboard");
-                }}
+              <Link
+                href="/dashboard"
                 className="px-4 py-2 font-semibold border border-accent text-accent text-prakerin rounded-lg hover:bg-accent-light hover:border-accent-light hover:text-white transition-all duration-300"
               >
                 Dashboard
-              </button>
+              </Link>
             ) : (
               <>
-                <button
-                  onClick={() => {
-                    router.push("/daftar");
-                  }}
+                <Link
+                  href="/daftar"
                   className="px-4 py-2 font-semibold border border-accent text-accent text-prakerin rounded-lg hover:bg-accent-light hover:border-accent-light hover:text-white transition-all duration-300"
                 >
                   Daftar
-                </button>
-                <button
-                  onClick={() => {
-                    router.push("/masuk");
-                  }}
+                </Link>
+                <Link
+                  href="/masuk"
                   className="px-4 py-2 font-semibold bg-gradient-to-r from-accent to-accent-light text-white rounded-lg hover:from-accent-light hover:to-accent-light duration-300 transition-all"
                 >
                   Login
-                </button>
+                </Link>
               </>
             )}
           </div>
@@ -180,22 +164,29 @@ export default function Navigation({ setSection }: NavigationProps) {
             Mitra
           </button>
           <div className="flex flex-col gap-2 mt-2">
-            <button
-              onClick={() => {
-                router.push("/daftar");
-              }}
-              className="w-full px-4 py-2 font-semibold border border-accent text-accent text-prakerin rounded-lg hover:bg-accent-light hover:border-accent-light hover:text-white transition-all duration-300"
-            >
-              Daftar
-            </button>
-            <button
-              onClick={() => {
-                router.push("/masuk");
-              }}
-              className="w-full px-4 py-2 font-semibold bg-gradient-to-r from-accent to-accent-light text-white rounded-lg hover:from-accent-light hover:to-accent-light duration-300 transition-all"
-            >
-              Login
-            </button>
+            {Cookies.get("userToken") ? (
+              <Link
+                href="/dashboard"
+                className="w-full px-4 py-2 font-semibold border border-accent text-accent rounded-lg hover:bg-accent-light hover:border-accent-light hover:text-white transition-all duration-300 text-center"
+              >
+                Dahsboard
+              </Link>
+            ) : (
+              <>
+                <Link
+                  href="/daftar"
+                  className="w-full px-4 py-2 font-semibold border border-accent text-accent rounded-lg hover:bg-accent-light hover:border-accent-light hover:text-white transition-all duration-300 text-center"
+                >
+                  Daftar
+                </Link>
+                <Link
+                  href="/masuk"
+                  className="w-full px-4 py-2 font-semibold bg-gradient-to-r from-accent to-accent-light text-white rounded-lg hover:from-accent-light hover:to-accent-light duration-300 transition-all text-center"
+                >
+                  Login
+                </Link>
+              </>
+            )}
           </div>
         </div>
       </div>

@@ -12,7 +12,6 @@ import {
 import { use, useEffect, useState } from "react";
 import { API, ENDPOINTS } from "../../../../../utils/config";
 import Cookies from "js-cookie";
-import Axios from "axios";
 import { timeAgo } from "@/utils/timeAgo";
 import Link from "next/link";
 import Image from "next/image";
@@ -36,11 +35,7 @@ interface Company {
   }[];
 }
 
-const DetailPerusahaanPage = ({
-  params,
-}: {
-  params: Promise<{ id: string }>;
-}) => {
+const DetailSekolahPage = ({ params }: { params: Promise<{ id: string }> }) => {
   const { id } = use(params);
   const [company, setCompany] = useState<Company>({
     company: {
@@ -56,14 +51,6 @@ const DetailPerusahaanPage = ({
     job_openings: [],
   });
 
-  const jobPositions = [
-    { title: "Frontend Web Developer", duration: "1 hari yang lalu" },
-    { title: "Backend Web Developer", duration: "1 hari yang lalu" },
-    { title: "Mobile Developer", duration: "5 hari yang lalu" },
-    { title: "Frontend Web Developer", duration: "1 hari yang lalu" },
-    { title: "Backend Web Developer", duration: "1 hari yang lalu" },
-    { title: "Mobile Developer", duration: "5 hari yang lalu" },
-  ];
 
   const fetchCompanyDetail = async () => {
     try {
@@ -224,4 +211,4 @@ const DetailPerusahaanPage = ({
   );
 };
 
-export default DetailPerusahaanPage;
+export default DetailSekolahPage;

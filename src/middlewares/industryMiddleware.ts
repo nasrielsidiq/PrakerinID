@@ -4,7 +4,7 @@ import type { NextRequest } from "next/server";
 
 export function industryMiddleware(req: NextRequest) {
   const role = req.cookies.get("authorization")?.value;
-  if (role !== "industry") {
+  if (role !== "company") {
     return NextResponse.redirect(new URL("/forbidden", req.url));
   }
   return null;

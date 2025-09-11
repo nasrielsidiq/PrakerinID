@@ -8,13 +8,82 @@ import {
   MessageCircle,
 } from "lucide-react";
 import Link from "next/link";
-import { use, useEffect } from "react";
+import { use, useEffect, useState } from "react";
+import { API, ENDPOINTS } from "../../../../../utils/config";
+import Cookies from "js-cookie";
+
+interface JobOpening {
+  title: string;
+  company: {
+    name: string;
+  };
+  city_regency: {
+    name: string;
+  };
+  province: {
+    name: string;
+  };
+  save_job_opening: boolean;
+}
 
 const DetailLowongan = ({ params }: { params: Promise<{ id: string }> }) => {
   const { id } = use(params);
+  const [jobOpening, setJobOpening] = useState<JobOpening>({
+    title: "",
+    company: {
+      name: "",
+    },
+    city_regency: {
+      name: "",
+    },
+    province: {
+      name: "",
+    },
+    save_job_opening: false,
+  });
+
+  const fetchJobOpening = async () => {
+    try {
+      const response = await API.get(`${ENDPOINTS.JOB_OPENINGS}/${id}`, {
+        headers: {
+          Authorization: `Bearer ${Cookies.get("userToken")}`,
+        },
+      });
+      if (response.status === 200) {
+        console.log("Job Opening:", response.data.data);
+        setJobOpening(response.data.data);
+      }
+    } catch (error: any) {
+      console.error("Error fetching job opening:", error.response.data.errors);
+    }
+  };
+
+  const handleClickFavorite = async (id: string) => {
+    try {
+      const response = await API.post(
+        `${ENDPOINTS.SAVE_JOB_OPENINGS}`,
+        {
+          job_opening_id: id,
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${Cookies.get("userToken")}`,
+          },
+        }
+      );
+      if (response.status === 200 || response.status === 201) {
+        setJobOpening((prevJob) => ({
+          ...prevJob,
+          save_job_opening: !prevJob.save_job_opening,
+        }));
+      }
+    } catch (error) {
+      console.log(error);
+    }
+  };
 
   useEffect(() => {
-    console.log(id);
+    fetchJobOpening();
   }, []);
 
   return (
@@ -49,16 +118,18 @@ const DetailLowongan = ({ params }: { params: Promise<{ id: string }> }) => {
               {/* Job Info */}
               <div className="flex-1 min-w-0">
                 <h1 className="text-xl lg:text-2xl font-semibold text-gray-900 mb-2">
-                  Frontend Web Developer
+                  {jobOpening.title}
                 </h1>
                 <div className="flex items-center gap-2 text-gray-600">
                   <span className="text-blue-600 font-medium">
-                    PT Makerindo Prima Solusi
+                    {jobOpening.company.name}
                   </span>
                 </div>
                 <div className="flex items-center gap-1 text-gray-500 mt-1">
                   <MapPin className="w-4 h-4" />
-                  <span className="text-sm">Kabupaten Bandung, Jawa Barat</span>
+                  <span className="text-sm">
+                    {jobOpening.city_regency.name}, {jobOpening.province.name}
+                  </span>
                 </div>
               </div>
             </div>
@@ -71,9 +142,21 @@ const DetailLowongan = ({ params }: { params: Promise<{ id: string }> }) => {
                 <Lock className="w-4 h-4" />
               </button>
 
-              <button className="flex items-center justify-center gap-2 text-gray-600 hover:text-blue-600 px-4 py-2 border border-gray-300 hover:border-blue-300 rounded-lg font-medium transition-colors">
-                <Bookmark className="w-4 h-4" />
-                <span>Simpan</span>
+              <button
+                onClick={() => handleClickFavorite(id)}
+                className="flex items-center justify-center gap-2 text-gray-600 hover:text-blue-600 px-4 py-2 border border-gray-300 hover:border-blue-300 rounded-lg font-medium transition-colors"
+              >
+                <Bookmark
+                  className={`w-4 h-4 ${
+                    jobOpening.save_job_opening
+                      ? "text-blue-500"
+                      : "text-gray-400"
+                  }`}
+                  fill={jobOpening.save_job_opening ? "currentColor" : "none"}
+                />
+                <span>
+                  {jobOpening.save_job_opening ? "Tersimpan" : "Simpan"}
+                </span>
               </button>
 
               <Link

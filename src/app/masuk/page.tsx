@@ -21,14 +21,16 @@ interface FormErrors {
 }
 
 export default function LoginPage() {
+  const router = useRouter();
+
   const [data, setData] = useState<FormData>({
     email: "",
     password: "",
     recaptcha_token: "",
   });
-  const router = useRouter();
   const [errors, setErrors] = useState<FormErrors>({});
   const [showPassword, setShowPassword] = useState<boolean>(false);
+  const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
 
   const recaptchaRef = useRef<any>(null);
 

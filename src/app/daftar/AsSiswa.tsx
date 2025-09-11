@@ -1,10 +1,10 @@
 "use client";
-import React, { useState, ChangeEvent, useRef, useEffect } from 'react';
-import { Upload, User, Mail, Lock, School, Eye, EyeOff } from 'lucide-react';
-import { ENDPOINTS } from '../../../utils/config';
-import axios from 'axios';
-import ReCAPTCHA from 'react-google-recaptcha';
-import { json } from 'stream/consumers';
+import React, { useState, ChangeEvent, useRef, useEffect } from "react";
+import { Upload, User, Mail, Lock, School, Eye, EyeOff } from "lucide-react";
+import { API, ENDPOINTS } from "../../../utils/config";
+import axios from "axios";
+import ReCAPTCHA from "react-google-recaptcha";
+import { json } from "stream/consumers";
 
 interface FormData {
   username: string;
@@ -31,20 +31,23 @@ interface PrakerinRegistrationFormProps {
   setShowForm: (value: string) => void;
 }
 
-const PrakerinRegistrationSiswaForm: React.FC<PrakerinRegistrationFormProps> = ({ setShowForm }) => {
+const   PrakerinRegistrationSiswaForm: React.FC<
+  PrakerinRegistrationFormProps
+> = ({ setShowForm }) => {
   const [formData, setFormData] = useState<FormData>({
-    username: '',
-    name: '',
-    school_id: '',
-    email: '',
-    password: '',
-    password_confirmation: '',
-    recaptcha_token: '',
-    role: 'student'
+    username: "",
+    name: "",
+    school_id: "",
+    email: "",
+    password: "",
+    password_confirmation: "",
+    recaptcha_token: "",
+    role: "student",
   });
 
   const [showPassword, setShowPassword] = useState<boolean>(false);
-  const [showpassword_confirmation, setShowpassword_confirmation] = useState<boolean>(false);
+  const [showpassword_confirmation, setShowpassword_confirmation] =
+    useState<boolean>(false);
   const [profileImage, setProfileImage] = useState<string | null>(null);
   const [errors, setErrors] = useState<FormErrors>({});
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
@@ -53,30 +56,35 @@ const PrakerinRegistrationSiswaForm: React.FC<PrakerinRegistrationFormProps> = (
 
   useEffect(() => {
     async function fetchData() {
-      const response = await axios.get(ENDPOINTS.SCHOOL_NAME);
+      const response = await API.get(ENDPOINTS.USERS, {
+        params: { role: "school" },
+      });
 
       if (response.status === 200) {
-        setSchoolNames(response.data.data);
-        console.log('School names fetched successfully');
+        // setSchoolNames(response.data.data);
+        console.log(response.data.data);
+        console.log("School names fetched successfully");
       } else {
-        console.error('Failed to fetch school names');
+        console.error("Failed to fetch school names");
       }
     }
     fetchData();
-  }, [])
+  }, []);
 
-  const handleInputChange = (e: ChangeEvent<HTMLInputElement | HTMLSelectElement>): void => {
+  const handleInputChange = (
+    e: ChangeEvent<HTMLInputElement | HTMLSelectElement>
+  ): void => {
     const { name, value } = e.target;
-    setFormData(prev => ({
+    setFormData((prev) => ({
       ...prev,
-      [name]: value
+      [name]: value,
     }));
 
     // Clear error when user starts typing
     if (errors[name as keyof FormErrors]) {
-      setErrors(prev => ({
+      setErrors((prev) => ({
         ...prev,
-        [name]: undefined
+        [name]: undefined,
       }));
     }
   };
@@ -86,13 +94,13 @@ const PrakerinRegistrationSiswaForm: React.FC<PrakerinRegistrationFormProps> = (
     if (file) {
       // Check file size (2MB limit)
       if (file.size > 2 * 1024 * 1024) {
-        alert('File size must be less than 2MB');
+        alert("File size must be less than 2MB");
         return;
       }
 
       // Check file type
-      if (!file.type.startsWith('image/')) {
-        alert('Please select a valid image file');
+      if (!file.type.startsWith("image/")) {
+        alert("Please select a valid image file");
         return;
       }
 
@@ -105,21 +113,18 @@ const PrakerinRegistrationSiswaForm: React.FC<PrakerinRegistrationFormProps> = (
       reader.readAsDataURL(file);
       console.log(file);
 
-      setFormData(prev => ({
+      setFormData((prev) => ({
         ...prev,
-        image: file
+        image: file,
       }));
     }
   };
 
-
-
   const handleSubmit = async (): Promise<void> => {
-
     setIsSubmitting(true);
     const token = await recaptchaRef.current.executeAsync();
     recaptchaRef.current.reset();
-    formData.recaptcha_token = token
+    formData.recaptcha_token = token;
     try {
       // Simulate API call
       // await new Promise(resolve => setTimeout(resolve, 1000));
@@ -128,23 +133,20 @@ const PrakerinRegistrationSiswaForm: React.FC<PrakerinRegistrationFormProps> = (
         withCredentials: true,
         withXSRFToken: true,
         headers: {
-          'Content-Type': 'multipart/form-data',
-        }
+          "Content-Type": "multipart/form-data",
+        },
       });
 
       if (response.status === 200) {
-        alert('Registration successful!');
+        alert("Registration successful!");
         setShowForm(""); // Reset to initial form state
       } else {
-        alert('Registration failed. Please try again.');
+        alert("Registration failed. Please try again.");
       }
-      console.log('Form submitted:', {
+      console.log("Form submitted:", {
         json: response.data,
-        profileImage: formData.image
+        profileImage: formData.image,
       });
-
-
-
     } catch (error: any) {
       if (error.response && error.response.status === 422) {
         const errorData = error.response.data.errors;
@@ -158,8 +160,8 @@ const PrakerinRegistrationSiswaForm: React.FC<PrakerinRegistrationFormProps> = (
         return;
       }
 
-      console.error('Submission error:', error);
-      alert('Registration failed. Please try again.');
+      console.error("Submission error:", error);
+      alert("Registration failed. Please try again.");
     } finally {
       setIsSubmitting(false);
     }
@@ -174,8 +176,14 @@ const PrakerinRegistrationSiswaForm: React.FC<PrakerinRegistrationFormProps> = (
       <div className="bg-white rounded-2xl shadow-xl p-8 w-full max-w-4xl">
         {/* Header */}
         <div className="text-center mb-8">
-          <img src="PrakerinID_ico.svg" alt="" className="lg:w-50 mb-4 mx-auto" />
-          <h2 className="text-2xl font-semibold text-gray-700">Daftar Siswa Magang</h2>
+          <img
+            src="PrakerinID_ico.svg"
+            alt=""
+            className="lg:w-50 mb-4 mx-auto"
+          />
+          <h2 className="text-2xl font-semibold text-gray-700">
+            Daftar Siswa Magang
+          </h2>
         </div>
 
         <div className="space-y-6">
@@ -202,7 +210,9 @@ const PrakerinRegistrationSiswaForm: React.FC<PrakerinRegistrationFormProps> = (
                   ) : (
                     <div className="text-center">
                       <Upload className="w-12 h-12 text-gray-400 mb-2 mx-auto" />
-                      <p className="text-sm text-gray-500">Klik untuk upload max (2mb)</p>
+                      <p className="text-sm text-gray-500">
+                        Klik untuk upload max (2mb)
+                      </p>
                     </div>
                   )}
                 </div>
@@ -223,11 +233,14 @@ const PrakerinRegistrationSiswaForm: React.FC<PrakerinRegistrationFormProps> = (
                     value={formData.username}
                     onChange={handleInputChange}
                     placeholder="Masukan Username anda disini"
-                    className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-teal-500 outline-none transition-colors ${errors.username ? 'border-red-500' : 'border-gray-300'
-                      }`}
+                    className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-teal-500 outline-none transition-colors ${
+                      errors.username ? "border-red-500" : "border-gray-300"
+                    }`}
                   />
                   {errors.username && (
-                    <p className="mt-1 text-sm text-red-500">{errors.username}</p>
+                    <p className="mt-1 text-sm text-red-500">
+                      {errors.username}
+                    </p>
                   )}
                 </div>
                 <div>
@@ -240,8 +253,9 @@ const PrakerinRegistrationSiswaForm: React.FC<PrakerinRegistrationFormProps> = (
                     value={formData.name}
                     onChange={handleInputChange}
                     placeholder="Masukan Nama anda disini"
-                    className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-teal-500 outline-none transition-colors ${errors.name ? 'border-red-500' : 'border-gray-300'
-                      }`}
+                    className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-teal-500 outline-none transition-colors ${
+                      errors.name ? "border-red-500" : "border-gray-300"
+                    }`}
                   />
                   {errors.name && (
                     <p className="mt-1 text-sm text-red-500">{errors.name}</p>
@@ -253,34 +267,47 @@ const PrakerinRegistrationSiswaForm: React.FC<PrakerinRegistrationFormProps> = (
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Asal Sekolah / Universitas<span className="text-red-500">*</span>
+                    Asal Sekolah / Universitas
+                    <span className="text-red-500">*</span>
                   </label>
                   <div className="relative">
                     <select
                       name="school_id"
                       value={formData.school_id}
                       onChange={handleInputChange}
-                      className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-teal-500 outline-none transition-colors appearance-none bg-white ${errors.school_id ? 'border-red-500' : 'border-gray-300'
-                        }`}
+                      className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-teal-500 outline-none transition-colors appearance-none bg-white ${
+                        errors.school_id ? "border-red-500" : "border-gray-300"
+                      }`}
                     >
                       <option value="">Pilih Sekolah/Univ anda</option>
-                      {
-                        schoolNames && schoolNames.map((school, key) => (
+                      {schoolNames &&
+                        schoolNames.map((school, key) => (
                           <option key={key} value={school.id}>
                             {school.name}
                           </option>
-                        ))
-                      }
+                        ))}
                       <option value="other">Lainnya</option>
                     </select>
                     <div className="absolute inset-y-0 right-0 flex items-center px-2 pointer-events-none">
-                      <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                      <svg
+                        className="w-4 h-4 text-gray-400"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M19 9l-7 7-7-7"
+                        />
                       </svg>
                     </div>
                   </div>
                   {errors.school_id && (
-                    <p className="mt-1 text-sm text-red-500">{errors.school_id}</p>
+                    <p className="mt-1 text-sm text-red-500">
+                      {errors.school_id}
+                    </p>
                   )}
                 </div>
                 <div>
@@ -293,8 +320,9 @@ const PrakerinRegistrationSiswaForm: React.FC<PrakerinRegistrationFormProps> = (
                     value={formData.email}
                     onChange={handleInputChange}
                     placeholder="Masukan Email anda disini"
-                    className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-teal-500 outline-none transition-colors ${errors.email ? 'border-red-500' : 'border-gray-300'
-                      }`}
+                    className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-teal-500 outline-none transition-colors ${
+                      errors.email ? "border-red-500" : "border-gray-300"
+                    }`}
                   />
                   {errors.email && (
                     <p className="mt-1 text-sm text-red-500">{errors.email}</p>
@@ -315,19 +343,26 @@ const PrakerinRegistrationSiswaForm: React.FC<PrakerinRegistrationFormProps> = (
                       value={formData.password}
                       onChange={handleInputChange}
                       placeholder="Masukan Password anda disini"
-                      className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-teal-500 outline-none transition-colors pr-12 ${errors.password ? 'border-red-500' : 'border-gray-300'
-                        }`}
+                      className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-teal-500 outline-none transition-colors pr-12 ${
+                        errors.password ? "border-red-500" : "border-gray-300"
+                      }`}
                     />
                     <button
                       type="button"
                       onClick={() => setShowPassword(!showPassword)}
                       className="absolute inset-y-0 right-0 flex items-center px-3 text-gray-400 hover:text-gray-600"
                     >
-                      {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                      {showPassword ? (
+                        <EyeOff className="w-5 h-5" />
+                      ) : (
+                        <Eye className="w-5 h-5" />
+                      )}
                     </button>
                   </div>
                   {errors.password && (
-                    <p className="mt-1 text-sm text-red-500">{errors.password}</p>
+                    <p className="mt-1 text-sm text-red-500">
+                      {errors.password}
+                    </p>
                   )}
                 </div>
                 <div>
@@ -341,19 +376,30 @@ const PrakerinRegistrationSiswaForm: React.FC<PrakerinRegistrationFormProps> = (
                       value={formData.password_confirmation}
                       onChange={handleInputChange}
                       placeholder="Masukan Password anda disini"
-                      className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-teal-500 outline-none transition-colors pr-12 ${errors.password_confirmation ? 'border-red-500' : 'border-gray-300'
-                        }`}
+                      className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-teal-500 outline-none transition-colors pr-12 ${
+                        errors.password_confirmation
+                          ? "border-red-500"
+                          : "border-gray-300"
+                      }`}
                     />
                     <button
                       type="button"
-                      onClick={() => setShowpassword_confirmation(!showpassword_confirmation)}
+                      onClick={() =>
+                        setShowpassword_confirmation(!showpassword_confirmation)
+                      }
                       className="absolute inset-y-0 right-0 flex items-center px-3 text-gray-400 hover:text-gray-600"
                     >
-                      {showpassword_confirmation ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                      {showpassword_confirmation ? (
+                        <EyeOff className="w-5 h-5" />
+                      ) : (
+                        <Eye className="w-5 h-5" />
+                      )}
                     </button>
                   </div>
                   {errors.password_confirmation && (
-                    <p className="mt-1 text-sm text-red-500">{errors.password_confirmation}</p>
+                    <p className="mt-1 text-sm text-red-500">
+                      {errors.password_confirmation}
+                    </p>
                   )}
                 </div>
               </div>
@@ -382,10 +428,20 @@ const PrakerinRegistrationSiswaForm: React.FC<PrakerinRegistrationFormProps> = (
               disabled={isSubmitting}
               className="px-6 py-3 bg-accent text-white rounded-lg hover:bg-accent-hover transition-colors font-medium flex items-center space-x-2 disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              <span>{isSubmitting ? 'Mendaftar...' : 'Daftar'}</span>
+              <span>{isSubmitting ? "Mendaftar..." : "Daftar"}</span>
               {!isSubmitting && (
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                <svg
+                  className="w-4 h-4"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M9 5l7 7-7 7"
+                  />
                 </svg>
               )}
             </button>

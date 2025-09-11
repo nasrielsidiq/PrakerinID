@@ -11,7 +11,7 @@ interface FormData {
   file: File | null;
 }
 
-const CreatePage: React.FC = () => {
+const CreateTask: React.FC = () => {
   const [formData, setFormData] = useState<FormData>({
     name: "",
     file: null,
@@ -64,19 +64,18 @@ const CreatePage: React.FC = () => {
   return (
     <main className="p-6">
       <h1 className="text-accent-dark text-sm mb-5">
-        
         <Link
           className="hover:underline hover:text-accent"
-          href={"/dashboard/cv"}
+          href={"/dashboard/tasklist"}
         >
-          Curiculum Vitae
+          Task List
         </Link>{" "}
-        -&gt; Tambah Curiculum Vitae
+        -&gt; Tambah Task
       </h1>
       <div className="mb-8">
         <div className="flex items-center space-x-2 font-extrabold text-accent">
           <FileText className="w-5 h-5" />
-          <h2 className="text-2xl">Curiculum Vitae</h2>
+          <h2 className="text-2xl">Tambah Task</h2>
         </div>
       </div>
 
@@ -89,7 +88,9 @@ const CreatePage: React.FC = () => {
             <FileTextIcon />
           </div>
           <div>
-            <h1 className="text-xl text-gray-800 font-extrabold">Tambah CV</h1>
+            <h1 className="text-xl text-gray-800 font-extrabold">
+              Tambah Task
+            </h1>
             <span className="text-sm text-gray-300">
               Silahkan isi semua informasi yang dibutuhkan
             </span>
@@ -97,7 +98,7 @@ const CreatePage: React.FC = () => {
         </div>
 
         <div className="grid grid-cols-1 gap-2">
-          <label htmlFor="name">Nama CV</label>
+          <label htmlFor="name">Nama Magang</label>
           <input
             type="text"
             name="name"
@@ -106,34 +107,45 @@ const CreatePage: React.FC = () => {
             onChange={(e) => setFormData({ ...formData, name: e.target.value })}
           />
         </div>
-
-        <div className="lg:col-span-1 ">
-          <label className="block text-sm font-medium text-gray-700 mb-2">
-            Upload CV
-          </label>
-          <div className="relative">
-            <div className="w-full h-48 border-2 border-dashed border-gray-300 rounded-lg flex flex-col items-center justify-center bg-gray-50 hover:bg-gray-100 transition-colors cursor-pointer">
-              <input
-                type="file"
-                accept="application/pdf"
-                onChange={handleFileChange}
-                className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
-              />
-              {previewUrl ? (
-                <embed
-                  src={previewUrl}
-                  type="application/pdf"
-                  width="100%"
-                  height="500px"
-                  className="pointer-events-none"
-                />
-              ) : (
-                <p className="text-sm text-gray-500">
-                  Klik di sini untuk upload PDF
-                </p>
-              )}
-            </div>
-          </div>
+        <div className="grid grid-cols-1 gap-2">
+          <label htmlFor="name">Judul Task</label>
+          <input
+            type="text"
+            name="name"
+            className="w-full p-2 border rounded-lg pr-12 focus:ring-2 outline-none transition-colors bg-gray-200 focus:border-accent border-gray-300"
+            value={formData.name}
+            onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+          />
+        </div>
+        <div className="grid grid-cols-1 gap-2">
+          <label htmlFor="name">Deadline</label>
+          <input
+            type="text"
+            name="name"
+            className="w-full p-2 border rounded-lg pr-12 focus:ring-2 outline-none transition-colors bg-gray-200 focus:border-accent border-gray-300"
+            value={formData.name}
+            onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+          />
+        </div>
+        <div className="grid grid-cols-1 gap-2">
+          <label htmlFor="name">Deskripsi</label>
+          <input
+            type="text"
+            name="name"
+            className="w-full p-2 border rounded-lg pr-12 focus:ring-2 outline-none transition-colors bg-gray-200 focus:border-accent border-gray-300"
+            value={formData.name}
+            onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+          />
+        </div>
+        <div className="grid grid-cols-1 gap-2">
+          <label htmlFor="name">Link Task</label>
+          <input
+            type="text"
+            name="name"
+            className="w-full p-2 border rounded-lg pr-12 focus:ring-2 outline-none transition-colors bg-gray-200 focus:border-accent border-gray-300"
+            value={formData.name}
+            onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+          />
         </div>
 
         <div className=" flex gap-4 justify-end">
@@ -156,4 +168,4 @@ const CreatePage: React.FC = () => {
   );
 };
 
-export default CreatePage;
+export default CreateTask;

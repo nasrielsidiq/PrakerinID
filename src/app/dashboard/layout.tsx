@@ -17,7 +17,9 @@ import {
   UsersRound,
   MapPin,
   UserCircle,
-  CircleArrowLeft, // TAMBAHKAN: LogOut
+  CircleArrowLeft,
+  BookOpen,
+  MessageSquareText, // TAMBAHKAN: LogOut
 } from "lucide-react";
 import Link from "next/link";
 import Cookies from "js-cookie";
@@ -30,7 +32,6 @@ import { alertConfirm } from "@/libs/alert";
 interface MenuItem {
   icon: React.ComponentType<any>;
   label: string;
-  active: boolean;
   href: string;
 }
 
@@ -47,46 +48,7 @@ export default function DashboardLayout({
   children: React.ReactNode;
 }>) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
-  const [menuItems, setMenuItems] = useState<MenuItem[]>([
-    { icon: Home, label: "Dashboard", active: true, href: "/dashboard" },
-    {
-      icon: Briefcase,
-      label: "Lowongan",
-      active: false,
-      href: "/dashboard/lowongan",
-    },
-    {
-      icon: FileText,
-      label: "Curriculum Vitae",
-      active: false,
-      href: "/dashboard/cv",
-    },
-    {
-      icon: Building,
-      label: "Perusahaan",
-      active: false,
-      href: "/dashboard/perusahaan",
-    },
-    {
-      icon: CheckSquare,
-      label: "Task List",
-      active: false,
-      href: "/dashboard/tasklist",
-    },
-    {
-      icon: MessageSquare,
-      label: "Feedback",
-      active: false,
-      href: "/dashboard/feedback",
-    },
-    {
-      icon: Award,
-      label: "Sertifikat",
-      active: false,
-      href: "/dashboard/sertifikat",
-    },
-    { icon: User, label: "Profile", active: false, href: "/dashboard/profile" },
-  ]);
+  const [menuItems, setMenuItems] = useState<MenuItem[]>([]);
 
   // --- TAMBAHKAN LOGIKA DROPDOWN DI SINI ---
   const [isDropdownOpen, setDropdownOpen] = useState(false);
@@ -126,74 +88,141 @@ export default function DashboardLayout({
 
   useEffect(() => {
     const authorization = Cookies.get("authorization");
-    if (authorization === "industry") {
-      setMenuItems([
-        { icon: Home, label: "Dashboard", active: true, href: "/dashboard" },
-        {
-          icon: Briefcase,
-          label: "Lowongan",
-          active: false,
-          href: "/dashboard/lowongan",
-        },
-        {
-          icon: Briefcase,
-          label: "Lamaran",
-          active: false,
-          href: "/dashboard/industry/lamaran",
-        },
-        {
-          icon: CheckSquare,
-          label: "Task List",
-          active: false,
-          href: "/dashboard/tasklist",
-        },
-        {
-          icon: Award,
-          label: "Penghargaan",
-          active: false,
-          href: "/dashboard/penghargaan",
-        },
-        {
-          icon: User,
-          label: "Profile",
-          active: false,
-          href: "/dashboard/profile",
-        },
-      ]);
-    } else if (authorization === "school") {
-      setMenuItems([
-        { icon: Home, label: "Dashboard", active: true, href: "/dashboard" },
-        {
-          icon: UsersRound,
-          label: "Daftar Siswa",
-          active: false,
-          href: "/dashboard/school/daftarsiswa",
-        },
-        {
-          icon: MapPin,
-          label: "Penempatan",
-          active: false,
-          href: "/dashboard/school/penempatan",
-        },
-        {
-          icon: Building,
-          label: "Perusahaan",
-          active: false,
-          href: "/dashboard/perusahaan",
-        },
-        {
-          icon: Award,
-          label: "Penghargaan",
-          active: false,
-          href: "/dashboard/penghargaan",
-        },
-        {
-          icon: User,
-          label: "Profile",
-          active: false,
-          href: "/dashboard/profile",
-        },
-      ]);
+    switch (authorization) {
+      case "student":
+        setMenuItems([
+          { icon: Home, label: "Dashboard", href: "/dashboard" },
+          {
+            icon: Briefcase,
+            label: "Lowongan",
+            href: "/dashboard/lowongan",
+          },
+          {
+            icon: FileText,
+            label: "Curriculum Vitae",
+            href: "/dashboard/cv",
+          },
+          {
+            icon: Building,
+            label: "Perusahaan",
+            href: "/dashboard/perusahaan",
+          },
+          {
+            icon: CheckSquare,
+            label: "Task List",
+            href: "/dashboard/tasklist",
+          },
+          {
+            icon: MessageSquare,
+            label: "Feedback",
+            href: "/dashboard/feedback",
+          },
+          {
+            icon: Award,
+            label: "Sertifikat",
+            href: "/dashboard/sertifikat",
+          },
+          { icon: User, label: "Profile", href: "/dashboard/profile" },
+        ]);
+        break;
+      case "company":
+        setMenuItems([
+          {
+            icon: Home,
+            label: "Dashboard",
+            href: "/dashboard",
+          },
+          {
+            icon: Briefcase,
+            label: "Lowongan",
+            href: "/dashboard/lowongan",
+          },
+          {
+            icon: Briefcase,
+            label: "Lamaran",
+            href: "/dashboard/industry/lamaran",
+          },
+          {
+            icon: CheckSquare,
+            label: "Task List",
+            href: "/dashboard/tasklist",
+          },
+          {
+            icon: BookOpen,
+            label: "Sekolah",
+            href: "/dashboard/sekolah",
+          },
+          {
+            icon: Award,
+            label: "Penghargaan",
+            href: "/dashboard/penghargaan",
+          },
+          {
+            icon: MessageSquareText,
+            label: "Feedback",
+            href: "/dashboard/feedback",
+          },
+          {
+            icon: User,
+            label: "Profile",
+            href: "/dashboard/profile",
+          },
+        ]);
+        break;
+      case "school":
+        setMenuItems([
+          { icon: Home, label: "Dashboard", href: "/dashboard" },
+          {
+            icon: UsersRound,
+            label: "Daftar Siswa",
+            href: "/dashboard/school/daftarsiswa",
+          },
+          {
+            icon: MapPin,
+            label: "Penempatan",
+            href: "/dashboard/school/penempatan",
+          },
+          {
+            icon: Building,
+            label: "Perusahaan",
+            href: "/dashboard/perusahaan",
+          },
+          {
+            icon: Award,
+            label: "Penghargaan",
+            href: "/dashboard/penghargaan",
+          },
+          {
+            icon: User,
+            label: "Profile",
+            href: "/dashboard/profile",
+          },
+        ]);
+        break;
+      case "super_admin":
+        setMenuItems([
+          {
+            icon: Home,
+            label: "Dashboard",
+            href: "/dashboard",
+          },
+          {
+            icon: Building,
+            label: "Perusahaan",
+            href: "/dashboard/perusahaan",
+          },
+          {
+            icon: Briefcase,
+            label: "Lowongan",
+            href: "/dashboard/lowongan",
+          },
+          {
+            icon: User,
+            label: "Profile",
+            href: "/dashboard/profile",
+          },
+        ]);
+        break;
     }
   }, []);
 

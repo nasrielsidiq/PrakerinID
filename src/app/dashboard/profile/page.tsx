@@ -73,6 +73,32 @@ export default function ProfilePage() {
     }
   };
 
+  const handleSubmit = async (e: React.FormEvent, form: "user" | "student") => {
+    e.preventDefault();
+    console.log(form === "user" ? userForm : studentForm);
+    console.log(Cookies.get("userToken"));
+    try {
+      const response = await API.post(
+        `${ENDPOINTS.USERS}/profile`,
+        {
+          ...(form === "user" ? userForm : studentForm),
+          _method: "PATCH",
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${Cookies.get("userToken")}`,
+          },
+        }
+      );
+
+      if (response.status === 200) {
+        fetchProfile(); // Refresh data after update
+      }
+    } catch (error) {
+      console.error("Error updating profile:", error);
+    }
+  };
+
   useEffect(() => {
     fetchProfile();
   }, []);
@@ -96,9 +122,20 @@ export default function ProfilePage() {
               <h3 className="text-lg font-semibold text-gray-800">Foto</h3>
             </div>
             <div className="flex flex-col items-center">
-              <div className="w-48 h-48 border-2 border-dashed rounded-lg flex items-center justify-center bg-gray-50 mb-4">
-                <UploadCloud size={48} className="text-gray-400" />
+              <div className="w-48 h-48 border-2 border-dashed rounded-lg flex flex-col items-center justify-center bg-gray-50 mb-4 relative cursor-pointer">
+                {/* Icon upload */}
+                <UploadCloud size={48} className="text-gray-400 mb-2" />
+                <span className="text-sm text-gray-500">Upload Foto</span>
+
+                {/* Input file hidden tapi full area jadi clickable */}
+                <input
+                  type="file"
+                  name="profile_picture"
+                  id="profile_picture"
+                  className="absolute inset-0 opacity-0 cursor-pointer"
+                />
               </div>
+
               <p className="text-center text-xs text-gray-500">
                 Rekomendasi: Gunakan foto dengan ukuran 200x200 pixel untuk
                 hasil terbaik.
@@ -114,7 +151,10 @@ export default function ProfilePage() {
                 Informasi Akun
               </h3>
             </div>
-            <form className="space-y-6">
+            <form
+              className="space-y-6"
+              onSubmit={(e) => handleSubmit(e, "user")}
+            >
               <div>
                 <label
                   htmlFor="username"
@@ -210,7 +250,10 @@ export default function ProfilePage() {
               Informasi Pribadi
             </h3>
           </div>
-          <form className="space-y-6">
+          <form
+            className="space-y-6"
+            onSubmit={(e) => handleSubmit(e, "student")}
+          >
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div>
                 <label

@@ -33,7 +33,7 @@ const Dashboard: React.FC = () => {
   }, []);
 
   const RolePage: React.FC = () => {
-    if (role === "industry") return <IndustryDashboard />;
+    if (role === "company") return <IndustryDashboard />;
     if (role === "student") return <SiswaDashboard />;
     if (role === "school") return null;
   };

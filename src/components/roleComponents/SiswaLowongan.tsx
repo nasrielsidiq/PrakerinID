@@ -13,6 +13,7 @@ import { useEffect, useState } from "react";
 import { API, ENDPOINTS } from "../../../utils/config";
 import Cookies from "js-cookie";
 import { timeAgo } from "@/utils/timeAgo";
+import useDebounce from "@/hooks/useDebounce";
 
 interface InternshipApplicationCount {
   total: number;
@@ -54,8 +55,23 @@ interface Duration {
   duration_unit: string;
 }
 
+interface Filter {
+  province_id: string;
+  city_regency_id: string;
+  grade: "smk" | "mahasiswa" | "all" | "";
+  field_id: string;
+  duration_id: string;
+}
+
 export default function SiswaLowongan() {
-  const [showFilter, setShowFilter] = useState(true);
+  const [showFilter, setShowFilter] = useState<boolean>(true);
+  const [filterData, setFilterData] = useState<Filter>({
+    province_id: "",
+    city_regency_id: "",
+    grade: "",
+    field_id: "",
+    duration_id: "",
+  });
   const [internshipApplicationCount, setInternshipApplicationCount] =
     useState<InternshipApplicationCount>({
       total: 0,
@@ -67,6 +83,8 @@ export default function SiswaLowongan() {
   const [provinces, setProvinces] = useState<Province[]>([]);
   const [fields, setFields] = useState<Field[]>([]);
   const [durations, setDurations] = useState<Duration[]>([]);
+  const [inputSearch, setInputSearch] = useState<string>("");
+  const debouncedQuery = useDebounce(inputSearch, 1000);
 
   const fetchInternshipAplicationCount = async () => {
     try {
@@ -88,9 +106,20 @@ export default function SiswaLowongan() {
 
   const fetchJobOpenings = async () => {
     try {
+      let params = {
+        search: inputSearch,
+      };
+
+      if (showFilter) {
+        params = { ...params, ...filterData };
+      }
+
       const response = await API.get(ENDPOINTS.JOB_OPENINGS, {
         headers: {
           Authorization: `Bearer ${Cookies.get("userToken")}`,
+        },
+        params: {
+          ...params,
         },
       });
       if (response.status === 200) {
@@ -102,8 +131,12 @@ export default function SiswaLowongan() {
     }
   };
 
-  const handleClickFavorite = async (id: string) => {
-    console.log();
+  const handleClickFavorite = async (
+    e: React.MouseEvent<HTMLButtonElement>,
+    id: string
+  ) => {
+    e.preventDefault();
+    e.stopPropagation();
     try {
       const response = await API.post(
         `${ENDPOINTS.SAVE_JOB_OPENINGS}`,
@@ -116,8 +149,14 @@ export default function SiswaLowongan() {
           },
         }
       );
-      if (response.status === 200) {
-        console.log("Successfully favorited job opening");
+      if (response.status === 200 || response.status === 201) {
+        setJobOpenings((prevJobs) =>
+          prevJobs.map((job) =>
+            job.id === id
+              ? { ...job, save_job_opening: !job.save_job_opening }
+              : job
+          )
+        );
       }
     } catch (error) {
       console.log(error);
@@ -173,12 +212,32 @@ export default function SiswaLowongan() {
   useEffect(() => {
     Promise.all([
       fetchInternshipAplicationCount(),
-      fetchJobOpenings(),
       fetchProvinces(),
       fetchFields(),
       fetchDurations(),
     ]);
   }, []);
+
+  useEffect(() => {
+    if (inputSearch.trim() !== "") {
+      if (!debouncedQuery) {
+        setJobOpenings([]);
+        return;
+      }
+    }
+
+    fetchJobOpenings();
+  }, [debouncedQuery, filterData, showFilter]);
+
+  const handleReset = () => {
+    setFilterData({
+      province_id: "",
+      city_regency_id: "",
+      grade: "",
+      field_id: "",
+      duration_id: "",
+    });
+  };
 
   return (
     <>
@@ -227,13 +286,18 @@ export default function SiswaLowongan() {
           <div className="flex space-x-3 lg:pb-3  mb-3">
             <input
               type="text"
+              onChange={(e) => setInputSearch(e.target.value)}
+              value={inputSearch}
               name="search"
               className=" rounded-xl p-3  w-80 bg-white border border-gray-200 text-black"
               placeholder="Cari Lowongan Magang"
             />
             <button
               type="button"
-              onClick={() => setShowFilter(!showFilter)}
+              onClick={() => {
+                handleReset();
+                setShowFilter(!showFilter);
+              }}
               className="flex rounded-xl bg-white border border-accent text-accent hover:bg-accent transition-colors hover:text-white p-3"
             >
               <Funnel className="w-5 h-5" /> Filter
@@ -253,6 +317,14 @@ export default function SiswaLowongan() {
         >
           <select
             name="province_id"
+            value={filterData.province_id}
+            onChange={(e) => {
+              setFilterData({
+                ...filterData,
+                province_id: e.target.value,
+              });
+              fetchCityRegencies(e.target.value);
+            }}
             className="p-3 rounded-lg border border-gray-300 bg-gray-200 text-black"
           >
             <option value="">Provinsi</option>
@@ -264,14 +336,27 @@ export default function SiswaLowongan() {
           </select>
           <select
             name="city_regency_id"
+            value={filterData.city_regency_id}
+            onChange={(e) =>
+              setFilterData({
+                ...filterData,
+                city_regency_id: e.target.value,
+              })
+            }
             className="p-3 rounded-lg border border-gray-300 bg-gray-200 text-black"
           >
             <option value="">Kota/Kabupaten</option>
             <option value="id">Jakarta</option>
-            <option value="id">Surabaya</option>
           </select>
           <select
             name="grade"
+            value={filterData.grade}
+            onChange={(e) =>
+              setFilterData({
+                ...filterData,
+                grade: e.target.value as "" | "smk" | "mahasiswa" | "all",
+              })
+            }
             className="p-3 rounded-lg border border-gray-300 bg-gray-200 text-black"
           >
             <option value="">Tingkat Pendidikan</option>
@@ -281,6 +366,13 @@ export default function SiswaLowongan() {
           </select>
           <select
             name="field_id"
+            value={filterData.field_id}
+            onChange={(e) =>
+              setFilterData({
+                ...filterData,
+                field_id: e.target.value,
+              })
+            }
             className="p-3 rounded-lg border border-gray-300 bg-gray-200 text-black"
           >
             <option value="">Bidang</option>
@@ -291,7 +383,14 @@ export default function SiswaLowongan() {
             ))}
           </select>
           <select
-            name="provinsi"
+            name="duration_id"
+            value={filterData.duration_id}
+            onChange={(e) =>
+              setFilterData({
+                ...filterData,
+                duration_id: e.target.value,
+              })
+            }
             className="p-3 rounded-lg border border-gray-300 bg-gray-200 text-black"
           >
             <option value="">Durasi</option>
@@ -302,7 +401,11 @@ export default function SiswaLowongan() {
             ))}
           </select>
 
-          <button type="button" className="text-center text-black">
+          <button
+            onClick={handleReset}
+            type="button"
+            className="text-center text-black"
+          >
             Reset
           </button>
         </div>
@@ -349,7 +452,7 @@ export default function SiswaLowongan() {
               </span>
               <button
                 type="button"
-                onClick={() => handleClickFavorite(job.id)}
+                onClick={(e) => handleClickFavorite(e, job.id)}
                 className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
               >
                 <Bookmark

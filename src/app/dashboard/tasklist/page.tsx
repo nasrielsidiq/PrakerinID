@@ -1,47 +1,95 @@
 "use client";
-import { CheckSquare, ClipboardCheck, Info, Search } from "lucide-react";
+import {
+  CheckSquare,
+  CirclePlus,
+  ClipboardCheck,
+  Info,
+  Search,
+} from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { API, ENDPOINTS } from "../../../../utils/config";
-import { headers } from "next/headers";
 import Cookies from "js-cookie";
+import useDebounce from "@/hooks/useDebounce";
+import Link from "next/link";
 
 interface Task {
   id: number;
   title: string;
-  deadline: string;
-  status: "Sedang" | "Belum" | "Selesai";
+  due_date: string;
+  status: "in_progress" | "pending" | "completed" | "cancelled";
 }
 
+type ActiveTab = "Semua" | "Belum" | "Sedang" | "Selesai" | "Dibatalkan";
+
 const TasklistPage: React.FC = () => {
-  const [activeTab, setActiveTab] = useState("Semua");
-  const [searchQuery, setSearchQuery] = useState("");
-  const [tasks, setTasks] = useState<Task[]>([
-    {
-      id: 1,
-      title: "Analisis Sistem Informasi dikonoha",
-      deadline: "12-12-2025",
-      status: "Sedang",
-    },
-  ]);
-  const tabs = ["Semua", "Belum", "Sedang", "Selesai"];
+  const [activeTab, setActiveTab] = useState<ActiveTab>("Semua");
+  const [inputSearch, setInputSearch] = useState("");
+  const debouncedQuery = useDebounce(inputSearch, 1000);
+  const [tasks, setTasks] = useState<Task[]>([]);
+  const tabs = ["Semua", "Belum", "Sedang", "Selesai", "Dibatalkan"];
   const router = useRouter();
+
   const getStatusColor = (status: string) => {
     switch (status) {
-      case "Sedang":
+      case "in_progress":
         return "bg-green-100 text-green-800";
-      case "Belum":
+      case "pending":
         return "bg-yellow-100 text-yellow-800";
-      case "Selesai":
+      case "completed":
         return "bg-blue-100 text-blue-800";
+      case "cancelled":
+        return "bg-red-100 text-red-800";
       default:
         return "bg-gray-100 text-gray-800";
     }
   };
 
+  const getStatus = (status: string) => {
+    switch (status) {
+      case "pending":
+        return "Belum";
+      case "in_progress":
+        return "Sedang";
+      case "completed":
+        return "Selesai";
+      case "cancelled":
+        return "Dibatalkan";
+    }
+  };
+
+  const getDeadline = (deadline: string) => {
+    const deadlineArray = deadline.split("-");
+
+    return `${deadlineArray[2]}-${deadlineArray[1]}-${deadlineArray[0]}`;
+  };
+
   const fetchTasks = async () => {
     try {
+      let filteredStatus = "all";
+      switch (activeTab) {
+        case "Belum":
+          filteredStatus = "pending";
+          break;
+        case "Sedang":
+          filteredStatus = "in_progress";
+          break;
+        case "Selesai":
+          filteredStatus = "completed";
+          break;
+        case "Semua":
+          filteredStatus = "all";
+          break;
+        case "Dibatalkan":
+          filteredStatus = "cancelled";
+          break;
+      }
+
       const response = await API.get(ENDPOINTS.TASKS, {
+        params: {
+          status: filteredStatus,
+          search: inputSearch,
+        },
         headers: {
           Authorization: `Bearer ${Cookies.get("userToken")}`,
         },
@@ -49,7 +97,7 @@ const TasklistPage: React.FC = () => {
 
       if (response.status === 200) {
         console.log("Tasks fetched successfully:", response.data.data);
-        // setTasks(response.data.data);
+        setTasks(response.data.data);
       }
     } catch (error) {
       console.error("Error fetching tasks:", error);
@@ -57,8 +105,14 @@ const TasklistPage: React.FC = () => {
   };
 
   useEffect(() => {
+    if (inputSearch.trim() !== "") {
+      if (!debouncedQuery) {
+        setTasks([]);
+        return;
+      }
+    }
     fetchTasks();
-  }, [activeTab]);
+  }, [activeTab, debouncedQuery]);
 
   return (
     <main className="p-6">
@@ -68,26 +122,37 @@ const TasklistPage: React.FC = () => {
         <div className="mb-8">
           <div className="flex items-center space-x-2 font-extrabold text-accent">
             <ClipboardCheck className="w-5 h-5" />
-            <h2 className="text-2xl mt-2">Tasklist</h2>
+            <h2 className="text-2xl mt-2">Task List</h2>
           </div>
         </div>
 
         {/* Tabs */}
-        <div className="flex space-x-1 bg-gray-100 p-1 rounded-lg w-fit mb-6">
+        <div className="flex gap-2 mb-6">
           {tabs.map((tab) => (
             <button
               key={tab}
-              onClick={() => setActiveTab(tab)}
-              className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${
+              onClick={() => setActiveTab(tab as ActiveTab)}
+              className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors shadow-sm ${
                 activeTab === tab
                   ? "bg-accent text-white shadow-sm"
-                  : "text-gray-600 hover:text-gray-800"
+                  : "bg-gray-100 text-gray-600 hover:text-gray-800"
               }`}
             >
               {tab}
             </button>
           ))}
         </div>
+        {Cookies.get("authorization") === "company" && (
+          <div className="flex justify-end mb-6">
+            <Link
+              href="/dashboard/tasklist/tambah"
+              className="text-white bg-accent rounded-xl p-3 px-5 flex items-center space-x-2"
+            >
+              <CirclePlus className="w-5 h-5 " />
+              <span>Tambah Task</span>
+            </Link>
+          </div>
+        )}
       </div>
 
       {/* Task Table */}
@@ -98,8 +163,8 @@ const TasklistPage: React.FC = () => {
           <input
             type="text"
             placeholder="Cari Task..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
+            value={inputSearch}
+            onChange={(e) => setInputSearch(e.target.value)}
             className="w-full bg-accent text-white placeholder-teal-200 pl-10 pr-4 py-3 rounded-t-2xl focus:outline-none focus:ring-2 focus:ring-teal-300"
           />
         </div>
@@ -123,24 +188,26 @@ const TasklistPage: React.FC = () => {
               </tr>
             </thead>
             <tbody>
-              {tasks.map((task) => (
+              {tasks.map((task, index) => (
                 <tr key={task.id} className="border-b hover:bg-gray-50">
-                  <td className="p-4 text-gray-800">{task.id}</td>
+                  <td className="p-4 text-gray-800">{index + 1}</td>
                   <td className="p-4 text-gray-800">{task.title}</td>
-                  <td className="p-4 text-gray-600">{task.deadline}</td>
+                  <td className="p-4 text-gray-600">
+                    {getDeadline(task.due_date)}
+                  </td>
                   <td className="p-4">
                     <span
                       className={`px-3 py-1 rounded-full text-sm font-medium ${getStatusColor(
                         task.status
                       )}`}
                     >
-                      {task.status}
+                      {getStatus(task.status)}
                     </span>
                   </td>
                   <td className="p-4">
                     <button
-                      onClick={() => router.push("tasklist/tyd")}
-                      className="p-2 text-blue-600 hover:bg-blue-50 rounded-full transition-colors"
+                      onClick={() => router.push(`tasklist/${task.id}`)}
+                      className="p-2 text-blue-600 hover:bg-blue-50 rounded-full transition-colors cursor-pointer"
                     >
                       <Info className="w-4 h-4" />
                     </button>

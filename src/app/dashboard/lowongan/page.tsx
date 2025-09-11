@@ -11,7 +11,7 @@ const LowonganPage: React.FC = () => {
         setRole(Cookies.get("authorization"));
     }, [])
     const RolePage: React.FC = () => {
-        if(role === "industry") return (<IndustryLowongan />);
+        if(role === "company") return (<IndustryLowongan />);
         if(role === "student") return(<SiswaLowongan />)
         if(role === "school") return null;
     }
@@ -20,7 +20,7 @@ const LowonganPage: React.FC = () => {
             <h1 className="text-accent-dark text-sm mb-5">Lowongan</h1>
             <div className="flex items-center  space-x-2 font-extrabold text-accent">
                 <BriefcaseBusiness className="w-5 h-5" />
-                <h2 className="text-2xl mt-2">Resume Lamaran Magang</h2>
+                <h2 className="text-2xl mt-2">Lowongan Magang</h2>
             </div>
            <RolePage />
         </main>

@@ -1,5 +1,5 @@
 "use client";
-import { Building, CircleArrowRight, MapPin, UserCircle } from "lucide-react";
+import { BookOpen, CircleArrowRight, MapPin, UserCircle } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { API, ENDPOINTS } from "../../../../utils/config";
@@ -23,7 +23,7 @@ interface CompanyCount {
 
 type ActiveTab = "Semua" | "Sudah Mou" | "Belum Mou";
 
-const PerusahaanPage: React.FC = () => {
+const SekolahPage: React.FC = () => {
   const router = useRouter();
   const [inputSearch, setInputSearch] = useState<string>("");
   const debouncedQuery = useDebounce(inputSearch, 1000);
@@ -40,7 +40,7 @@ const PerusahaanPage: React.FC = () => {
       const response = await API.get(ENDPOINTS.USERS, {
         params: {
           search: inputSearch,
-          role: "company",
+          role: "school",
           is_mou:
             activeTab === "Semua"
               ? undefined
@@ -102,11 +102,11 @@ const PerusahaanPage: React.FC = () => {
 
   return (
     <main className="p-6">
-      <h1 className="text-accent-dark text-sm mb-5">Perusahaan</h1>
+      <h1 className="text-accent-dark text-sm mb-5">Sekolah</h1>
       <div className="mb-8">
         <div className="flex items-center space-x-2 font-extrabold text-accent">
-          <Building className="w-5 h-5" />
-          <h2 className="text-2xl mt-2">Daftar Perusahaan</h2>
+          <BookOpen className="w-5 h-5" />
+          <h2 className="text-2xl mt-2">Daftar Sekolah</h2>
         </div>
       </div>
       <div className="lg:flex lg:justify-between items-end mb-5">
@@ -116,9 +116,9 @@ const PerusahaanPage: React.FC = () => {
               <h1 className="text-2xl font-extrabold">
                 {companyCount.company_count}
               </h1>
-              <span className="text-sm">Total Perusahaan</span>
+              <span className="text-sm">Total Sekolah</span>
             </div>
-            <Building className="w-10 h-10  text-accent" />
+            <BookOpen className="w-10 h-10  text-accent" />
           </div>
           <div className="bg-white p-3 rounded-2xl flex items-center justify-between space-x-5 px-5 mb-5 lg:mb-0 w-64">
             <div className="text-black">
@@ -127,7 +127,7 @@ const PerusahaanPage: React.FC = () => {
               </h1>
               <span className="text-sm">Telah Mou</span>
             </div>
-            <Building className="w-10 h-10  text-yellow-400" />
+            <BookOpen className="w-10 h-10  text-yellow-400" />
           </div>
         </div>
         <div>
@@ -136,7 +136,7 @@ const PerusahaanPage: React.FC = () => {
               type="text"
               onChange={(e) => setInputSearch(e.target.value)}
               value={inputSearch}
-              placeholder="Cari Perusahaan..."
+              placeholder="Cari Sekolah..."
               className="text-gray-600 w-full px-4 py-3 pl-12 focus:outline-none focus:ring-2 focus:ring-prakerin focus:border-transparent transition-all duration-300"
             />
             <svg
@@ -209,7 +209,7 @@ const PerusahaanPage: React.FC = () => {
               >
                 <span>Detail</span>
                 <CircleArrowRight className="w-4 h-4" />
-              </button>
+              </button> 
 
               {/* Tombol pojok kanan atas */}
               {data.mou && (
@@ -221,11 +221,11 @@ const PerusahaanPage: React.FC = () => {
           ))
         ) : (
           <div className="col-span-1 md:col-span-2 text-center text-gray-500">
-            Tidak ada perusahaan yang ditemukan.
+            Tidak ada Sekolah yang ditemukan.
           </div>
         )}
       </div>
     </main>
   );
 };
-export default PerusahaanPage;
+export default SekolahPage;

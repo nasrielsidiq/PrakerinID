@@ -13,6 +13,7 @@ import React, { useEffect, useState } from "react";
 import { API, ENDPOINTS } from "../../../../utils/config";
 import Cookies from "js-cookie";
 import useDebounce from "@/hooks/useDebounce";
+import { alertConfirm, alertSuccess } from "@/libs/alert";
 
 interface CVItem {
   id: string;
@@ -34,9 +35,21 @@ const CvPage: React.FC = () => {
           headers: {
             Authorization: `Bearer ${Cookies.get("userToken")}`,
           },
+          responseType: "blob",
         }
       );
       if (response.status === 200) {
+        const url = window.URL.createObjectURL(new Blob([response.data]));
+        const link = document.createElement("a");
+        link.href = url;
+
+        // Bisa static atau ambil dari backend Content-Disposition
+        link.setAttribute("download", `cv-${cvId}.pdf`);
+
+        document.body.appendChild(link);
+        link.click();
+        link.remove();
+        window.URL.revokeObjectURL(url);
       }
     } catch (error: any) {
       console.error("Error downloading CV:", error.response.data.errors);
@@ -44,7 +57,6 @@ const CvPage: React.FC = () => {
   };
 
   const handlePreview = async (cvId: string) => {
-    console.log("Previewing CV with ID:", cvId);
     try {
       const response = await API.get(
         `${ENDPOINTS.CURRICULUM_VITAE}/${cvId}/preview`,
@@ -52,13 +64,19 @@ const CvPage: React.FC = () => {
           headers: {
             Authorization: `Bearer ${Cookies.get("userToken")}`,
           },
+          responseType: "blob",
         }
       );
+
       if (response.status === 200) {
-        console.log("CV preview data:", response.data);
+        const file = new Blob([response.data], { type: "application/pdf" });
+        const fileURL = URL.createObjectURL(file);
+
+        // Buka di tab baru
+        window.open(fileURL, "_blank");
       }
     } catch (error: any) {
-      console.error("Error previewing CV:", error.response.data.errors);
+      console.error("Error previewing CV:", error.response?.data || error);
     }
   };
 
@@ -77,6 +95,30 @@ const CvPage: React.FC = () => {
       }
     } catch (error: any) {
       console.error("Error fetching CVs:", error.response.data.errors);
+    }
+  };
+
+  const handleDelete = async (cvId: string) => {
+    const confirm = await alertConfirm(
+      "Apakah Anda yakin ingin menghapus CV ini?"
+    );
+    if (!confirm) return;
+    console.log("Deleting CV with ID:", cvId);
+    try {
+      const response = await API.delete(
+        `${ENDPOINTS.CURRICULUM_VITAE}/${cvId}`,
+        {
+          headers: {
+            Authorization: `Bearer ${Cookies.get("userToken")}`,
+          },
+        }
+      );
+      if (response.status === 200) {
+        setCvList((prev) => prev.filter((cv) => cv.id !== cvId));
+        await alertSuccess("Berhasil menghapus CV");
+      }
+    } catch (error: any) {
+      console.error("Error deleting CV:", error.response.data.errors);
     }
   };
 
@@ -104,13 +146,13 @@ const CvPage: React.FC = () => {
       {/* Page Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-end mb-6">
         <div className="flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-2">
-          <button className="bg-vip hover:bg-orange-400 text-white px-4 py-2 rounded-lg text-sm font-medium flex items-center justify-center">
+          <button className="bg-vip hover:bg-orange-400 text-white px-4 py-2 rounded-lg text-sm font-medium flex items-center justify-center cursor-pointer">
             <Plus size={16} className="mr-1" />
             Buat CV Pintar
           </button>
           <button
             onClick={() => router.push("cv/create")}
-            className="bg-accent text-white px-4 py-2 rounded-lg text-sm font-medium flex items-center justify-center"
+            className="bg-accent text-white px-4 py-2 rounded-lg text-sm font-medium flex items-center justify-center cursor-pointer"
           >
             <Plus size={16} className="mr-1" />
             Tambah CV
@@ -171,7 +213,7 @@ const CvPage: React.FC = () => {
                   <td className="px-6 py-4 whitespace-nowrap">
                     <button
                       onClick={() => handleDownload(cv.id)}
-                      className="bg-green-500 hover:bg-green-600 text-white px-3 py-1 rounded text-xs font-medium"
+                      className="bg-green-500 hover:bg-green-600 text-white px-3 py-1 rounded text-xs font-medium cursor-pointer"
                     >
                       Download
                     </button>
@@ -179,17 +221,20 @@ const CvPage: React.FC = () => {
                   <td className="px-6 py-4 whitespace-nowrap">
                     <button
                       onClick={() => handlePreview(cv.id)}
-                      className="bg-blue-500 hover:bg-blue-600 text-white px-3 py-1 rounded text-xs font-medium"
+                      className="bg-blue-500 hover:bg-blue-600 text-white px-3 py-1 rounded text-xs font-medium cursor-pointer"
                     >
                       Lihat
                     </button>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                     <div className="flex space-x-2">
-                      <button className="text-blue-600 hover:text-blue-800">
+                      <button className="text-blue-600 hover:text-blue-800 cursor-pointer">
                         <Edit size={16} />
                       </button>
-                      <button className="text-red-600 hover:text-red-800">
+                      <button
+                        onClick={() => handleDelete(cv.id)}
+                        className="text-red-600 hover:text-red-800 cursor-pointer"
+                      >
                         <Trash2 size={16} />
                       </button>
                     </div>
@@ -227,10 +272,13 @@ const CvPage: React.FC = () => {
               </div>
 
               <div className="flex justify-end space-x-2">
-                <button className="text-blue-600 hover:text-blue-800 p-1">
+                <button className="text-blue-600 hover:text-blue-800 p-1 cursor-pointer">
                   <Edit size={16} />
                 </button>
-                <button className="text-red-600 hover:text-red-800 p-1">
+                <button
+                  onClick={() => handleDelete(cv.id)}
+                  className="text-red-600 hover:text-red-800 p-1 cursor-pointer"
+                >
                   <Trash2 size={16} />
                 </button>
               </div>

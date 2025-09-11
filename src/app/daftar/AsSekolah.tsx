@@ -164,7 +164,7 @@ const PrakerinRegistrationSekolahForm: React.FC<PrakerinRegistrationFormProps> =
         {/* Header */}
         <div className="text-center mb-8">
           <img src="PrakerinID_ico.svg" alt="" className="lg:w-50 mb-4 mx-auto" />
-          <h2 className="text-2xl font-semibold text-gray-700">Daftar Sekolah Magang</h2>
+          <h2 className="text-2xl font-semibold text-gray-700">Daftar Sekolah</h2>
         </div>
 
         <div className="space-y-6">

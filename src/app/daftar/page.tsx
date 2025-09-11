@@ -29,7 +29,7 @@ export default function DaftarPage() {
                                 <option value="">Pilih daftar sebagai</option>
                                 <option value="siswa">Siswa</option>
                                 <option value="sekolah">Sekolah</option>
-                                <option value="industry">Industry</option>
+                                <option value="company">Perusahaan</option>
                             </select>
                         </div>
                         {/* <button type="submit" className="w-full bg-accent text-white py-2 rounded-lg">Daftar</button> */}
@@ -48,7 +48,7 @@ export default function DaftarPage() {
     function renderForm(form: string) {
         if (form === "siswa") return <PrakerinRegistrationSiswaForm setShowForm={setShowForm} />;
         if (form === "sekolah") return <PrakerinRegistrationSekolahForm setShowForm={setShowForm} />;
-        if (form === "industry") return <PrakerinRegistrationIndustryForm setShowForm={setShowForm} />;
+        if (form === "company") return <PrakerinRegistrationIndustryForm setShowForm={setShowForm} />;
         return null;
     }
 };

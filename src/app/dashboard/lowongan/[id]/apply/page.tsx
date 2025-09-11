@@ -41,6 +41,7 @@ const ApplyLowongan = ({ params }: { params: Promise<{ id: string }> }) => {
       name: "",
     },
   });
+  
   const [cvList, setCvList] = useState<CV[]>([]);
   const [formData, setFormData] = useState({
     curriculum_vitae_id: "",
