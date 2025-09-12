@@ -1,6 +1,6 @@
 "use client";
 
-import { Dispatch, SetStateAction } from "react";
+import { Dispatch, SetStateAction, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Cookies from "js-cookie";
 import Link from "next/link";
@@ -12,6 +12,7 @@ interface NavigationProps {
 
 export default function Navigation({ setSection }: NavigationProps) {
   const router = useRouter();
+  const [isLoggedIn, setIsLoggedIn] = useState<boolean>(false);
 
   const handleNavigation = (section: string) => {
     setSection(section);
@@ -38,6 +39,11 @@ export default function Navigation({ setSection }: NavigationProps) {
       router.push("/");
     }
   };
+
+  useEffect(() => {
+    const token = Cookies.get("userToken");
+    setIsLoggedIn(!!token);
+  }, []);
 
   return (
     <nav className="bg-white/80 backdrop-blur-lg shadow-lg sticky top-0 z-50 transition-all duration-300">
@@ -79,10 +85,10 @@ export default function Navigation({ setSection }: NavigationProps) {
           </div>
 
           <div className="hidden md:flex space-x-4">
-            {Cookies.get("userToken") ? (
+            {isLoggedIn ? (
               <Link
                 href="/dashboard"
-                className="px-4 py-2 font-semibold border border-accent text-accent text-prakerin rounded-lg hover:bg-accent-light hover:border-accent-light hover:text-white transition-all duration-300"
+                className="px-4 py-2 font-semibold bg-gradient-to-r from-accent to-accent-light text-white rounded-lg hover:from-accent-light hover:to-accent-light duration-300 transition-all"
               >
                 Dashboard
               </Link>
@@ -164,10 +170,10 @@ export default function Navigation({ setSection }: NavigationProps) {
             Mitra
           </button>
           <div className="flex flex-col gap-2 mt-2">
-            {Cookies.get("userToken") ? (
+            {isLoggedIn ? (
               <Link
                 href="/dashboard"
-                className="w-full px-4 py-2 font-semibold border border-accent text-accent rounded-lg hover:bg-accent-light hover:border-accent-light hover:text-white transition-all duration-300 text-center"
+                className="w-full px-4 py-2 font-semibold bg-gradient-to-r from-accent to-accent-light text-white rounded-lg hover:from-accent-light hover:to-accent-light duration-300 transition-all text-center"
               >
                 Dahsboard
               </Link>

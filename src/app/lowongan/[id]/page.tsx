@@ -14,25 +14,19 @@ const DetailLowonganPage = ({
   const [data, setData] = useState<any>(); // Replace 'any' with your actual data type
   const { id } = use(params);
 
+  const fetchData = async () => {
+    try {
+      const response = await API.get(`${ENDPOINTS.JOB_OPENINGS}/${id}`);
+      setData(response.data.data);
+      console.log("Data fetched successfully:", response.data.data);
+    } catch (error) {
+      console.error("Error fetching data:", error);
+    }
+  };
+
   useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const response = await API.get(ENDPOINTS.INTERNSHIPS + `/show/${id}`, {
-          headers: {
-            "Content-Type": "application/json",
-          },
-        });
-        setData(response.data.data);
-        console.log("Data fetched successfully:", response.data.data);
-      } catch (error) {
-        console.error("Error fetching data:", error);
-      }
-    };
-    console.log(id);
     fetchData();
   }, []);
-
-  console.log(data);
 
   return (
     <>

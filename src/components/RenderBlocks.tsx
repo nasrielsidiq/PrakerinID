@@ -1,5 +1,5 @@
-'use client';
-import * as React from 'react';
+"use client";
+import * as React from "react";
 
 type Block = {
   id: string;
@@ -9,22 +9,22 @@ type Block = {
 
 function renderBlock(block: Block, index: number) {
   switch (block.type) {
-    case 'header': {
+    case "header": {
       const level = block.data?.level;
       const safeLevel = [1, 2, 3, 4, 5, 6].includes(level) ? level : 2;
       const tag = `h${safeLevel}` as keyof React.JSX.IntrinsicElements;
 
       return React.createElement(
         tag,
-        { key: index, className: 'font-bold text-xl mb-2' },
+        { key: index, className: "font-bold text-xl mb-2" },
         block.data.text
       );
     }
 
-    case 'paragraph': {
+    case "paragraph": {
       const text = block.data?.text;
       const displayText =
-        typeof text === 'string' ? (
+        typeof text === "string" ? (
           <span dangerouslySetInnerHTML={{ __html: text }} />
         ) : (
           JSON.stringify(text)
@@ -37,15 +37,18 @@ function renderBlock(block: Block, index: number) {
       );
     }
 
-    case 'list': {
-      const Tag = block.data.style === 'unordered' ? 'ul' : 'ol';
+    case "list": {
+      const Tag = block.data.style === "unordered" ? "ul" : "ol";
 
       return (
-        <Tag key={index} className="pl-6 list-disc mb-2">
+        <ul
+          key={index}
+          className={`pl-6 mb-2 ${Tag === "ul" ? "list-disc" : "list-decimal"}`}
+        >
           {block.data.items.map((item: any, i: number) => (
             <li key={i}>{item.content}</li>
           ))}
-        </Tag>
+        </ul>
       );
     }
 
@@ -58,7 +61,7 @@ function renderBlock(block: Block, index: number) {
   }
 }
 
-export default function DescriptionRenderer({ data }: { data: any }) {
+export default function RenderBlocks({ data }: { data: any }) {
   if (!data?.blocks?.length)
     return <p className="text-gray-500">Tidak ada deskripsi.</p>;
 

@@ -6,14 +6,18 @@ import {
   Lock,
   MapPin,
   MessageCircle,
+  UserCircle,
 } from "lucide-react";
 import Link from "next/link";
 import { use, useEffect, useState } from "react";
 import { API, ENDPOINTS } from "../../../../../utils/config";
 import Cookies from "js-cookie";
+import RenderBlocks from "@/components/RenderBlocks";
+import Image from "next/image";
 
 interface JobOpening {
   title: string;
+  description: any;
   company: {
     name: string;
   };
@@ -24,12 +28,16 @@ interface JobOpening {
     name: string;
   };
   save_job_opening: boolean;
+  user: {
+    photo_profile: string;
+  };
 }
 
 const DetailLowongan = ({ params }: { params: Promise<{ id: string }> }) => {
   const { id } = use(params);
   const [jobOpening, setJobOpening] = useState<JobOpening>({
     title: "",
+    description: "",
     company: {
       name: "",
     },
@@ -40,10 +48,14 @@ const DetailLowongan = ({ params }: { params: Promise<{ id: string }> }) => {
       name: "",
     },
     save_job_opening: false,
+    user: {
+      photo_profile: "",
+    },
   });
 
   const fetchJobOpening = async () => {
     try {
+      console.log(id);
       const response = await API.get(`${ENDPOINTS.JOB_OPENINGS}/${id}`, {
         headers: {
           Authorization: `Bearer ${Cookies.get("userToken")}`,
@@ -54,7 +66,7 @@ const DetailLowongan = ({ params }: { params: Promise<{ id: string }> }) => {
         setJobOpening(response.data.data);
       }
     } catch (error: any) {
-      console.error("Error fetching job opening:", error.response.data.errors);
+      console.error("Error fetching job opening:", error);
     }
   };
 
@@ -110,9 +122,19 @@ const DetailLowongan = ({ params }: { params: Promise<{ id: string }> }) => {
             <div className="flex items-start gap-4">
               {/* Company Logo */}
               <div className="flex-shrink-0">
-                <div className="w-12 h-12 bg-blue-600 rounded-lg flex items-center justify-center">
-                  <span className="text-white font-bold text-sm">M</span>
-                </div>
+                {jobOpening.user.photo_profile ? (
+                  <div className="w-16 h-16 relative rounded-full border-white border">
+                    <Image
+                      src={`${process.env.NEXT_PUBLIC_API_URL}/storage/photo-profile/${jobOpening.user.photo_profile}`}
+                      alt="Logo Perusahaan"
+                      fill
+                      sizes="100%"
+                      className="object-cover rounded-full"
+                    />
+                  </div>
+                ) : (
+                  <UserCircle className="w-16 h-16 text-[var(--color-accent)]" />
+                )}
               </div>
 
               {/* Job Info */}
@@ -136,35 +158,48 @@ const DetailLowongan = ({ params }: { params: Promise<{ id: string }> }) => {
 
             {/* Action Buttons */}
             <div className="flex flex-col sm:flex-row gap-3 lg:flex-shrink-0">
-              <button className="flex items-center justify-center gap-2 bg-orange-500 hover:bg-orange-600 text-white px-4 py-2 rounded-lg font-medium transition-colors">
-                <MessageCircle className="w-4 h-4" />
-                <span>Chat Perusahaan</span>
-                <Lock className="w-4 h-4" />
-              </button>
+              {Cookies.get("userToken") === "student" ? (
+                <>
+                  <button className="flex items-center justify-center gap-2 bg-orange-500 hover:bg-orange-600 text-white px-4 py-2 rounded-lg font-medium transition-colors">
+                    <MessageCircle className="w-4 h-4" />
+                    <span>Chat Perusahaan</span>
+                    <Lock className="w-4 h-4" />
+                  </button>
 
-              <button
-                onClick={() => handleClickFavorite(id)}
-                className="flex items-center justify-center gap-2 text-gray-600 hover:text-blue-600 px-4 py-2 border border-gray-300 hover:border-blue-300 rounded-lg font-medium transition-colors"
-              >
-                <Bookmark
-                  className={`w-4 h-4 ${
-                    jobOpening.save_job_opening
-                      ? "text-blue-500"
-                      : "text-gray-400"
-                  }`}
-                  fill={jobOpening.save_job_opening ? "currentColor" : "none"}
-                />
-                <span>
-                  {jobOpening.save_job_opening ? "Tersimpan" : "Simpan"}
-                </span>
-              </button>
+                  <button
+                    onClick={() => handleClickFavorite(id)}
+                    className="flex items-center justify-center gap-2 text-gray-600 hover:text-blue-600 px-4 py-2 border border-gray-300 hover:border-blue-300 rounded-lg font-medium transition-colors cursor-pointer"
+                  >
+                    <Bookmark
+                      className={`w-4 h-4 ${
+                        jobOpening.save_job_opening
+                          ? "text-blue-500"
+                          : "text-gray-400"
+                      }`}
+                      fill={
+                        jobOpening.save_job_opening ? "currentColor" : "none"
+                      }
+                    />
+                    <span>
+                      {jobOpening.save_job_opening ? "Tersimpan" : "Simpan"}
+                    </span>
+                  </button>
 
-              <Link
-                href={`${id}/apply`}
-                className="bg-teal-600 hover:bg-teal-700 text-white px-6 py-2 rounded-lg font-medium transition-colors"
-              >
-                Lamar Sekarang
-              </Link>
+                  <Link
+                    href={`${id}/apply`}
+                    className="bg-teal-600 hover:bg-teal-700 text-white px-6 py-2 rounded-lg font-medium transition-colors"
+                  >
+                    Lamar Sekarang
+                  </Link>
+                </>
+              ) : (
+                <Link
+                  href={`/dashboard/lowongan/${id}/ubah`}
+                  className="bg-teal-600 hover:bg-teal-700 text-white px-6 py-2 rounded-lg font-medium transition-colors"
+                >
+                  Ubah Lowongan
+                </Link>
+              )}
             </div>
           </div>
 
@@ -173,21 +208,7 @@ const DetailLowongan = ({ params }: { params: Promise<{ id: string }> }) => {
 
           {/* Content Area - Placeholder for job description */}
           <div className="mt-6 text-gray-600">
-            {/* <iframe src="/doc/taksonomi prakerin id.pdf" className="w-full h-screen border-0 bg-white/0" ></iframe> */}
-            <object
-              data="/doc/taksonomi prakerin id.pdf"
-              type="application/pdf"
-              width="100%"
-              height="800px"
-            >
-              <p>
-                Browser anjeun teu ngarojong nampilin PDF.
-                <a href="/doc/taksonomi prakerin id.pdf" download>
-                  Download PDF
-                </a>
-                .
-              </p>
-            </object>
+            <RenderBlocks data={jobOpening.description} />
           </div>
         </div>
       </div>

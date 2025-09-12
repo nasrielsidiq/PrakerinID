@@ -1,73 +1,24 @@
-import {
-  BadgeCheck,
-  BriefcaseBusiness,
-  CircleArrowRight,
-  FileText,
-  Search,
-  Users,
-} from "lucide-react";
+import { CircleArrowRight, FileText, Search } from "lucide-react";
+import Link from "next/link";
+import React from "react";
 import RatingSummary from "../RatingSummary";
 import PieChartCompenent from "../Charts/PieChartCompenent";
-import BarChartComponent from "../Charts/BarChartCompenent";
-import { useState } from "react";
-import Link from "next/link";
 
-interface InternshipApplication {
-  id: string;
-  student: {
-    name: string;
-  };
-  school: {
-    name: string;
-  };
-  status: string;
-}
-
-export default function IndustryDashboard() {
-  const [internshipApplications, setInternshipApplications] = useState<
-    InternshipApplication[]
-  >([]);
-
+const NonStudentFeedback = ({ authorization }: { authorization: string }) => {
   return (
     <div className="flex flex-col gap-8">
-      <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 col-span-5  gap-6">
-        <div className="bg-white rounded-lg shadow-sm p-3 px-5 flex justify-between">
-          <div className="text-accent-dark">
-            <h1 className="font-extrabold  text-2xl">39</h1>
-            <h3 className=" text-md">Total Siswa Magang</h3>
-          </div>
-          <Users className="text-accent w-7 h-7 my-auto" />
-        </div>
-        <div className="bg-white rounded-lg shadow-sm p-3 px-5 flex justify-between">
-          <div className="text-accent-dark">
-            <h1 className="font-extrabold  text-2xl">45</h1>
-            <h3 className=" text-md">Total Lowongan</h3>
-          </div>
-          <BriefcaseBusiness className="text-accent w-7 h-7 my-auto" />
-        </div>
-        <div className="bg-white rounded-lg shadow-sm p-3 px-5 flex justify-between">
-          <div className="text-accent-dark">
-            <h1 className="font-extrabold  text-2xl">4</h1>
-            <h3 className=" text-md">Total Penghargaan</h3>
-          </div>
-          <BadgeCheck className="text-accent w-7 h-7 my-auto" />
-        </div>
-      </div>
-
       <div className="bg-white rounded-lg shadow-sm p-3 px-5 flex flex-col justify-between">
         <div className="flex  mb-4   justify-between">
           <div className="flex flex-col ">
-            <h3 className="font-bold text-lg">Rating Perusahaan </h3>
+            <h3 className="font-bold text-lg">
+              Rating {authorization === "company" ? "Perusahaan" : "Sekolah"}{" "}
+            </h3>
             <p className="text-sm text-gray-600">
-              Rating didapat dari siswa yang melakukan magang di perusahaan ini
+              {authorization === "company"
+                ? "Rating didapat dari siswa yang melakukan magang di perusahaan ini"
+                : "Rating didapat dari siswa dan perusahaan yang terdaftar sebagai pengguna Prakerin"}
             </p>
           </div>
-          <Link href="/dashboard/feedback">
-            <CircleArrowRight
-              className="text-accent/75  hover:text-accent"
-              size={32}
-            />
-          </Link>
         </div>
 
         <div className="flex gap-6">
@@ -84,22 +35,6 @@ export default function IndustryDashboard() {
         </div>
       </div>
 
-      <div className="bg-white rounded-lg shadow-sm p-3 px-5 flex flex-col justify-between">
-        <div className="flex flex-col mb-4">
-          <h3 className="font-bold text-lg">Distribusi Total Siswa Magang </h3>
-          <p className="text-sm text-gray-600">Visualisasi Status Tugas</p>
-        </div>
-
-        <div className="flex gap-6">
-          <div className="w-1/2 ">
-            <BarChartComponent legend="Grafik Distribusi Tugas Selesai Siswa Magang" />
-          </div>
-          <div className="w-1/2 ">
-            <PieChartCompenent legend="Distribusi Status Tugas" />
-          </div>
-        </div>
-      </div>
-
       <div>
         <div className="rounded-t-2xl  bg-accent">
           <div className="relative">
@@ -109,7 +44,7 @@ export default function IndustryDashboard() {
             />
             <input
               type="text"
-              placeholder="Cari Siswa..."
+              placeholder="Cari Feedback..."
               // value={inputSearch}
               // onChange={(e) => setInputSearch(e.target.value)}
               className="w-full pl-10 pr-4 py-3 text-white placeholder-teal-200 rounded-2xl focus:outline-none focus:ring-2 focus:ring-teal-400"
@@ -130,16 +65,13 @@ export default function IndustryDashboard() {
                     Nama
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Role
+                    Tanggal
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Task
+                    Feedback
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Deadline
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Status
+                    Rating
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     Aksi
@@ -221,14 +153,16 @@ export default function IndustryDashboard() {
           ))} */}
           </div>
 
-          {internshipApplications.length === 0 && (
-            <div className="p-8 text-center text-gray-500">
-              <FileText size={48} className="mx-auto mb-4 text-gray-300" />
-              <p>Tidak ada task deadline yang ditemukan</p>
-            </div>
-          )}
+          {/* {internshipApplications.length === 0 && ( */}
+          <div className="p-8 text-center text-gray-500">
+            <FileText size={48} className="mx-auto mb-4 text-gray-300" />
+            <p>Tidak ada task deadline yang ditemukan</p>
+          </div>
+          {/* )} */}
         </div>
       </div>
     </div>
   );
-}
+};
+
+export default NonStudentFeedback;

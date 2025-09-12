@@ -7,8 +7,9 @@ import { EditorProps } from "@/components/Editor";
 import { API, ENDPOINTS } from "../../../../../utils/config";
 import { getDurationUnit } from "@/utils/getDurationUnit";
 import Cookies from "js-cookie";
-import { alertError, alertSuccess } from "@/libs/alert";
+import { alertConfirm, alertError, alertSuccess } from "@/libs/alert";
 import { AxiosError } from "axios";
+import { useRouter } from "next/navigation";
 
 const Editor = dynamic<EditorProps>(() => import("@/components/Editor"), {
   ssr: false,
@@ -25,18 +26,37 @@ interface Field {
   name: string;
 }
 
+interface CreateJobOpening {
+  title: string;
+  type: type;
+  location: location;
+  grade: grade;
+  is_paid: string | boolean;
+  quota: number;
+  is_available: string | boolean;
+  field_id: string;
+  duration_id: string;
+  description: any;
+}
+
+type type = "part_time" | "full_time" | "";
+type location = "onsite" | "remote" | "hybrid" | "field" | "";
+type grade = "all" | "smk" | "mahasiswa" | "";
+
 const tambahLowonganPage: React.FC = () => {
+  const route = useRouter();
   const [durations, setDurations] = useState<Duration[]>([]);
   const [fields, setFields] = useState<Field[]>([]);
+  const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
 
-  const [formData, setFormData] = useState({
+  const [formData, setFormData] = useState<CreateJobOpening>({
     title: "",
     type: "",
     location: "",
     grade: "",
     is_paid: "",
     quota: 1,
-    is_available: "",
+    is_available: "true",
     field_id: "",
     duration_id: "",
     description: "",
@@ -46,6 +66,11 @@ const tambahLowonganPage: React.FC = () => {
     e.preventDefault();
     console.log("Form submitted", formData);
     try {
+      setIsSubmitting(true);
+      formData.is_available = Boolean(formData.is_available);
+      formData.is_paid =
+        formData.is_paid !== "" ? Boolean(formData.is_paid) : formData.is_paid;
+
       await API.post(ENDPOINTS.JOB_OPENINGS, formData, {
         headers: {
           Authorization: `Bearer ${Cookies.get("userToken")}`,
@@ -53,13 +78,20 @@ const tambahLowonganPage: React.FC = () => {
       });
 
       await alertSuccess("Lowongan berhasil ditambahkan!");
+
+      route.replace("/dashboard/lowongan");
     } catch (error: AxiosError | unknown) {
       await alertError("Gagal menambahkan lowongan!");
       console.error("Error submitting form:", error);
+    } finally {
+      setIsSubmitting(false);
     }
   };
   const handleEditorChange = (data: any) => {
-    setFormData({ ...formData, description: data });
+    setFormData((prev) => ({
+      ...prev,
+      description: data,
+    }));
   };
 
   const fetchDurations = async () => {
@@ -151,8 +183,9 @@ const tambahLowonganPage: React.FC = () => {
               Jenis Magang
             </label>
             <select
+              value={formData.type}
               onChange={(e) =>
-                setFormData({ ...formData, type: e.target.value })
+                setFormData({ ...formData, type: e.target.value as type })
               }
               className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-accent focus:border-transparent"
             >
@@ -168,8 +201,12 @@ const tambahLowonganPage: React.FC = () => {
               Lokasi Magang
             </label>
             <select
+              value={formData.location}
               onChange={(e) =>
-                setFormData({ ...formData, location: e.target.value })
+                setFormData({
+                  ...formData,
+                  location: e.target.value as location,
+                })
               }
               className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-accent focus:border-transparent"
             >
@@ -187,8 +224,9 @@ const tambahLowonganPage: React.FC = () => {
               Tingkat Pendidikan
             </label>
             <select
+              value={formData.grade}
               onChange={(e) =>
-                setFormData({ ...formData, grade: e.target.value })
+                setFormData({ ...formData, grade: e.target.value as grade })
               }
               className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-accent focus:border-transparent"
             >
@@ -205,6 +243,7 @@ const tambahLowonganPage: React.FC = () => {
               Status Magang
             </label>
             <select
+              value={formData.is_paid as string}
               onChange={(e) =>
                 setFormData({ ...formData, is_paid: e.target.value })
               }
@@ -235,6 +274,7 @@ const tambahLowonganPage: React.FC = () => {
               Apakah masih tersedia?
             </label>
             <select
+              value={formData.is_available as string}
               onChange={(e) =>
                 setFormData({ ...formData, is_available: e.target.value })
               }
@@ -251,17 +291,18 @@ const tambahLowonganPage: React.FC = () => {
               Bidang Magang
             </label>
             <select
+              value={formData.field_id}
               onChange={(e) =>
                 setFormData({ ...formData, field_id: e.target.value })
               }
               className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-accent focus:border-transparent"
             >
               <option value="">Pilih bidang magang</option>
-              <option value="it">Teknologi Informasi</option>
+              {/* <option value="it">Teknologi Informasi</option>
               <option value="design">Desain</option>
               <option value="marketing">Pemasaran</option>
               <option value="finance">Keuangan</option>
-              <option value="hr">Sumber Daya Manusia</option>
+              <option value="hr">Sumber Daya Manusia</option> */}
               {fields.map((field) => (
                 <option key={field.id} value={field.id}>
                   {field.name}
@@ -276,6 +317,7 @@ const tambahLowonganPage: React.FC = () => {
               Durasi Magang
             </label>
             <select
+              value={formData.duration_id}
               onChange={(e) =>
                 setFormData({ ...formData, duration_id: e.target.value })
               }
@@ -302,17 +344,26 @@ const tambahLowonganPage: React.FC = () => {
 
         {/* Action Buttons */}
         <div className="flex flex-col sm:flex-row gap-3 mt-8 justify-end">
-          <button
-            type="button"
+          <Link
+            href="/dashboard/lowongan"
+            onClick={async (e) => {
+              e.preventDefault();
+              const isConfirm = await alertConfirm(
+                "Apakah anda yakin ingin membatalkan!"
+              );
+              if (isConfirm) {
+                route.push("/dashboard/lowongan");
+              }
+            }}
             className="px-6 py-2 border border-gray-300 text-gray-700 rounded-md hover:bg-gray-50 transition-colors cursor-pointer"
           >
             Batal
-          </button>
+          </Link>
           <button
             type="submit"
             className="px-6 py-2 bg-accent text-white rounded-md hover:bg-accent-dark transition-colors cursor-pointer"
           >
-            Simpan
+            {isSubmitting ? "Menyimpan..." : "Simpan"}
           </button>
         </div>
       </form>

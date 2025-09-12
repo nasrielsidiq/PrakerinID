@@ -7,6 +7,7 @@ import {
   Funnel,
   MapPin,
   Scale,
+  UserCircle,
 } from "lucide-react";
 import Link from "next/link";
 import { useEffect, useState } from "react";
@@ -14,6 +15,7 @@ import { API, ENDPOINTS } from "../../../utils/config";
 import Cookies from "js-cookie";
 import { timeAgo } from "@/utils/timeAgo";
 import useDebounce from "@/hooks/useDebounce";
+import Image from "next/image";
 
 interface InternshipApplicationCount {
   total: number;
@@ -37,6 +39,9 @@ interface JobOpening {
   is_paid: boolean;
   updated_at: string;
   save_job_opening: boolean;
+  user: {
+    photo_profile: string;
+  };
 }
 
 interface Province {
@@ -422,11 +427,24 @@ export default function SiswaLowongan() {
             </h3>
             <div className="flex justify-between items-start mb-4">
               <div className="flex items-center space-x-3">
-                <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
+                {job.user.photo_profile ? (
+                  <div className="w-15 h-15 relative rounded-full border-white border">
+                    <Image
+                      src={`${process.env.NEXT_PUBLIC_API_URL}/storage/photo-profile/${job.user.photo_profile}`}
+                      alt="Logo Perusahaan"
+                      fill
+                      sizes="100%"
+                      className="object-cover rounded-full"
+                    />
+                  </div>
+                ) : (
+                  <UserCircle className="w-15 h-15 text-[var(--color-accent)]" />
+                )}
+                {/* <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
                   <div className="w-8 h-8 bg-gradient-to-tr from-yellow-400 via-red-500 to-purple-600 rounded-lg flex items-center justify-center">
                     <span className="text-white text-xs font-bold">IG</span>
                   </div>
-                </div>
+                </div> */}
                 <div>
                   <h3 className="font-semibold text-gray-900 text-lg">
                     {job.company.name}

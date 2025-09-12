@@ -103,6 +103,7 @@ const lamaranPage: React.FC = () => {
         <BriefcaseBusiness className="w-5 h-5" />
         <h2 className="text-2xl mt-2">Lamaran Magang</h2>
       </div>
+      
       <div className="rounded-t-2xl  bg-accent">
         <div className="relative">
           <Search
@@ -118,6 +119,7 @@ const lamaranPage: React.FC = () => {
           />
         </div>
       </div>
+
       <div className="bg-white rounded-b-2xl shadow-md overflow-hidden">
         {/* Desktop Table */}
         <div className="hidden md:block overflow-x-auto">

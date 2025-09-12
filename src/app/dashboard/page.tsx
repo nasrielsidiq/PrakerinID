@@ -8,9 +8,9 @@ import {
   UserCircle,
 } from "lucide-react";
 import SiswaDashboard from "@/components/roleComponents/SiswaDashboard";
-
-import Cookies from "js-cookie";
 import IndustryDashboard from "@/components/roleComponents/industryDashboard";
+import SchoolDashboard from "@/components/roleComponents/SchoolDashboard";
+import Cookies from "js-cookie";
 import { API, ENDPOINTS } from "../../../utils/config";
 import { getGreeting } from "@/utils/getGreeting";
 import Image from "next/image";
@@ -35,7 +35,7 @@ const Dashboard: React.FC = () => {
   const RolePage: React.FC = () => {
     if (role === "company") return <IndustryDashboard />;
     if (role === "student") return <SiswaDashboard />;
-    if (role === "school") return null;
+    if (role === "school") return <SchoolDashboard />;
   };
 
   const fetchProfile = async () => {

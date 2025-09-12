@@ -8,6 +8,7 @@ import { API, ENDPOINTS } from "../../../utils/config";
 import Cookies from "js-cookie";
 import { useRouter } from "next/navigation";
 import { alertError, alertSuccess } from "@/libs/alert";
+import { tree } from "next/dist/build/templates/app-page";
 
 interface FormData {
   email: string;
@@ -50,6 +51,7 @@ export default function LoginPage() {
     data.recaptcha_token = token;
 
     try {
+      setIsSubmitting(true);
       const response = await API.post(`${ENDPOINTS.USERS}/login`, {
         email: data.email,
         password: data.password,
@@ -77,6 +79,8 @@ export default function LoginPage() {
     } catch (error) {
       await alertError("Gagal masuk. Silakan coba lagi.");
       console.error("Login error:", error);
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -188,9 +192,10 @@ export default function LoginPage() {
 
             <button
               type="submit"
+              disabled={isSubmitting}
               className="w-full bg-accent text-white py-2 rounded-md hover:bg-accent/90 transition"
             >
-              Login
+              {isSubmitting ? "Sedang masuk..." : "Masuk"}
             </button>
 
             <div className="text-center">
