@@ -43,11 +43,19 @@ const renderCustomizedLabel = ({
 interface PieChartCompenentProps {
   // color: string[];
   legend: string;
+  data1?: Data[];
+}
+
+interface Data {
+  name: string;
+  value: string | number;
+  color: string;
 }
 
 export default function PieChartComponent({
   // color,
   legend,
+  data1,
 }: PieChartCompenentProps) {
   return (
     <div className="w-full h-full mx-auto bg-gray-50 rounded-lg p-4 shadow-sm">

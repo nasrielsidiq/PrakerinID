@@ -5,15 +5,17 @@ import { Star } from "lucide-react";
 interface RatingSummaryProps {
   average: number; // contoh: 4.2
   total: number; // contoh: 118
-  counts: { [key: number]: number }; // {5: 80, 4: 10, 3: 5, 2: 3, 1: 20}
+  counts: { [rating_key: number]: number }; // {5: 80, 4: 10, 3: 5, 2: 3, 1: 20}
+  data: any;
 }
 
 export default function RatingSummary({
   average,
   total,
   counts,
+  data,
 }: RatingSummaryProps) {
-  const maxCount = Math.max(...Object.values(counts));
+  console.log(counts);
 
   return (
     <div className="bg-gray-50 p-4 rounded-xl shadow-sm flex flex-col md:flex-row items-center gap-6  h-full w-full">

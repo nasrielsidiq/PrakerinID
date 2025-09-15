@@ -22,7 +22,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html className="dark" lang="en">
+    <html lang="id-ID">
       <body
         className={`font-poppins! antialiased bg-background text-foreground`}
       >

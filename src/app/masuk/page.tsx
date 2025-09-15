@@ -1,5 +1,4 @@
 "use client";
-import ThemeToggle from "@/components/themeToggle";
 import { Eye, EyeOff, LockKeyhole, UserRound } from "lucide-react";
 import ReCAPTCHA from "react-google-recaptcha";
 import Link from "next/link";
@@ -8,7 +7,7 @@ import { API, ENDPOINTS } from "../../../utils/config";
 import Cookies from "js-cookie";
 import { useRouter } from "next/navigation";
 import { alertError, alertSuccess } from "@/libs/alert";
-import { tree } from "next/dist/build/templates/app-page";
+import { AxiosError } from "axios";
 
 interface FormData {
   email: string;
@@ -29,10 +28,10 @@ export default function LoginPage() {
     password: "",
     recaptcha_token: "",
   });
+  const [isRemember, setIsRemember] = useState<boolean>(false);
   const [errors, setErrors] = useState<FormErrors>({});
   const [showPassword, setShowPassword] = useState<boolean>(false);
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
-
   const recaptchaRef = useRef<any>(null);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -44,70 +43,51 @@ export default function LoginPage() {
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    if (!validateForm()) return;
-
-    const token = await recaptchaRef.current.executeAsync();
-    recaptchaRef.current.reset();
-    data.recaptcha_token = token;
 
     try {
       setIsSubmitting(true);
+
+      const token = await recaptchaRef.current.executeAsync();
+      recaptchaRef.current.reset();
+      data.recaptcha_token = token;
+
       const response = await API.post(`${ENDPOINTS.USERS}/login`, {
         email: data.email,
         password: data.password,
         recaptcha_token: data.recaptcha_token,
       });
 
-      if (response.status === 200) {
-        await alertSuccess("Anda berhasil masuk!");
-        console.log("Login successful:", response.data);
-        Cookies.set("userToken", response.data.token, {
-          expires: 1,
-          path: "/",
-          sameSite: "strict",
-        });
+      Cookies.set("userToken", response.data.token, {
+        expires: isRemember ? 30 : 1,
+        path: "/",
+        sameSite: "strict",
+      });
+      Cookies.set("authorization", response.data.role, {
+        expires: isRemember ? 30 : 1,
+        path: "/",
+        sameSite: "strict",
+      });
 
-        Cookies.set("authorization", response.data.role, {
-          expires: 1,
-          path: "/",
-          sameSite: "strict",
-        });
-        router.push("/dashboard");
-      } else {
-        console.error("Login failed:", response.data);
+      await alertSuccess("Anda berhasil masuk!");
+
+      router.push("/dashboard");
+    } catch (error: AxiosError | unknown) {
+      if (error instanceof AxiosError) {
+        const responseError = error.response?.data.errors;
+        if (typeof responseError === "string") {
+          await alertError(responseError);
+        } else {
+          setErrors(responseError);
+        }
       }
-    } catch (error) {
-      await alertError("Gagal masuk. Silakan coba lagi.");
-      console.error("Login error:", error);
+      console.error(error);
     } finally {
       setIsSubmitting(false);
     }
   };
 
-  const validateForm = (): boolean => {
-    const newErrors: FormErrors = {};
-
-    if (!data.email) {
-      newErrors.email = "Email is required";
-    } else if (!/\S+@\S+\.\S+/.test(data.email)) {
-      newErrors.email = "Email is invalid";
-    }
-
-    if (!data.password) {
-      newErrors.password = "Password is required";
-    } else if (data.password.length < 6) {
-      newErrors.password = "Password must be at least 6 characters long";
-    }
-
-    setErrors(newErrors);
-    return Object.keys(newErrors).length === 0;
-  };
-
   return (
     <>
-      <div className="hidden">
-        <ThemeToggle />
-      </div>
       <section className="flex items-center justify-center min-h-screen bg-background px-4">
         <div className="w-full max-w-md space-y-6 bg-white shadow-2xl p-6 md:p-10 rounded-xl">
           <div className="flex justify-center">
@@ -123,14 +103,16 @@ export default function LoginPage() {
               <label htmlFor="email" className="block text-sm font-medium">
                 Email
               </label>
-              <div className="relative">
+              <div className="relative ">
                 <input
                   name="email"
                   placeholder="Masukan email kamu"
                   onChange={handleChange}
-                  type="email"
+                  type="text"
                   id="email"
-                  className="mt-1 block w-full p-3 px-12 border border-gray-300 rounded-xl"
+                  className={`w-full px-12 py-3 border rounded-lg pr-12 focus:ring-accent focus:border-accent outline-none transition-colors ${
+                    errors.password ? "border-red-500" : "border-gray-300"
+                  }`}
                 />
                 <UserRound className="text-accent absolute left-4 top-3.5 w-5 h-5" />
               </div>
@@ -150,7 +132,7 @@ export default function LoginPage() {
                   value={data.password}
                   onChange={handleChange}
                   placeholder="Masukan password kamu"
-                  className={`w-full px-12 py-3 border rounded-lg pr-12 focus:ring-2 outline-none transition-colors ${
+                  className={`w-full px-12 py-3 border rounded-lg pr-12  focus:ring-accent focus:border-accent  outline-none transition-colors ${
                     errors.password ? "border-red-500" : "border-gray-300"
                   }`}
                 />
@@ -161,9 +143,9 @@ export default function LoginPage() {
                   className="absolute inset-y-0 right-0 flex items-center px-3"
                 >
                   {showPassword ? (
-                    <EyeOff className="w-5 h-5 text-accent" />
-                  ) : (
                     <Eye className="w-5 h-5 text-accent" />
+                  ) : (
+                    <EyeOff className="w-5 h-5 text-accent" />
                   )}
                 </button>
               </div>
@@ -178,14 +160,16 @@ export default function LoginPage() {
                 name="remember"
                 id="remember"
                 className="h-4 w-4"
+                checked={isRemember}
+                onChange={(e) => setIsRemember(e.target.checked)}
               />
               <label htmlFor="remember" className="text-sm">
-                Remember me
+                Ingat saya
               </label>
             </div>
 
             <ReCAPTCHA
-              sitekey="6LejCYsrAAAAAI_2Pf0-3czAPUaswYA4_GZDaGiy"
+              sitekey={process.env.NEXT_PUBLIC_RECAPTCHA_SITEKEY as string}
               size="invisible"
               ref={recaptchaRef}
             />
@@ -193,7 +177,7 @@ export default function LoginPage() {
             <button
               type="submit"
               disabled={isSubmitting}
-              className="w-full bg-accent text-white py-2 rounded-md hover:bg-accent/90 transition"
+              className="w-full bg-accent text-white py-2 rounded-md hover:bg-accent/90 transition disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {isSubmitting ? "Sedang masuk..." : "Masuk"}
             </button>

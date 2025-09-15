@@ -1,12 +1,10 @@
 "use client";
 import Navigation from "@/components/Navigation";
-import ThemeToggle from "@/components/themeToggle";
 import LandingPage from "./Landingpage";
 import { useState, useEffect } from "react";
 import ContactPage from "@/components/Contact";
 import FooterPage from "@/components/Footer";
 import ServiceButton from "@/components/Service";
-import axios from "axios";
 import { API, ENDPOINTS } from "../../utils/config";
 
 export default function HomePage() {
@@ -14,10 +12,11 @@ export default function HomePage() {
 
   useEffect(() => {
     const fetchData = async () => {
-      await API.get('/sanctum/csrf-cookie', {
-        }).then((response) => {
+      await API.get("/sanctum/csrf-cookie", {})
+        .then((response) => {
           console.log("Cookies set successfully:", response);
-        }).catch((error) => {
+        })
+        .catch((error) => {
           console.error("Error setting cookies:", error);
         });
     };
@@ -26,7 +25,6 @@ export default function HomePage() {
 
   return (
     <>
-      <ThemeToggle />
       <Navigation section={activeSection} setSection={setActiveSection} />
       {activeSection === "home" && <LandingPage />}
       {activeSection === "about" && (
@@ -39,9 +37,7 @@ export default function HomePage() {
           Internship Section
         </div>
       )}
-      {activeSection === "mou" && (
-        <LandingPage />
-      )}
+      {activeSection === "mou" && <LandingPage />}
       <ContactPage />
       <ServiceButton />
       <FooterPage />

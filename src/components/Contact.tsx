@@ -199,7 +199,7 @@ export default function ContactPage() {
                 ></textarea>
               </div>
               <ReCAPTCHA
-                sitekey="6LejCYsrAAAAAI_2Pf0-3czAPUaswYA4_GZDaGiy"
+                sitekey={process.env.NEXT_PUBLIC_RECAPTCHA_SITEKEY as string}
                 size="invisible"
                 ref={recaptchaRef}
               />

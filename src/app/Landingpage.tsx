@@ -20,8 +20,8 @@ export default function LandingPage() {
             <div className=" md:max-w-90 flex items-center text-sm text-prakerin font-medium border-1 border-gray-200 rounded-full">
               <i className="bg-gray-400 rounded-full p-1 px-2 text-white not-italic text-xs me-2">
                 Kemajuan Prakerin.ID
-              </i>{" "}
-              Lihat perkembangan kami{" "}
+              </i>
+              Lihat perkembangan kami
               <img src="icons/ArrowNarrowRight.svg" alt="" className="ms-2" />
             </div>
             <h1 className="text-4xl md:text-5xl font-extrabold bg-gradient-to-r from-accent-light via-accent to-accent-dark bg-clip-text text-transparent leading-tight">

@@ -1,10 +1,10 @@
 "use client";
 import React, { useState, ChangeEvent, useRef } from "react";
-import { Upload, User, Mail, Lock, School, Eye, EyeOff } from "lucide-react";
-import axios from "axios";
+import { Upload, Eye, EyeOff } from "lucide-react";
+import { AxiosError } from "axios";
 import { API, ENDPOINTS } from "../../../utils/config";
 import ReCAPTCHA from "react-google-recaptcha";
-import { alertSuccess } from "@/libs/alert";
+import { alertError, alertSuccess } from "@/libs/alert";
 
 interface FormData {
   username: string;
@@ -15,11 +15,16 @@ interface FormData {
   password_confirmation: string;
   recaptcha_token: string;
   image?: File | null;
-  role: string; // Optional, can be used to differentiate roles if needed
+  role: string;
 }
 
 interface FormErrors {
-  [key: string]: string | undefined;
+  username?: string;
+  name?: string;
+  address?: string;
+  email?: string;
+  password?: string;
+  confirm_password?: string;
 }
 
 interface PrakerinRegistrationFormProps {
@@ -56,14 +61,6 @@ const PrakerinRegistrationIndustryForm: React.FC<
       ...prev,
       [name]: value,
     }));
-
-    // Clear error when user starts typing
-    if (errors[name as keyof FormErrors]) {
-      setErrors((prev) => ({
-        ...prev,
-        [name]: undefined,
-      }));
-    }
   };
 
   const handleImageUpload = (e: ChangeEvent<HTMLInputElement>): void => {
@@ -103,19 +100,14 @@ const PrakerinRegistrationIndustryForm: React.FC<
     formData.recaptcha_token = token;
 
     try {
-      // Simulate API call
-      const response = await API.post(`${ENDPOINTS.USERS}/register`, formData, {
+      await API.post(`${ENDPOINTS.USERS}/register`, formData, {
         headers: {
           "Content-Type": "multipart/form-data",
         },
       });
 
-      if (response.status === 201) {
-        await alertSuccess("Daftar Berhasil, Silahkan Cek Email Anda");
-        setShowForm(""); // Reset to initial form state
-      }
+      await alertSuccess("Daftar Berhasil, Silahkan Cek Email Anda");
 
-      // Reset form after successful submission
       setFormData({
         username: "",
         name: "",
@@ -128,29 +120,25 @@ const PrakerinRegistrationIndustryForm: React.FC<
         role: "company",
       });
       setProfileImage(null);
-    } catch (error: any) {
-      console.log(error);
-      if (error.response && error.response.status === 400) {
-        const errorData = error.response.data.errors;
-        const newErrors: FormErrors = {};
-        for (const key in errorData) {
-          if (errorData.hasOwnProperty(key)) {
-            newErrors[key] = errorData[key][0];
-          }
-        }
-        setErrors(newErrors);
-        return;
-      }
 
-      console.error("Submission error:", error);
-      alert("Registration failed. Please try again.");
+      setShowForm("");
+    } catch (error: AxiosError | unknown) {
+      if (error instanceof AxiosError) {
+        const responseError = error.response?.data.errors;
+        if (typeof responseError === "string") {
+          await alertError(responseError);
+        } else {
+          setErrors(responseError);
+        }
+      }
+      console.error(error);
     } finally {
       setIsSubmitting(false);
     }
   };
 
   const handleBack = (): void => {
-    setShowForm(""); // Kembali ke halaman pilih form
+    setShowForm("");
   };
 
   return (
@@ -236,13 +224,11 @@ const PrakerinRegistrationIndustryForm: React.FC<
                     onChange={handleInputChange}
                     placeholder="Masukan nama anda disini"
                     className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-teal-500 outline-none transition-colors ${
-                      errors.fullName ? "border-red-500" : "border-gray-300"
+                      errors.name ? "border-red-500" : "border-gray-300"
                     }`}
                   />
-                  {errors.fullName && (
-                    <p className="mt-1 text-sm text-red-500">
-                      {errors.fullName}
-                    </p>
+                  {errors.name && (
+                    <p className="mt-1 text-sm text-red-500">{errors.name}</p>
                   )}
                 </div>
               </div>
@@ -257,16 +243,18 @@ const PrakerinRegistrationIndustryForm: React.FC<
                     <input
                       name="address"
                       type="text"
-                      placeholder="Masukan alamat industry anda disini"
+                      placeholder="Masukan alamat perusahaan anda disini"
                       value={formData.address}
                       onChange={handleInputChange}
                       className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-teal-500 outline-none transition-colors appearance-none bg-white ${
-                        errors.school ? "border-red-500" : "border-gray-300"
+                        errors.address ? "border-red-500" : "border-gray-300"
                       }`}
                     />
                   </div>
-                  {errors.school && (
-                    <p className="mt-1 text-sm text-red-500">{errors.school}</p>
+                  {errors.address && (
+                    <p className="mt-1 text-sm text-red-500">
+                      {errors.address}
+                    </p>
                   )}
                 </div>
                 <div>
@@ -312,9 +300,9 @@ const PrakerinRegistrationIndustryForm: React.FC<
                       className="absolute inset-y-0 right-0 flex items-center px-3 text-gray-400 hover:text-gray-600"
                     >
                       {showPassword ? (
-                        <EyeOff className="w-5 h-5" />
-                      ) : (
                         <Eye className="w-5 h-5" />
+                      ) : (
+                        <EyeOff className="w-5 h-5" />
                       )}
                     </button>
                   </div>
@@ -336,7 +324,7 @@ const PrakerinRegistrationIndustryForm: React.FC<
                       onChange={handleInputChange}
                       placeholder="Masukan Password anda disini"
                       className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-teal-500 outline-none transition-colors pr-12 ${
-                        errors.confirmPassword
+                        errors.confirm_password
                           ? "border-red-500"
                           : "border-gray-300"
                       }`}
@@ -349,15 +337,15 @@ const PrakerinRegistrationIndustryForm: React.FC<
                       className="absolute inset-y-0 right-0 flex items-center px-3 text-gray-400 hover:text-gray-600"
                     >
                       {showConfirmPassword ? (
-                        <EyeOff className="w-5 h-5" />
-                      ) : (
                         <Eye className="w-5 h-5" />
+                      ) : (
+                        <EyeOff className="w-5 h-5" />
                       )}
                     </button>
                   </div>
-                  {errors.confirmPassword && (
+                  {errors.confirm_password && (
                     <p className="mt-1 text-sm text-red-500">
-                      {errors.confirmPassword}
+                      {errors.confirm_password}
                     </p>
                   )}
                 </div>
@@ -382,7 +370,7 @@ const PrakerinRegistrationIndustryForm: React.FC<
               className="px-6 py-3 bg-accent text-white rounded-lg hover:bg-accent-hover transition-colors font-medium flex items-center space-x-2 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               <ReCAPTCHA
-                sitekey="6LejCYsrAAAAAI_2Pf0-3czAPUaswYA4_GZDaGiy"
+                sitekey={process.env.NEXT_PUBLIC_RECAPTCHA_SITEKEY as string}
                 size="invisible"
                 className="mb-4"
                 ref={recaptchaRef}
@@ -406,13 +394,6 @@ const PrakerinRegistrationIndustryForm: React.FC<
             </button>
           </div>
         </div>
-
-        {/* Footer */}
-        {/* <div className="text-center mt-8 pt-6 border-t border-gray-200">
-          <p className="text-sm text-gray-500">
-            © 2025 Prakerin ID. All rights reserved.
-          </p>
-        </div> */}
       </div>
     </div>
   );

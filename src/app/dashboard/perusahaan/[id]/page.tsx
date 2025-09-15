@@ -12,16 +12,16 @@ import {
 import { use, useEffect, useState } from "react";
 import { API, ENDPOINTS } from "../../../../../utils/config";
 import Cookies from "js-cookie";
-import Axios from "axios";
 import { timeAgo } from "@/utils/timeAgo";
 import Link from "next/link";
 import Image from "next/image";
+import RenderBlocks from "@/components/RenderBlocks";
 
 interface Company {
   photo_profile?: string | null;
   company: {
     name: string;
-    desctription: string | null;
+    description: string | null;
   };
   city_regency: {
     name: string;
@@ -45,7 +45,7 @@ const DetailPerusahaanPage = ({
   const [company, setCompany] = useState<Company>({
     company: {
       name: "",
-      desctription: null,
+      description: null,
     },
     city_regency: {
       name: "",
@@ -55,15 +55,6 @@ const DetailPerusahaanPage = ({
     },
     job_openings: [],
   });
-
-  const jobPositions = [
-    { title: "Frontend Web Developer", duration: "1 hari yang lalu" },
-    { title: "Backend Web Developer", duration: "1 hari yang lalu" },
-    { title: "Mobile Developer", duration: "5 hari yang lalu" },
-    { title: "Frontend Web Developer", duration: "1 hari yang lalu" },
-    { title: "Backend Web Developer", duration: "1 hari yang lalu" },
-    { title: "Mobile Developer", duration: "5 hari yang lalu" },
-  ];
 
   const fetchCompanyDetail = async () => {
     try {
@@ -145,10 +136,13 @@ const DetailPerusahaanPage = ({
             </div>
           </div>
           <div className="flex gap-2">
-            <button className="bg-vip text-white px-4 py-2 rounded-md text-sm font-medium transition-colors flex items-center space-x-2 whitespace-nowrap cursor-pointer">
+            <Link
+              href={`/dashboard/perusahaan/${id}/chat`}
+              className="bg-vip text-white px-4 py-2 rounded-md text-sm font-medium transition-colors flex items-center space-x-2 whitespace-nowrap cursor-pointer"
+            >
               <span className="">Chat Perusahaan</span>
               <Lock className="w-4" />
-            </button>
+            </Link>
             {Cookies.get("authorization") === "school" && (
               <Link
                 href={`/dashboard/perusahaan/${id}/mou`}
@@ -161,29 +155,8 @@ const DetailPerusahaanPage = ({
           </div>
         </div>
         <h3 className="text-lg font-semibold text-gray-900 mb-4">Deskripsi</h3>
-        <div className="text-gray-700 text-sm leading-relaxed space-y-3 mb-5">
-          <p>
-            PT Makerindo Cipta Solusi adalah perusahaan teknologi yang bergerak
-            di bidang pengembangan solusi digital dan rekayasa perangkat keras
-            untuk mendukung transformasi industri 4.0 di Indonesia. Berdiri
-            sejak tahun [Tahun Berdiri], kami berkomitmen untuk menghadirkan
-            inovasi terdepan yang mampu menjawab tantangan zaman dengan semangat
-            tumbuh bersama klien.
-          </p>
-          <p>
-            Dengan spesialisasi pada pengembangan sistem IoT (Internet of
-            Things), otomasi industri, serta solusi perangkat lunak kustom, PT
-            Makerindo Cipta Solusi telah menjadi mitra terpercaya bagi berbagai
-            sektor, termasuk manufaktur, agrikultur, pendidikan, dan
-            pemerintahan selama bertahun-tahun.
-          </p>
-          <p>
-            Kami percaya bahwa teknologi bukan hanya alat, tetapi juga jembatan
-            untuk menciptakan efisiensi, transparansi, dan pertumbuhan
-            berkelanjutan. Oleh karena itu, setiap solusi yang kami kembangkan
-            selalu berorientasi pada kebutuhan klien dan kemajuan teknologi
-            terkini.
-          </p>
+        <div className="text-gray-700 text-sm leading-relaxed mb-10">
+          <RenderBlocks data={company.company.description} />
         </div>
         <h3 className="text-lg font-semibold text-gray-900 mb-6">
           Lowongan Magang di Perusahaan ini

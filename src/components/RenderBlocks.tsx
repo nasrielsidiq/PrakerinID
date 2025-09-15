@@ -13,26 +13,67 @@ function renderBlock(block: Block, index: number) {
       const level = block.data?.level;
       const safeLevel = [1, 2, 3, 4, 5, 6].includes(level) ? level : 2;
       const tag = `h${safeLevel}` as keyof React.JSX.IntrinsicElements;
+      const text: string = block.data?.text || "";
+
+      // Split teks menjadi bagian link <a> dan teks biasa
+      const parts = text.split(/(<a .*?<\/a>)/gi);
+
+      const renderParts = parts.map((part, i) => {
+        const match = part.match(/<a href="(.*?)">(.*?)<\/a>/i);
+        if (match) {
+          const href = match[1];
+          const innerText = match[2];
+          return (
+            <a
+              key={i}
+              href={href}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-blue-600 underline"
+            >
+              {innerText}
+            </a>
+          );
+        }
+        return <span key={i}>{part}</span>; // bagian teks biasa
+      });
 
       return React.createElement(
         tag,
         { key: index, className: "font-bold text-xl mb-2" },
-        block.data.text
+        renderParts
       );
     }
 
     case "paragraph": {
-      const text = block.data?.text;
-      const displayText =
-        typeof text === "string" ? (
-          <span dangerouslySetInnerHTML={{ __html: text }} />
-        ) : (
-          JSON.stringify(text)
-        );
+      const text: string = block.data?.text || "";
+
+      // Regex untuk mendeteksi <a href="...">...</a>
+      const parts = text.split(/(<a .*?<\/a>)/gi);
+
+      const renderParts = parts.map((part, i) => {
+        const match = part.match(/<a href="(.*?)">(.*?)<\/a>/i);
+        if (match) {
+          const href = match[1];
+          const innerText = match[2];
+          return (
+            <a
+              key={i}
+              href={href}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-blue-600 underline"
+            >
+              {innerText}
+            </a>
+          );
+        }
+        return <span key={i}>{part}</span>; // bagian teks biasa
+      });
 
       return (
         <p key={index} className="mb-2 text-gray-800">
-          {displayText}
+          {renderParts}
         </p>
       );
     }

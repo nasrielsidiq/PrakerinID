@@ -6,13 +6,14 @@ import { API, ENDPOINTS } from "../../../../utils/config";
 import Cookies from "js-cookie";
 import Image from "next/image";
 import useDebounce from "@/hooks/useDebounce";
+import Link from "next/link";
 
 interface Perusahaan {
   id: string;
   photo_profile?: string | null;
   name: string;
-  city_regency: string;
-  province: string;
+  city_regency?: string;
+  province?: string;
   mou: false;
 }
 
@@ -53,17 +54,15 @@ const SekolahPage: React.FC = () => {
         },
       });
 
-      if (response.status === 200) {
-        console.log("Company fetched successfully:", response.data.data);
-        const data = response.data.data.map((item: any) => ({
-          id: item.id,
-          photo_profile: item.photo_profile,
-          name: item.company.name,
-          city_regency: item.city_regency.name,
-          province: item.province.name,
-        }));
-        setPerushaan(data);
-      }
+      console.log("Company fetched successfully:", response.data.data);
+      const data = response.data.data.map((item: any) => ({
+        id: item.id,
+        photo_profile: item.photo_profile,
+        name: item.name,
+        // city_regency: item.city_regency.name,
+        // province: item.province.name,
+      }));
+      setPerushaan(data);
     } catch (error) {
       console.error("Error fetching company:", error);
     }
@@ -102,7 +101,7 @@ const SekolahPage: React.FC = () => {
 
   return (
     <main className="p-6">
-      <h1 className="text-accent-dark text-sm mb-5">Sekolah</h1>
+      <h1 className="text-accent-dark text-sm mb-5">Sekolah </h1>
       <div className="mb-8">
         <div className="flex items-center space-x-2 font-extrabold text-accent">
           <BookOpen className="w-5 h-5" />
@@ -203,13 +202,13 @@ const SekolahPage: React.FC = () => {
                 </div>
               </div>
 
-              <button
-                onClick={() => router.push(`perusahaan/${data.id}`)}
+              <Link
+                href={`/dashboard/sekolah/${data.id}`}
                 className="bg-accent/10 flex justify-between items-center p-1 px-2 space-x-2 rounded-full cursor-pointer hover:bg-accent/20 transition"
               >
                 <span>Detail</span>
                 <CircleArrowRight className="w-4 h-4" />
-              </button> 
+              </Link>
 
               {/* Tombol pojok kanan atas */}
               {data.mou && (

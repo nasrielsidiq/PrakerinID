@@ -19,7 +19,8 @@ import {
   UserCircle,
   CircleArrowLeft,
   BookOpen,
-  MessageSquareText, // TAMBAHKAN: LogOut
+  MessageSquareText,
+  Handshake, // TAMBAHKAN: LogOut
 } from "lucide-react";
 import Link from "next/link";
 import Cookies from "js-cookie";
@@ -153,6 +154,11 @@ export default function DashboardLayout({
             href: "/dashboard/sekolah",
           },
           {
+            icon: Handshake,
+            label: "MOU",
+            href: "/dashboard/mou",
+          },
+          {
             icon: Award,
             label: "Penghargaan",
             href: "/dashboard/penghargaan",
@@ -188,9 +194,19 @@ export default function DashboardLayout({
             href: "/dashboard/perusahaan",
           },
           {
+            icon: Handshake,
+            label: "MOU",
+            href: "/dashboard/mou",
+          },
+          {
             icon: Award,
             label: "Penghargaan",
             href: "/dashboard/penghargaan",
+          },
+          {
+            icon: MessageSquareText,
+            label: "Feedback",
+            href: "/dashboard/feedback",
           },
           {
             icon: User,

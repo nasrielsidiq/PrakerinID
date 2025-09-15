@@ -90,22 +90,22 @@ const DetailPerusahaanPage = ({
       <h1 className="text-accent-dark text-sm mb-5">
         <Link
           className="hover:underline hover:text-accent"
-          href={"/dashboard/perusahaan/"}
+          href={"/dashboard/sekolah/"}
         >
-          Perusahaan
+          Sekolah
         </Link>{" "}
         -&gt;{" "}
         <Link
           className="hover:underline hover:text-accent"
-          href={`/dashboard/perusahaan/${id}`}
+          href={`/dashboard/sekolah/${id}`}
         >
-          Detail Perusahaan
+          Detail Sekolah
         </Link>{" "}
         -&gt; Pengajuan MOU
       </h1>
       <div className="mb-8">
         <div className="flex items-center space-x-2 font-extrabold text-accent">
-          <Building className="w-5 h-5" />
+          <BookOpen className="w-5 h-5" />
           <h2 className="text-2xl mt-2">Pengajuan MOU</h2>
         </div>
       </div>
@@ -117,7 +117,7 @@ const DetailPerusahaanPage = ({
       >
         <div className="flex items-center gap-4 mb-6">
           <div className="bg-gray-200 p-2 rounded-full w-10 h-10 my-auto">
-            <Building className="text-accent" size={24} />
+            <BookOpen className="text-accent" size={24} />
           </div>
           <div className="flex flex-col">
             <h2 className="text-xl font-semibold text-gray-800">Ajukan MOU</h2>

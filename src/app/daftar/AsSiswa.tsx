@@ -31,7 +31,7 @@ interface PrakerinRegistrationFormProps {
   setShowForm: (value: string) => void;
 }
 
-const   PrakerinRegistrationSiswaForm: React.FC<
+const PrakerinRegistrationSiswaForm: React.FC<
   PrakerinRegistrationFormProps
 > = ({ setShowForm }) => {
   const [formData, setFormData] = useState<FormData>({
@@ -353,9 +353,9 @@ const   PrakerinRegistrationSiswaForm: React.FC<
                       className="absolute inset-y-0 right-0 flex items-center px-3 text-gray-400 hover:text-gray-600"
                     >
                       {showPassword ? (
-                        <EyeOff className="w-5 h-5" />
-                      ) : (
                         <Eye className="w-5 h-5" />
+                      ) : (
+                        <EyeOff className="w-5 h-5" />
                       )}
                     </button>
                   </div>
@@ -390,9 +390,9 @@ const   PrakerinRegistrationSiswaForm: React.FC<
                       className="absolute inset-y-0 right-0 flex items-center px-3 text-gray-400 hover:text-gray-600"
                     >
                       {showpassword_confirmation ? (
-                        <EyeOff className="w-5 h-5" />
-                      ) : (
                         <Eye className="w-5 h-5" />
+                      ) : (
+                        <EyeOff className="w-5 h-5" />
                       )}
                     </button>
                   </div>
@@ -417,7 +417,7 @@ const   PrakerinRegistrationSiswaForm: React.FC<
               Kembali
             </button>
             <ReCAPTCHA
-              sitekey="6LejCYsrAAAAAI_2Pf0-3czAPUaswYA4_GZDaGiy"
+              sitekey={process.env.NEXT_PUBLIC_RECAPTCHA_SITEKEY as string}
               size="invisible"
               className="mb-4"
               ref={recaptchaRef}
@@ -447,13 +447,6 @@ const   PrakerinRegistrationSiswaForm: React.FC<
             </button>
           </div>
         </div>
-
-        {/* Footer */}
-        {/* <div className="text-center mt-8 pt-6 border-t border-gray-200">
-          <p className="text-sm text-gray-500">
-            © 2025 Prakerin ID. All rights reserved.
-          </p>
-        </div> */}
       </div>
     </div>
   );

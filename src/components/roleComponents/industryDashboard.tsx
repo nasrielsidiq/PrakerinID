@@ -9,8 +9,10 @@ import {
 import RatingSummary from "../RatingSummary";
 import PieChartCompenent from "../Charts/PieChartCompenent";
 import BarChartComponent from "../Charts/BarChartCompenent";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
+import Cookies from "js-cookie";
+import { API, ENDPOINTS } from "../../../utils/config";
 
 interface InternshipApplication {
   id: string;
@@ -23,31 +25,107 @@ interface InternshipApplication {
   status: string;
 }
 
+interface Summary {
+  internship_count: number;
+  job_opening_count: number;
+  achievement_count: number;
+}
+
+interface RatingSummary {
+  rating_count: number;
+  average_rating: number;
+  rating_1: number;
+  rating_2: number;
+  rating_3: number;
+  rating_4: number;
+  rating_5: number;
+}
+
 export default function IndustryDashboard() {
   const [internshipApplications, setInternshipApplications] = useState<
     InternshipApplication[]
   >([]);
+  const [summary, setSummary] = useState<Summary>({
+    internship_count: 0,
+    job_opening_count: 0,
+    achievement_count: 0,
+  });
+  const [ratingSummary, setRatingSummary] = useState<RatingSummary>({
+    rating_count: 0,
+    average_rating: 0,
+    rating_1: 0,
+    rating_2: 0,
+    rating_3: 0,
+    rating_4: 0,
+    rating_5: 0,
+  });
+
+  const fetchData = async () => {
+    try {
+      const internshipCount = API.get(`${ENDPOINTS.INTERNSHIPS}/count`, {
+        headers: {
+          Authorization: `Bearer ${Cookies.get("userToken")}`,
+        },
+      });
+      const jobOpeningCount = API.get(`${ENDPOINTS.JOB_OPENINGS}/count`, {
+        headers: {
+          Authorization: `Bearer ${Cookies.get("userToken")}`,
+        },
+      });
+
+      const rating = API.get(`${ENDPOINTS.FEEDBACKS}/rating`, {
+        headers: {
+          Authorization: `Bearer ${Cookies.get("userToken")}`,
+        },
+      });
+      const response = await Promise.all([
+        internshipCount,
+        jobOpeningCount,
+        rating,
+      ]);
+
+      console.log(response);
+      setSummary({
+        internship_count: response[0].data.data,
+        job_opening_count: response[1].data.data,
+        achievement_count: response[0].data.data,
+      });
+      setRatingSummary(response[2].data.data);
+    } catch (error) {
+      console.error(error);
+    }
+  };
+
+  useEffect(() => {
+    fetchData();
+  }, []);
 
   return (
     <div className="flex flex-col gap-8">
       <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 col-span-5  gap-6">
         <div className="bg-white rounded-lg shadow-sm p-3 px-5 flex justify-between">
           <div className="text-accent-dark">
-            <h1 className="font-extrabold  text-2xl">39</h1>
-            <h3 className=" text-md">Total Siswa Magang</h3>
+            <h1 className="font-extrabold  text-2xl">
+              {summary.internship_count}
+            </h1>
+            <h3 className=" text-md">Total Magang</h3>
           </div>
           <Users className="text-accent w-7 h-7 my-auto" />
         </div>
         <div className="bg-white rounded-lg shadow-sm p-3 px-5 flex justify-between">
           <div className="text-accent-dark">
-            <h1 className="font-extrabold  text-2xl">45</h1>
+            <h1 className="font-extrabold  text-2xl">
+              {summary.job_opening_count}
+            </h1>
             <h3 className=" text-md">Total Lowongan</h3>
           </div>
           <BriefcaseBusiness className="text-accent w-7 h-7 my-auto" />
         </div>
         <div className="bg-white rounded-lg shadow-sm p-3 px-5 flex justify-between">
           <div className="text-accent-dark">
-            <h1 className="font-extrabold  text-2xl">4</h1>
+            <h1 className="font-extrabold  text-2xl">
+              {summary.achievement_count}
+            </h1>
             <h3 className=" text-md">Total Penghargaan</h3>
           </div>
           <BadgeCheck className="text-accent w-7 h-7 my-auto" />
@@ -73,9 +151,10 @@ export default function IndustryDashboard() {
         <div className="flex gap-6">
           <div className="w-1/2 ">
             <RatingSummary
-              average={4.2}
-              total={118}
+              average={ratingSummary.average_rating}
+              total={ratingSummary.rating_count}
               counts={{ 5: 80, 4: 10, 3: 5, 2: 3, 1: 20 }}
+              data={ratingSummary}
             />
           </div>
           <div className="w-1/2 ">

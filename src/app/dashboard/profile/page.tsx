@@ -28,9 +28,7 @@ interface UserForm {
   confirmPassword: string;
 }
 
-interface CompanyForm {
-  
-}
+interface CompanyForm {}
 
 interface SchoolForm {
   name: string;

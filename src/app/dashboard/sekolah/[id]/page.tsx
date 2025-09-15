@@ -2,6 +2,7 @@
 
 import {
   ArrowRight,
+  BookOpen,
   Building,
   FileText,
   Globe,
@@ -18,7 +19,7 @@ import Image from "next/image";
 
 interface Company {
   photo_profile?: string | null;
-  company: {
+  school: {
     name: string;
     desctription: string | null;
   };
@@ -37,8 +38,9 @@ interface Company {
 
 const DetailSekolahPage = ({ params }: { params: Promise<{ id: string }> }) => {
   const { id } = use(params);
+  const [authorization, setAuthorization] = useState<string>();
   const [company, setCompany] = useState<Company>({
-    company: {
+    school: {
       name: "",
       desctription: null,
     },
@@ -50,7 +52,6 @@ const DetailSekolahPage = ({ params }: { params: Promise<{ id: string }> }) => {
     },
     job_openings: [],
   });
-
 
   const fetchCompanyDetail = async () => {
     try {
@@ -71,6 +72,7 @@ const DetailSekolahPage = ({ params }: { params: Promise<{ id: string }> }) => {
 
   useEffect(() => {
     console.log("Id:", id);
+    setAuthorization(Cookies.get("authorization"));
     fetchCompanyDetail();
   }, []);
   return (
@@ -78,16 +80,16 @@ const DetailSekolahPage = ({ params }: { params: Promise<{ id: string }> }) => {
       <h1 className="text-accent-dark text-sm mb-5">
         <Link
           className="hover:underline hover:text-accent"
-          href={"/dashboard/perusahaan/"}
+          href={"/dashboard/sekolah/"}
         >
-          Perusahaan
+          Sekolah
         </Link>{" "}
-        -&gt; Detail Perusahaan
+        -&gt; Detail Sekolah
       </h1>
       <div className="mb-8">
         <div className="flex items-center space-x-2 font-extrabold text-accent">
-          <Building className="w-5 h-5" />
-          <h2 className="text-2xl mt-2">Detail Perusahaan</h2>
+          <BookOpen className="w-5 h-5" />
+          <h2 className="text-2xl mt-2">Detail Sekolah</h2>
         </div>
       </div>
 
@@ -110,12 +112,12 @@ const DetailSekolahPage = ({ params }: { params: Promise<{ id: string }> }) => {
             )}
             <div className="min-w-0 flex-1">
               <h2 className="text-xl font-semibold text-gray-900 mb-2">
-                {company.company.name}
+                {company.school.name}
               </h2>
               <div className="flex items-center space-x-2 text-gray-600 mb-1">
                 <MapPin className="w-4 h-4 flex-shrink-0" />
                 <span className="text-sm">
-                  {company.city_regency.name}, {company.province.name}
+                  {/* {company.city_regency.name}, {company.province.name} */}
                 </span>
               </div>
               <div className="flex items-center space-x-2 text-gray-600">
@@ -132,13 +134,16 @@ const DetailSekolahPage = ({ params }: { params: Promise<{ id: string }> }) => {
             </div>
           </div>
           <div className="flex gap-2">
-            <button className="bg-vip text-white px-4 py-2 rounded-md text-sm font-medium transition-colors flex items-center space-x-2 whitespace-nowrap cursor-pointer">
-              <span className="">Chat Perusahaan</span>
+            <Link
+              href={`/dashboard/sekolah/${id}/chat`}
+              className="bg-vip text-white px-4 py-2 rounded-md text-sm font-medium transition-colors flex items-center space-x-2 whitespace-nowrap cursor-pointer"
+            >
+              <span className="">Chat Sekolah</span>
               <Lock className="w-4" />
-            </button>
-            {Cookies.get("authorization") === "school" && (
+            </Link>
+            {authorization === "company" && (
               <Link
-                href={`/dashboard/perusahaan/${id}/mou`}
+                href={`/dashboard/sekolah/${id}/mou`}
                 className="bg-accent text-white px-4 py-2 rounded-md text-sm font-medium transition-colors flex items-center space-x-2 whitespace-nowrap cursor-pointer"
               >
                 <span className="">Ajukan Mou</span>
@@ -171,40 +176,6 @@ const DetailSekolahPage = ({ params }: { params: Promise<{ id: string }> }) => {
             selalu berorientasi pada kebutuhan klien dan kemajuan teknologi
             terkini.
           </p>
-        </div>
-        <h3 className="text-lg font-semibold text-gray-900 mb-6">
-          Lowongan Magang di Perusahaan ini
-        </h3>
-        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
-          {company.job_openings.length !== 0 ? (
-            company.job_openings.map((jobOpening) => (
-              <Link
-                href={`/dashboard/lowongan/${jobOpening.id}`}
-                key={jobOpening.id}
-                className="border border-gray-200 rounded-lg p-4 hover:border-gray-300 hover:shadow-sm transition-all cursor-pointer group bg-white"
-              >
-                <div className="flex items-center justify-between">
-                  <div className="flex-1 min-w-0">
-                    <h4 className="font-medium text-gray-900 text-sm mb-1 truncate">
-                      {jobOpening.title}
-                    </h4>
-                    <p className="text-xs text-gray-500">
-                      {timeAgo(jobOpening.updated_at)}
-                    </p>
-                  </div>
-                  <div className="ml-3 flex-shrink-0">
-                    <div className="w-6 h-6 rounded-full border border-red-500 flex items-center justify-center group-hover:border-red-400 transition-colors">
-                      <ArrowRight className="w-4  text-red-500" />
-                    </div>
-                  </div>
-                </div>
-              </Link>
-            ))
-          ) : (
-            <p className="text-gray-500">
-              Tidak ada lowongan yang tersedia di perusahaan ini.
-            </p>
-          )}
         </div>
       </div>
     </main>
