@@ -10,25 +10,39 @@ import {
   User,
   UserSquare,
 } from "lucide-react";
-import { useEffect, useState } from "react";
+import { ChangeEvent, useEffect, useState } from "react";
 import { API, ENDPOINTS } from "../../../../utils/config";
 import Cookies from "js-cookie";
 import { EditorProps } from "@/components/Editor";
 import dynamic from "next/dynamic";
-import { alertSuccess } from "@/libs/alert";
+import { alertError, alertSuccess } from "@/libs/alert";
+import Image from "next/image";
+import { AxiosError } from "axios";
+import { Province } from "@/models/province";
+import { CityRegency } from "@/models/cityRegency";
+import { Sector } from "@/models/sector";
 
 const Editor = dynamic<EditorProps>(() => import("@/components/Editor"), {
   ssr: false,
 });
 
 interface UserForm {
+  photo_profile: null | File | string;
   username: string;
   email: string;
   password: string;
   confirmPassword: string;
 }
 
-interface CompanyForm {}
+interface CompanyForm {
+  name: string;
+  province_id: string;
+  city_regencies_id: string;
+  sector_id: string;
+  address: string;
+  phone_number: string;
+  website: string;
+}
 
 interface SchoolForm {
   name: string;
@@ -57,12 +71,21 @@ interface DescriptionForm {
 export default function ProfilePage() {
   const [authorization, setAuthorization] = useState("super_admin");
   const [userForm, setUserForm] = useState<UserForm>({
+    photo_profile: null,
     username: "",
     email: "",
     password: "",
     confirmPassword: "",
   });
-  const [companyForm, setCompanyForm] = useState({});
+  const [companyForm, setCompanyForm] = useState<CompanyForm>({
+    name: "",
+    province_id: "",
+    city_regencies_id: "",
+    sector_id: "",
+    address: "",
+    phone_number: "",
+    website: "",
+  });
   const [schoolForm, setSchoolForm] = useState<SchoolForm>({
     name: "",
     npsn: "",
@@ -87,7 +110,11 @@ export default function ProfilePage() {
   const [descriptionForm, setDescriptionForm] = useState<DescriptionForm>({
     description: "",
   });
+  const [provinces, setProvinces] = useState<Province[]>([]);
+  const [cityRegencies, setCityRegencies] = useState<CityRegency[]>([]);
+  const [sectors, setSectors] = useState<Sector[]>([]);
   const [isSubmittingDesc, setIsSubmittingDesc] = useState<boolean>(false);
+  const [profileImage, setProfileImage] = useState<string | null>(null);
 
   const fetchProfile = async () => {
     try {
@@ -99,11 +126,14 @@ export default function ProfilePage() {
       console.log("fetch Profile", response.data.data);
       if (response.status === 200) {
         setUserForm({
+          photo_profile: response.data.data.photo_profile,
           username: response.data.data.username,
           email: response.data.data.email,
           password: "",
           confirmPassword: "",
         });
+
+        console.log(response.data.data);
 
         switch (response.data.data.role) {
           case "company":
@@ -150,6 +180,8 @@ export default function ProfilePage() {
           request = userForm;
           break;
         case "company":
+          text = "Informasi perusahaan berhasil di simpan!";
+          request = companyForm;
           break;
         case "school":
           text = "Informasi sekolah berhasil di simpan!";
@@ -175,18 +207,26 @@ export default function ProfilePage() {
         },
         {
           headers: {
+            "Content-Type": "multipart/form-data",
             Authorization: `Bearer ${Cookies.get("userToken")}`,
           },
         }
       );
 
-      if (response.status === 200) {
-        fetchProfile();
-        console.log("Response", response.data.data);
-        await alertSuccess(text);
+      fetchProfile();
+      console.log("Response", response.data.data);
+      await alertSuccess(text);
+    } catch (error: AxiosError | unknown) {
+      if (error instanceof AxiosError) {
+        const responseError = error.response?.data.errors;
+        if (typeof responseError === "string") {
+          await alertError(responseError);
+        } else {
+          await alertError(responseError);
+          // setErrors(responseError);
+        }
       }
-    } catch (error) {
-      console.error("Error updating profile:", error);
+      console.error(error);
     } finally {
       setIsSubmittingDesc(false);
     }
@@ -198,8 +238,54 @@ export default function ProfilePage() {
     });
   };
 
+  const handleImageUpload = (e: ChangeEvent<HTMLInputElement>): void => {
+    const file = e.target.files?.[0];
+    if (file) {
+      // Check file size (2MB limit)
+      if (file.size > 2 * 1024 * 1024) {
+        alert("File size must be less than 2MB");
+        return;
+      }
+
+      // Check file type
+      if (!file.type.startsWith("image/")) {
+        alert("Please select a valid image file");
+        return;
+      }
+
+      const reader = new FileReader();
+      reader.onload = (e: ProgressEvent<FileReader>) => {
+        if (e.target?.result) {
+          setProfileImage(e.target.result as string);
+        }
+      };
+      reader.readAsDataURL(file);
+
+      setUserForm((prev) => ({
+        ...prev,
+        photo_profile: file,
+      }));
+    }
+  };
+
+  const fetchData = async () => {
+    try {
+      const provinces = API.get(`${ENDPOINTS.PROVINCES}`);
+      const cityRegencies = API.get(`${ENDPOINTS.CITY_REGENCIES}`);
+      const sectors = API.get(`${ENDPOINTS.SECTORS}`);
+      const response = await Promise.all([provinces, cityRegencies, sectors]);
+      console.log(response);
+      setProvinces(response[0].data.data);
+      setCityRegencies(response[1].data.data);
+      setSectors(response[2].data.data);
+    } catch (error) {
+      console.error(error);
+    }
+  };
+
   useEffect(() => {
     fetchProfile();
+    fetchData();
     setAuthorization(Cookies.get("authorization") as string);
   }, []);
 
@@ -227,13 +313,32 @@ export default function ProfilePage() {
             </div>
             <div className="flex flex-col items-center">
               <div className="w-48 h-48 border-2 border-dashed rounded-lg flex flex-col items-center justify-center bg-gray-50 mb-4 relative cursor-pointer">
-                {/* Icon upload */}
-                <UploadCloud size={48} className="text-gray-400 mb-2" />
-                <span className="text-sm text-gray-500">Upload Foto</span>
+                {profileImage ? (
+                  <img
+                    src={profileImage}
+                    alt="Profile"
+                    className="w-full h-full object-cover rounded-lg"
+                  />
+                ) : typeof userForm.photo_profile === "string" ? (
+                  <Image
+                    src={`${process.env.NEXT_PUBLIC_API_URL}/storage/photo-profile/${userForm.photo_profile}`}
+                    alt="Profile"
+                    width={100}
+                    height={100}
+                    className="w-full h-full object-cover rounded-lg"
+                  />
+                ) : (
+                  <>
+                    <UploadCloud size={48} className="text-gray-400 mb-2" />
+                    <span className="text-sm text-gray-500">Upload Foto</span>
+                  </>
+                )}
 
                 {/* Input file hidden tapi full area jadi clickable */}
                 <input
                   type="file"
+                  accept="image/*"
+                  onChange={handleImageUpload}
                   name="profile_picture"
                   id="profile_picture"
                   className="absolute inset-0 opacity-0 cursor-pointer"
@@ -357,63 +462,87 @@ export default function ProfilePage() {
             </div>
             <form
               className="space-y-6"
-              onSubmit={(e) => handleSubmit(e, "student")}
+              onSubmit={(e) => handleSubmit(e, "company")}
             >
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
                   <label
-                    htmlFor="name"
+                    htmlFor="company-name"
                     className="block text-sm font-medium text-gray-700 mb-1"
                   >
                     Nama Perusahaan
                   </label>
                   <input
-                    id="name"
+                    id="company-name"
                     type="text"
-                    value={studentForm?.name}
+                    value={companyForm.name}
                     onChange={(e) =>
-                      setStudentForm({ ...studentForm, name: e.target.value })
+                      setCompanyForm({ ...companyForm, name: e.target.value })
                     }
                     className="w-full border-gray-300 rounded-md shadow-sm focus:ring-cyan-500 focus:border-cyan-500 sm:text-sm p-2"
                   />
                 </div>
                 <div>
                   <label
-                    htmlFor="school"
+                    htmlFor="company-province"
                     className="block text-sm font-medium text-gray-700 mb-1"
                   >
                     Provinsi
                   </label>
-                  <input
-                    id="school"
-                    type="text"
-                    defaultValue="SMKN NEGERI 1 CIPAGALO"
+                  <select
+                    id="company-province"
+                    value={companyForm.province_id}
+                    onChange={(e) => {
+                      setCompanyForm({
+                        ...companyForm,
+                        province_id: e.target.value,
+                      });
+                    }}
                     className="w-full border-gray-300 rounded-md shadow-sm focus:ring-cyan-500 focus:border-cyan-500 sm:text-sm p-2"
-                  />
+                  >
+                    <option value="">Pilih Provinsi</option>
+                    {provinces.map((province) => (
+                      <option key={province.id} value={province.id}>
+                        {province.name}
+                      </option>
+                    ))}
+                  </select>
                 </div>
                 <div>
                   <label
-                    htmlFor="gender"
+                    htmlFor="company-city-regency"
                     className="block text-sm font-medium text-gray-700 mb-1"
                   >
                     Kota/Kabupaten
                   </label>
-                  <input
-                    id="gender"
-                    type="text"
-                    defaultValue="Tidak terdefinisi"
+                  <select
+                    id="company-city-regency"
+                    value={companyForm.city_regencies_id}
+                    onChange={(e) => {
+                      setCompanyForm({
+                        ...companyForm,
+                        city_regencies_id: e.target.value,
+                      });
+                    }}
                     className="w-full border-gray-300 rounded-md shadow-sm focus:ring-cyan-500 focus:border-cyan-500 sm:text-sm p-2"
-                  />
+                  >
+                    <option value="">Pilih Kota/Kabupaten</option>
+                    {cityRegencies.map((cityRegency) => (
+                      <option key={cityRegency.id} value={cityRegency.id}>
+                        {cityRegency.name}
+                      </option>
+                    ))}
+                  </select>
                 </div>
                 <div>
                   <label
-                    htmlFor="address"
+                    htmlFor="company-address"
                     className="block text-sm font-medium text-gray-700 mb-1"
                   >
                     Alamat
                   </label>
                   <input
-                    id="address"
+                    id="company-address"
                     type="text"
                     placeholder="Bandung"
                     value={studentForm?.address}
@@ -428,35 +557,40 @@ export default function ProfilePage() {
                 </div>
                 <div>
                   <label
-                    htmlFor="address"
+                    htmlFor="company-sector"
                     className="block text-sm font-medium text-gray-700 mb-1"
                   >
                     Sektor
                   </label>
-                  <input
-                    id="address"
-                    type="text"
-                    placeholder="Bandung"
-                    value={studentForm?.address}
+                  <select
+                    id="company-sector"
+                    // value={companyForm.sector_id}
                     onChange={(e) =>
-                      setStudentForm({
-                        ...studentForm,
-                        address: e.target.value,
+                      setCompanyForm({
+                        ...companyForm,
+                        sector_id: e.target.value,
                       })
                     }
                     className="w-full border-gray-300 rounded-md shadow-sm focus:ring-cyan-500 focus:border-cyan-500 sm:text-sm p-2"
-                  />
+                  >
+                    <option value="">Pilih Sektor</option>
+                    {sectors.map((sector) => (
+                      <option key={sector.id} value={sector.id}>
+                        {sector.name}
+                      </option>
+                    ))}
+                  </select>
                 </div>
 
                 <div>
                   <label
-                    htmlFor="social"
+                    htmlFor="company-phone-number"
                     className="block text-sm font-medium text-gray-700 mb-1"
                   >
                     No Telepon
                   </label>
                   <input
-                    id="social"
+                    id="company-phone-number"
                     type="url"
                     placeholder="https://linkedin.com/in/username"
                     value={studentForm?.sosial_media_link}
@@ -471,13 +605,13 @@ export default function ProfilePage() {
                 </div>
                 <div>
                   <label
-                    htmlFor="social"
+                    htmlFor="company-website"
                     className="block text-sm font-medium text-gray-700 mb-1"
                   >
                     Website Resmi
                   </label>
                   <input
-                    id="social"
+                    id="company-website"
                     type="url"
                     placeholder="https://linkedin.com/in/username"
                     value={studentForm?.sosial_media_link}

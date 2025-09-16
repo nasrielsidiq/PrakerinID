@@ -2,9 +2,10 @@
 import React, { useState, ChangeEvent, useRef, useEffect } from "react";
 import { Upload, User, Mail, Lock, School, Eye, EyeOff } from "lucide-react";
 import { API, ENDPOINTS } from "../../../utils/config";
-import axios from "axios";
+import axios, { AxiosError } from "axios";
 import ReCAPTCHA from "react-google-recaptcha";
 import { json } from "stream/consumers";
+import { alertError, alertSuccess } from "@/libs/alert";
 
 interface FormData {
   username: string;
@@ -52,22 +53,21 @@ const PrakerinRegistrationSiswaForm: React.FC<
   const [errors, setErrors] = useState<FormErrors>({});
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
   const recaptchaRef = useRef<any>(null);
-  const [schoolNames, setSchoolNames] = useState<SchoolData[]>([]);
+  const [schools, setSchools] = useState<SchoolData[]>([]);
 
-  useEffect(() => {
-    async function fetchData() {
+  const fetchData = async () => {
+    try {
       const response = await API.get(ENDPOINTS.USERS, {
         params: { role: "school" },
       });
 
-      if (response.status === 200) {
-        // setSchoolNames(response.data.data);
-        console.log(response.data.data);
-        console.log("School names fetched successfully");
-      } else {
-        console.error("Failed to fetch school names");
-      }
+      setSchools(response.data.data);
+    } catch (error) {
+      console.error(error);
     }
+  };
+
+  useEffect(() => {
     fetchData();
   }, []);
 
@@ -79,14 +79,6 @@ const PrakerinRegistrationSiswaForm: React.FC<
       ...prev,
       [name]: value,
     }));
-
-    // Clear error when user starts typing
-    if (errors[name as keyof FormErrors]) {
-      setErrors((prev) => ({
-        ...prev,
-        [name]: undefined,
-      }));
-    }
   };
 
   const handleImageUpload = (e: ChangeEvent<HTMLInputElement>): void => {
@@ -126,42 +118,39 @@ const PrakerinRegistrationSiswaForm: React.FC<
     recaptchaRef.current.reset();
     formData.recaptcha_token = token;
     try {
-      // Simulate API call
-      // await new Promise(resolve => setTimeout(resolve, 1000));
+      console.log(formData);
 
-      const response = await axios.post(ENDPOINTS.REGISTER, formData, {
-        withCredentials: true,
-        withXSRFToken: true,
+      await API.post(`${ENDPOINTS.USERS}/register`, formData, {
         headers: {
           "Content-Type": "multipart/form-data",
         },
       });
 
-      if (response.status === 200) {
-        alert("Registration successful!");
-        setShowForm(""); // Reset to initial form state
-      } else {
-        alert("Registration failed. Please try again.");
-      }
-      console.log("Form submitted:", {
-        json: response.data,
-        profileImage: formData.image,
-      });
-    } catch (error: any) {
-      if (error.response && error.response.status === 422) {
-        const errorData = error.response.data.errors;
-        const newErrors: FormErrors = {};
-        for (const key in errorData) {
-          if (errorData.hasOwnProperty(key)) {
-            newErrors[key] = errorData[key][0];
-          }
-        }
-        setErrors(newErrors);
-        return;
-      }
+      await alertSuccess("Daftar Berhasil, Silahkan Cek Email Anda!");
 
-      console.error("Submission error:", error);
-      alert("Registration failed. Please try again.");
+      setShowForm("");
+
+      setFormData({
+        username: "",
+        name: "",
+        school_id: "",
+        email: "",
+        password: "",
+        password_confirmation: "",
+        recaptcha_token: "",
+        role: "student",
+      });
+      setProfileImage(null);
+    } catch (error: AxiosError | unknown) {
+      if (error instanceof AxiosError) {
+        const responseError = error.response?.data.errors;
+        if (typeof responseError === "string") {
+          await alertError(responseError);
+        } else {
+          setErrors(responseError);
+        }
+      }
+      console.error(error);
     } finally {
       setIsSubmitting(false);
     }
@@ -280,12 +269,11 @@ const PrakerinRegistrationSiswaForm: React.FC<
                       }`}
                     >
                       <option value="">Pilih Sekolah/Univ anda</option>
-                      {schoolNames &&
-                        schoolNames.map((school, key) => (
-                          <option key={key} value={school.id}>
-                            {school.name}
-                          </option>
-                        ))}
+                      {schools.map((school, key) => (
+                        <option key={key} value={school.id}>
+                          {school.name}
+                        </option>
+                      ))}
                       <option value="other">Lainnya</option>
                     </select>
                     <div className="absolute inset-y-0 right-0 flex items-center px-2 pointer-events-none">

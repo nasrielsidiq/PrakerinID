@@ -233,6 +233,21 @@ export default function DashboardLayout({
             href: "/dashboard/lowongan",
           },
           {
+            icon: Briefcase,
+            label: "Provinsi",
+            href: "/dashboard/provinsi",
+          },
+          {
+            icon: Briefcase,
+            label: "Kota/Kabupaten",
+            href: "/dashboard/kota-kabupaten",
+          },
+          {
+            icon: Briefcase,
+            label: "Sektor",
+            href: "/dashboard/sektor",
+          },
+          {
             icon: User,
             label: "Profile",
             href: "/dashboard/profile",

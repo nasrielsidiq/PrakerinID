@@ -100,13 +100,14 @@ const PrakerinRegistrationIndustryForm: React.FC<
     formData.recaptcha_token = token;
 
     try {
+      console.log(formData)
       await API.post(`${ENDPOINTS.USERS}/register`, formData, {
         headers: {
           "Content-Type": "multipart/form-data",
         },
       });
 
-      await alertSuccess("Daftar Berhasil, Silahkan Cek Email Anda");
+      await alertSuccess("Daftar Berhasil, Silahkan Cek Email Anda!");
 
       setFormData({
         username: "",

@@ -85,9 +85,8 @@ const CreatePage: React.FC = () => {
         onSubmit={handleSubmit}
       >
         <div className="flex space-x-5">
-          <div className="bg-accent/30 p-2 rounded-full w-10 h-10 my-auto">
-            <FileTextIcon />
-          </div>
+      
+      
           <div>
             <h1 className="text-xl text-gray-800 font-extrabold">Tambah CV</h1>
             <span className="text-sm text-gray-300">

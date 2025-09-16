@@ -1,9 +1,7 @@
 "use client";
 
 import {
-  ArrowRight,
   BookOpen,
-  Building,
   FileText,
   Globe,
   Lock,
@@ -16,12 +14,14 @@ import Cookies from "js-cookie";
 import { timeAgo } from "@/utils/timeAgo";
 import Link from "next/link";
 import Image from "next/image";
+import RenderBlocks from "@/components/RenderBlocks";
 
 interface Company {
-  photo_profile?: string | null;
+  photo_profile: string | null;
   school: {
     name: string;
-    desctription: string | null;
+    description: string | null;
+    website: string | null;
   };
   city_regency: {
     name: string;
@@ -29,20 +29,17 @@ interface Company {
   province: {
     name: string;
   };
-  job_openings: {
-    id: string;
-    title: string;
-    updated_at: string;
-  }[];
 }
 
 const DetailSekolahPage = ({ params }: { params: Promise<{ id: string }> }) => {
   const { id } = use(params);
   const [authorization, setAuthorization] = useState<string>();
   const [company, setCompany] = useState<Company>({
+    photo_profile: null,
     school: {
       name: "",
-      desctription: null,
+      description: null,
+      website: null,
     },
     city_regency: {
       name: "",
@@ -50,10 +47,9 @@ const DetailSekolahPage = ({ params }: { params: Promise<{ id: string }> }) => {
     province: {
       name: "",
     },
-    job_openings: [],
   });
 
-  const fetchCompanyDetail = async () => {
+  const fetchData = async () => {
     try {
       const response = await API.get(`${ENDPOINTS.USERS}/${id}`, {
         headers: {
@@ -61,20 +57,21 @@ const DetailSekolahPage = ({ params }: { params: Promise<{ id: string }> }) => {
         },
       });
 
-      if (response.status === 200) {
-        console.log("Company Detail:", response.data.data);
-        setCompany(response.data.data);
-      }
+      console.log(response.data.data);
+      setCompany(response.data.data);
     } catch (error) {
       console.error("Error fetching company details:", error);
     }
   };
 
   useEffect(() => {
-    console.log("Id:", id);
     setAuthorization(Cookies.get("authorization"));
-    fetchCompanyDetail();
+    fetchData();
   }, []);
+
+  useEffect(() => {
+    console.log(company);
+  }, [company]);
   return (
     <main className="p-6">
       <h1 className="text-accent-dark text-sm mb-5">
@@ -128,7 +125,7 @@ const DetailSekolahPage = ({ params }: { params: Promise<{ id: string }> }) => {
                   target="_blank"
                   rel="noopener noreferrer"
                 >
-                  makerindo.co.id
+                  {company.school.website ?? "Tidak ada website"}
                 </a>
               </div>
             </div>
@@ -154,28 +151,7 @@ const DetailSekolahPage = ({ params }: { params: Promise<{ id: string }> }) => {
         </div>
         <h3 className="text-lg font-semibold text-gray-900 mb-4">Deskripsi</h3>
         <div className="text-gray-700 text-sm leading-relaxed space-y-3 mb-5">
-          <p>
-            PT Makerindo Cipta Solusi adalah perusahaan teknologi yang bergerak
-            di bidang pengembangan solusi digital dan rekayasa perangkat keras
-            untuk mendukung transformasi industri 4.0 di Indonesia. Berdiri
-            sejak tahun [Tahun Berdiri], kami berkomitmen untuk menghadirkan
-            inovasi terdepan yang mampu menjawab tantangan zaman dengan semangat
-            tumbuh bersama klien.
-          </p>
-          <p>
-            Dengan spesialisasi pada pengembangan sistem IoT (Internet of
-            Things), otomasi industri, serta solusi perangkat lunak kustom, PT
-            Makerindo Cipta Solusi telah menjadi mitra terpercaya bagi berbagai
-            sektor, termasuk manufaktur, agrikultur, pendidikan, dan
-            pemerintahan selama bertahun-tahun.
-          </p>
-          <p>
-            Kami percaya bahwa teknologi bukan hanya alat, tetapi juga jembatan
-            untuk menciptakan efisiensi, transparansi, dan pertumbuhan
-            berkelanjutan. Oleh karena itu, setiap solusi yang kami kembangkan
-            selalu berorientasi pada kebutuhan klien dan kemajuan teknologi
-            terkini.
-          </p>
+          <RenderBlocks data={company.school.description} />
         </div>
       </div>
     </main>

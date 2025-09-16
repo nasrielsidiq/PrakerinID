@@ -114,7 +114,7 @@ const PrakerinRegistrationSekolahForm: React.FC<
         },
       });
 
-      await alertSuccess("Daftar Berhasil, Silahkan Cek Email Anda");
+      await alertSuccess("Daftar Berhasil, Silahkan Cek Email Anda!");
 
       setShowForm("");
 
@@ -130,8 +130,6 @@ const PrakerinRegistrationSekolahForm: React.FC<
         role: "School",
       });
       setProfileImage(null);
-
-      setShowForm("");
     } catch (error: AxiosError | unknown) {
       if (error instanceof AxiosError) {
         const responseError = error.response?.data.errors;

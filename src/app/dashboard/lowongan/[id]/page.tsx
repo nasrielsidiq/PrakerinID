@@ -187,7 +187,7 @@ const DetailLowongan = ({ params }: { params: Promise<{ id: string }> }) => {
 
                   <Link
                     href={`${id}/apply`}
-                    className="bg-teal-600 hover:bg-teal-700 text-white px-6 py-2 rounded-lg font-medium transition-colors"
+                    className="bg-accent hover:bg-accent-hover text-white px-6 py-2 rounded-lg font-medium transition-colors"
                   >
                     Lamar Sekarang
                   </Link>
@@ -195,7 +195,7 @@ const DetailLowongan = ({ params }: { params: Promise<{ id: string }> }) => {
               ) : (
                 <Link
                   href={`/dashboard/lowongan/${id}/ubah`}
-                  className="bg-teal-600 hover:bg-teal-700 text-white px-6 py-2 rounded-lg font-medium transition-colors"
+                  className="bg-accent hover:bg-accent-hover text-white px-6 py-2 rounded-lg font-medium transition-colors"
                 >
                   Ubah Lowongan
                 </Link>
