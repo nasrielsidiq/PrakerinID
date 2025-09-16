@@ -7,7 +7,9 @@ import {
   UserCircle,
 } from "lucide-react";
 import Image from "next/image";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
+import { API, ENDPOINTS } from "../../../utils/config";
+import Cookies from "js-cookie";
 
 interface Perusahaan {
   user?: {
@@ -33,6 +35,33 @@ const StudentFeedback = () => {
   const [selectedIndex, setSelectedIndex] = useState<number | null>(null);
   const [rating, setRating] = useState<number>(0); // rating 1-5
 
+  const fetchCompany = async () => {
+    try {
+      const response = await API.get(ENDPOINTS.USERS, {
+        params: {
+          role: "company",
+        },
+        headers: {
+          Authorization: `Bearer ${Cookies.get("userToken")}`,
+        },
+      });
+
+      if (response.status === 200) {
+        console.log("Company fetched successfully:", response.data.data);
+        const data = response.data.data.map((item: any) => ({
+          id: item.id,
+          photo_profile: item.photo_profile,
+          name: item.company.name,
+          city_regency: item.city_regency.name,
+          province: item.province.name,
+        }));
+        setPerushaan(data);
+      }
+    } catch (error) {
+      console.error("Error fetching company:", error);
+    }
+  };
+
   const handleSubmit = () => {
     console.log("Feedback:", feedback);
     console.log("Rating:", rating);
@@ -45,6 +74,10 @@ const StudentFeedback = () => {
     setRating(0); // reset rating setiap buka modal baru
     setFeedback(""); // reset feedback
   };
+
+  useEffect(() => {
+    fetchCompany();
+  }, []);
 
   // Modal
   const modal = (index: number) => {

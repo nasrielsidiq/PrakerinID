@@ -1,28 +1,19 @@
 "use client";
 
+import { RatingSummary } from "@/models/feedback";
 import { Star } from "lucide-react";
 
 interface RatingSummaryProps {
-  average: number; // contoh: 4.2
-  total: number; // contoh: 118
-  counts: { [rating_key: number]: number }; // {5: 80, 4: 10, 3: 5, 2: 3, 1: 20}
-  data: any;
+  data: RatingSummary;
 }
 
-export default function RatingSummary({
-  average,
-  total,
-  counts,
-  data,
-}: RatingSummaryProps) {
-  console.log(counts);
-
+export default function RatingSummaryCompenent({ data }: RatingSummaryProps) {
   return (
     <div className="bg-gray-50 p-4 rounded-xl shadow-sm flex flex-col md:flex-row items-center gap-6  h-full w-full">
       {/* Bagian rata-rata besar */}
       <div className="flex flex-col items-center md:w-1/3 ">
         <h2 className="text-9xl font-bold text-accent-dark">
-          {average.toFixed(1)}
+          {data.average_rating.toFixed(1)}
         </h2>
         <div className="flex items-center gap-1 mt-2">
           {Array.from({ length: 5 }).map((_, i) => {
@@ -31,7 +22,7 @@ export default function RatingSummary({
               <Star
                 key={i}
                 className={`w-6 h-6 ${
-                  rating <= Math.round(average)
+                  rating <= Math.round(data.average_rating)
                     ? "fill-accent text-accent"
                     : "text-gray-300"
                 }`}
@@ -39,7 +30,9 @@ export default function RatingSummary({
             );
           })}
         </div>
-        <span className="text-md text-gray-500 mt-1">{total} ulasan</span>
+        <span className="text-md text-gray-500 mt-1">
+          {data.rating_count} ulasan
+        </span>
       </div>
 
       {/* Bagian persentase bar */}
@@ -49,8 +42,9 @@ export default function RatingSummary({
         </h3>
         <div className="space-y-2">
           {[5, 4, 3, 2, 1].map((star) => {
-            const count = counts[star] || 0;
-            const percentage = total ? (count / total) * 100 : 0;
+            const value = data[`rating_${star}` as keyof RatingSummary];
+            const count = value;
+            const percentage = value ? (count / value) * 100 : 0;
 
             return (
               <div key={star} className="flex items-center gap-2">

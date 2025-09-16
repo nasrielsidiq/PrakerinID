@@ -7,11 +7,15 @@ import {
   Search,
   Users,
 } from "lucide-react";
-import RatingSummary from "../RatingSummary";
+import RatingSummaryCompenent from "../RatingSummaryCompenent";
 import PieChartCompenent from "../Charts/PieChartCompenent";
 import BarChartComponent from "../Charts/BarChartCompenent";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
+import { RatingSummary } from "@/models/feedback";
+import { API, ENDPOINTS } from "../../../utils/config";
+import Cookies from "js-cookie";
+import { mapRatingToData } from "@/utils/mapRatingToData";
 
 interface InternshipApplication {
   id: string;
@@ -24,38 +28,123 @@ interface InternshipApplication {
   status: string;
 }
 
+interface Summary {
+  student_count: number;
+  student_internship_count: number;
+  job_opening_count: number;
+  company_count: number;
+  achievement_count: number;
+}
+
 export default function SchoolDashboard() {
   const [internshipApplications, setInternshipApplications] = useState<
     InternshipApplication[]
   >([]);
+  const [summary, setSummary] = useState<Summary>({
+    student_count: 0,
+    student_internship_count: 0,
+    job_opening_count: 0,
+    company_count: 0,
+    achievement_count: 0,
+  });
+  const [ratingSummary, setRatingSummary] = useState<RatingSummary>({
+    rating_count: 0,
+    average_rating: 0,
+    rating_1: 0,
+    rating_2: 0,
+    rating_3: 0,
+    rating_4: 0,
+    rating_5: 0,
+  });
+
+  const fetchData = async () => {
+    try {
+      // const internshipCount = API.get(`${ENDPOINTS.INTERNSHIPS}/count`, {
+      //   headers: {
+      //     Authorization: `Bearer ${Cookies.get("userToken")}`,
+      //   },
+      // });
+      const jobOpeningCount = API.get(`${ENDPOINTS.JOB_OPENINGS}/count`, {
+        headers: {
+          Authorization: `Bearer ${Cookies.get("userToken")}`,
+        },
+      });
+
+      const achievementCount = API.get(`${ENDPOINTS.ACHIEVEMENTS}/count`, {
+        headers: {
+          Authorization: `Bearer ${Cookies.get("userToken")}`,
+        },
+      });
+
+      const rating = API.get(`${ENDPOINTS.FEEDBACKS}/rating`, {
+        headers: {
+          Authorization: `Bearer ${Cookies.get("userToken")}`,
+        },
+      });
+      const response = await Promise.all([
+        jobOpeningCount,
+        jobOpeningCount,
+        jobOpeningCount,
+        jobOpeningCount,
+        achievementCount,
+        rating,
+      ]);
+
+      console.log(response);
+      setSummary({
+        student_count: response[0].data.data,
+        student_internship_count: response[1].data.data,
+        job_opening_count: response[2].data.data,
+        company_count: response[3].data.data,
+        achievement_count: response[4].data.data,
+      });
+      setRatingSummary(response[5].data.data);
+    } catch (error) {
+      console.error(error);
+    }
+  };
+
+  useEffect(() => {
+    fetchData();
+  }, []);
+
+  const ratingColors = ["#ff0000", "#ff6600", "#ffcc00", "#66cc00", "#009900"]; // contoh warna
 
   return (
     <div className="flex flex-col gap-8">
       <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 col-span-5 gap-6">
         <div className="bg-white rounded-lg shadow-sm p-3 px-5 flex justify-between">
           <div className="text-accent-dark">
-            <h1 className="font-extrabold  text-2xl">39</h1>
+            <h1 className="font-extrabold  text-2xl">
+              {summary.student_count}
+            </h1>
             <h3 className=" text-md">Total Siswa</h3>
           </div>
           <Users className="text-accent w-7 h-7 my-auto" />
         </div>
         <div className="bg-white rounded-lg shadow-sm p-3 px-5 flex justify-between">
           <div className="text-accent-dark">
-            <h1 className="font-extrabold  text-2xl">45</h1>
+            <h1 className="font-extrabold  text-2xl">
+              {summary.student_internship_count}
+            </h1>
             <h3 className=" text-md">Total Siswa Magang</h3>
           </div>
           <Users className="text-accent w-7 h-7 my-auto" />
         </div>
         <div className="bg-white rounded-lg shadow-sm p-3 px-5 flex justify-between">
           <div className="text-accent-dark">
-            <h1 className="font-extrabold  text-2xl">4</h1>
+            <h1 className="font-extrabold  text-2xl">
+              {summary.job_opening_count}
+            </h1>
             <h3 className=" text-md">Total Lowongan</h3>
           </div>
           <BriefcaseBusiness className="text-accent w-7 h-7 my-auto" />
         </div>
         <div className="bg-white rounded-lg shadow-sm p-3 px-5 flex justify-between">
           <div className="text-accent-dark">
-            <h1 className="font-extrabold  text-2xl">4</h1>
+            <h1 className="font-extrabold  text-2xl">
+              {summary.company_count}
+            </h1>
             <h3 className=" text-md">Total Perusahaan</h3>
           </div>
 
@@ -63,7 +152,9 @@ export default function SchoolDashboard() {
         </div>
         <div className="bg-white rounded-lg shadow-sm p-3 px-5 flex justify-between">
           <div className="text-accent-dark">
-            <h1 className="font-extrabold  text-2xl">4</h1>
+            <h1 className="font-extrabold  text-2xl">
+              {summary.achievement_count}
+            </h1>
             <h3 className=" text-md">Total Penghargaan</h3>
           </div>
           <BadgeCheck className="text-accent w-7 h-7 my-auto" />
@@ -89,14 +180,14 @@ export default function SchoolDashboard() {
 
         <div className="flex gap-6">
           <div className="w-1/2 ">
-            <RatingSummary
-              average={4.2}
-              total={118}
-              counts={{ 5: 80, 4: 10, 3: 5, 2: 3, 1: 20 }}
-            />
+            <RatingSummaryCompenent data={ratingSummary} />
           </div>
           <div className="w-1/2 ">
-            <PieChartCompenent legend="Persentase Rating" />
+            <PieChartCompenent
+              legend="Persentase Rating"
+              tooltip="Persentasi Rating"
+              dataList={mapRatingToData(ratingSummary, ratingColors)}
+            />
           </div>
         </div>
       </div>
@@ -111,10 +202,18 @@ export default function SchoolDashboard() {
 
         <div className="flex gap-6">
           <div className="w-1/2 ">
-            <PieChartCompenent legend="Distribusi Total Siswa dan Lowongan" />
+            <PieChartCompenent
+              legend="Distribusi Total Siswa dan Lowongan"
+              tooltip="Persentasi Rating"
+              dataList={mapRatingToData(ratingSummary, ratingColors)}
+            />
           </div>
           <div className="w-1/2 ">
-            <PieChartCompenent legend="Distribusi Siswa Magang, Belum Magang, dan Telah Magang" />
+            <PieChartCompenent
+              legend="Distribusi Siswa Magang, Belum Magang, dan Telah Magang"
+              tooltip="Persentasi Rating"
+              dataList={mapRatingToData(ratingSummary, ratingColors)}
+            />
           </div>
         </div>
       </div>
@@ -131,10 +230,18 @@ export default function SchoolDashboard() {
 
         <div className="flex gap-6">
           <div className="w-1/2 ">
-            <PieChartCompenent legend="Distribusi Total Perusahaan dan Lowongan" />
+            <PieChartCompenent
+              legend="Distribusi Total Perusahaan dan Lowongan"
+              tooltip="Persentasi Rating"
+              dataList={mapRatingToData(ratingSummary, ratingColors)}
+            />
           </div>
           <div className="w-1/2 ">
-            <PieChartCompenent legend="Distribusi Lowongan Aktif & Close" />
+            <PieChartCompenent
+              legend="Distribusi Lowongan Aktif & Close"
+              tooltip="Persentasi Rating"
+              dataList={mapRatingToData(ratingSummary, ratingColors)}
+            />
           </div>
         </div>
       </div>

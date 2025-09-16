@@ -6,13 +6,15 @@ import {
   Search,
   Users,
 } from "lucide-react";
-import RatingSummary from "../RatingSummary";
-import PieChartCompenent from "../Charts/PieChartCompenent";
+import RatingSummaryCompenent from "../RatingSummaryCompenent";
+import PieChartCompenent, { DataPieChart } from "../Charts/PieChartCompenent";
 import BarChartComponent from "../Charts/BarChartCompenent";
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import Cookies from "js-cookie";
 import { API, ENDPOINTS } from "../../../utils/config";
+import { RatingSummary } from "@/models/feedback";
+import { mapRatingToData } from "@/utils/mapRatingToData";
 
 interface InternshipApplication {
   id: string;
@@ -29,16 +31,6 @@ interface Summary {
   internship_count: number;
   job_opening_count: number;
   achievement_count: number;
-}
-
-interface RatingSummary {
-  rating_count: number;
-  average_rating: number;
-  rating_1: number;
-  rating_2: number;
-  rating_3: number;
-  rating_4: number;
-  rating_5: number;
 }
 
 export default function IndustryDashboard() {
@@ -72,6 +64,11 @@ export default function IndustryDashboard() {
           Authorization: `Bearer ${Cookies.get("userToken")}`,
         },
       });
+      const achievementCount = API.get(`${ENDPOINTS.ACHIEVEMENTS}/count`, {
+        headers: {
+          Authorization: `Bearer ${Cookies.get("userToken")}`,
+        },
+      });
 
       const rating = API.get(`${ENDPOINTS.FEEDBACKS}/rating`, {
         headers: {
@@ -81,6 +78,7 @@ export default function IndustryDashboard() {
       const response = await Promise.all([
         internshipCount,
         jobOpeningCount,
+        achievementCount,
         rating,
       ]);
 
@@ -88,9 +86,9 @@ export default function IndustryDashboard() {
       setSummary({
         internship_count: response[0].data.data,
         job_opening_count: response[1].data.data,
-        achievement_count: response[0].data.data,
+        achievement_count: response[2].data.data,
       });
-      setRatingSummary(response[2].data.data);
+      setRatingSummary(response[3].data.data);
     } catch (error) {
       console.error(error);
     }
@@ -99,6 +97,8 @@ export default function IndustryDashboard() {
   useEffect(() => {
     fetchData();
   }, []);
+
+  const ratingColors = ["#ff0000", "#ff6600", "#ffcc00", "#66cc00", "#009900"]; // contoh warna
 
   return (
     <div className="flex flex-col gap-8">
@@ -150,15 +150,14 @@ export default function IndustryDashboard() {
 
         <div className="flex gap-6">
           <div className="w-1/2 ">
-            <RatingSummary
-              average={ratingSummary.average_rating}
-              total={ratingSummary.rating_count}
-              counts={{ 5: 80, 4: 10, 3: 5, 2: 3, 1: 20 }}
-              data={ratingSummary}
-            />
+            <RatingSummaryCompenent data={ratingSummary} />
           </div>
           <div className="w-1/2 ">
-            <PieChartCompenent legend="Persentase Rating" />
+            <PieChartCompenent
+              legend="Persentase Rating"
+              tooltip="Persentasi Rating"
+              dataList={mapRatingToData(ratingSummary, ratingColors)}
+            />
           </div>
         </div>
       </div>
@@ -174,7 +173,10 @@ export default function IndustryDashboard() {
             <BarChartComponent legend="Grafik Distribusi Tugas Selesai Siswa Magang" />
           </div>
           <div className="w-1/2 ">
-            <PieChartCompenent legend="Distribusi Status Tugas" />
+            <PieChartCompenent
+              legend="Distribusi Status Tugas"
+              dataList={mapRatingToData(ratingSummary, ratingColors)}
+            />
           </div>
         </div>
       </div>

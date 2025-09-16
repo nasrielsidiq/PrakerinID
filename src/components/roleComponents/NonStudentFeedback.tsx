@@ -1,10 +1,43 @@
 import { CircleArrowRight, FileText, Search } from "lucide-react";
 import Link from "next/link";
-import React from "react";
-import RatingSummary from "../RatingSummary";
+import React, { useEffect, useState } from "react";
 import PieChartCompenent from "../Charts/PieChartCompenent";
+import { API, ENDPOINTS } from "../../../utils/config";
+import Cookies from "js-cookie";
+import RatingSummaryCompenent from "../RatingSummaryCompenent";
+import { RatingSummary } from "@/models/feedback";
+import { mapRatingToData } from "@/utils/mapRatingToData";
 
 const NonStudentFeedback = ({ authorization }: { authorization: string }) => {
+  const [ratingSummary, setRatingSummary] = useState<RatingSummary>({
+    rating_count: 0,
+    average_rating: 0,
+    rating_1: 0,
+    rating_2: 0,
+    rating_3: 0,
+    rating_4: 0,
+    rating_5: 0,
+  });
+
+  const fetchRating = async () => {
+    try {
+      const rating = await API.get(`${ENDPOINTS.FEEDBACKS}/rating`, {
+        headers: {
+          Authorization: `Bearer ${Cookies.get("userToken")}`,
+        },
+      });
+
+      setRatingSummary(rating.data.data);
+    } catch (error) {
+      console.error(error);
+    }
+  };
+  useEffect(() => {
+    fetchRating();
+  }, []);
+
+  const ratingColors = ["#ff0000", "#ff6600", "#ffcc00", "#66cc00", "#009900"]; // contoh warna
+
   return (
     <div className="flex flex-col gap-8">
       <div className="bg-white rounded-lg shadow-sm p-3 px-5 flex flex-col justify-between">
@@ -23,14 +56,13 @@ const NonStudentFeedback = ({ authorization }: { authorization: string }) => {
 
         <div className="flex gap-6">
           <div className="w-1/2 ">
-            <RatingSummary
-              average={4.2}
-              total={118}
-              counts={{ 5: 80, 4: 10, 3: 5, 2: 3, 1: 20 }}
-            />
+            <RatingSummaryCompenent data={ratingSummary} />
           </div>
           <div className="w-1/2 ">
-            <PieChartCompenent legend="Persentase Rating" />
+            <PieChartCompenent
+              legend="Presentasi Rating"
+              dataList={mapRatingToData(ratingSummary, ratingColors)}
+            />
           </div>
         </div>
       </div>
