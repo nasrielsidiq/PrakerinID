@@ -1,14 +1,29 @@
 "use client";
 
-import { Briefcase, Building, MapPin } from "lucide-react";
+import { Briefcase, Building, MapPin, UserCircle } from "lucide-react";
 import Link from "next/link";
 import { use, useEffect, useState } from "react";
 import { API, ENDPOINTS } from "../../../../../../utils/config";
 import Cookies from "js-cookie";
-import { alertSuccess } from "@/libs/alert";
+import { alertConfirm, alertError, alertSuccess } from "@/libs/alert";
+import { EditorProps } from "@/components/Editor";
+import dynamic from "next/dynamic";
+import { useRouter } from "next/navigation";
+import Image from "next/image";
+import { AxiosError } from "axios";
+
+const Editor = dynamic<EditorProps & { error?: string }>(
+  () => import("@/components/Editor"),
+  {
+    ssr: false,
+  }
+);
 
 interface JobOpening {
   title: string;
+  user: {
+    photo_profile: string | null;
+  };
   company: {
     name: string;
   };
@@ -26,11 +41,23 @@ interface CV {
   file: string;
 }
 
+interface FormErrors {
+  curriculum_vitae_id?: string;
+  cover_letter?: string;
+}
+
 const ApplyLowongan = ({ params }: { params: Promise<{ id: string }> }) => {
   const { id } = use(params);
+  const route = useRouter();
+
+  const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
+  const [cvList, setCvList] = useState<CV[]>([]);
 
   const [jobOpening, setJobOpening] = useState<JobOpening>({
     title: "",
+    user: {
+      photo_profile: null,
+    },
     company: {
       name: "",
     },
@@ -41,12 +68,11 @@ const ApplyLowongan = ({ params }: { params: Promise<{ id: string }> }) => {
       name: "",
     },
   });
-  
-  const [cvList, setCvList] = useState<CV[]>([]);
   const [formData, setFormData] = useState({
     curriculum_vitae_id: "",
     cover_letter: "",
   });
+  const [errors, setErrors] = useState<FormErrors>({});
 
   const fetchJobOpening = async () => {
     try {
@@ -55,12 +81,10 @@ const ApplyLowongan = ({ params }: { params: Promise<{ id: string }> }) => {
           Authorization: `Bearer ${Cookies.get("userToken")}`,
         },
       });
-      if (response.status === 200) {
-        console.log("Job Opening:", response.data.data);
-        setJobOpening(response.data.data);
-      }
-    } catch (error: any) {
-      console.error("Error fetching job opening:", error.response.data.errors);
+      console.log("Job Opening:", response.data.data);
+      setJobOpening(response.data.data);
+    } catch (error) {
+      console.error(error);
     }
   };
 
@@ -74,16 +98,13 @@ const ApplyLowongan = ({ params }: { params: Promise<{ id: string }> }) => {
           },
         }
       );
-      if (response.status === 200) {
-        setCvList(response.data.data);
-      }
-    } catch (error: any) {
-      console.error("Error fetching CVs:", error.response.data.errors);
+      setCvList(response.data.data);
+    } catch (error) {
+      console.error(error);
     }
   };
 
   useEffect(() => {
-    console.log("Job ID:", id);
     Promise.all([fetchJobOpening(), fetchCv()]);
   }, []);
 
@@ -91,6 +112,8 @@ const ApplyLowongan = ({ params }: { params: Promise<{ id: string }> }) => {
     e.preventDefault();
 
     try {
+      setIsSubmitting(true);
+
       const response = await API.post(
         ENDPOINTS.INTERNSHIP_APPLICATIONS,
         {
@@ -105,14 +128,31 @@ const ApplyLowongan = ({ params }: { params: Promise<{ id: string }> }) => {
         }
       );
 
-      if (response.status === 201) {
-        console.log("Application submitted successfully:", response.data);
-        setFormData({ curriculum_vitae_id: "", cover_letter: "" });
-        await alertSuccess("Lamaran berhasil dikirim!");
+      setFormData({ curriculum_vitae_id: "", cover_letter: "" });
+      await alertSuccess("Lamaran berhasil dikirim!");
+
+      route.push(`/dashboard/lowongan/${id}`);
+    } catch (error: AxiosError | unknown) {
+      console.warn(error);
+      if (error instanceof AxiosError) {
+        const responseError = error.response?.data.errors;
+        if (typeof responseError === "string") {
+          await alertError(responseError);
+        } else {
+          setErrors(responseError);
+        }
       }
-    } catch (error) {
-      console.error("Error submitting application:", error);
+      console.error(error);
+    } finally {
+      setIsSubmitting(false);
     }
+  };
+
+  const handleEditorChange = (data: any) => {
+    setFormData((prev) => ({
+      ...prev,
+      cover_letter: data,
+    }));
   };
 
   return (
@@ -137,15 +177,28 @@ const ApplyLowongan = ({ params }: { params: Promise<{ id: string }> }) => {
         <Briefcase className="w-5 h-5" />
         <h2 className="text-2xl mt-2">Lamar Lowongan</h2>
       </div>
-      <div className="bg-white md:w-7/10 m-auto rounded-lg shadow-sm border p-6">
+      <div className="bg-white md:w-7/10 m-auto rounded-lg shadow-sm p-6">
         {/* Job Info */}
         <div className="mb-8">
           <h2 className="text-xl font-semibold text-gray-900 mb-4">
             {jobOpening.title}
           </h2>
           <div className="flex items-start space-x-4">
-            <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center flex-shrink-0">
-              <Building className="w-6 h-6 text-blue-600" />
+            {/* Company Logo */}
+            <div className="flex-shrink-0">
+              {jobOpening.user.photo_profile ? (
+                <div className="w-16 h-16 relative rounded-full border-white border">
+                  <Image
+                    src={`${process.env.NEXT_PUBLIC_API_URL}/storage/photo-profile/${jobOpening.user.photo_profile}`}
+                    alt="Logo Perusahaan"
+                    fill
+                    sizes="100%"
+                    className="object-cover rounded-full"
+                  />
+                </div>
+              ) : (
+                <UserCircle className="w-16 h-16 text-[var(--color-accent)]" />
+              )}
             </div>
             <div>
               <h3 className="font-medium text-gray-900">
@@ -174,7 +227,11 @@ const ApplyLowongan = ({ params }: { params: Promise<{ id: string }> }) => {
                   curriculum_vitae_id: e.target.value,
                 })
               }
-              className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-teal-500 bg-gray-50"
+              className={`w-full px-3 py-2 border rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-accent focus:border-accent bg-gray-50  ${
+                errors.curriculum_vitae_id
+                  ? "border-red-500"
+                  : "border-gray-300"
+              }`}
             >
               <option value="">Pilih CV yang akan digunakan</option>
               {cvList.map((cv) => (
@@ -183,31 +240,47 @@ const ApplyLowongan = ({ params }: { params: Promise<{ id: string }> }) => {
                 </option>
               ))}
             </select>
+            {errors.curriculum_vitae_id && (
+              <p className="mt-1 text-sm text-red-500">
+                {errors.curriculum_vitae_id}
+              </p>
+            )}
           </div>
 
           {/* Cover Letter */}
-          <div>
-            <div className="block text-sm font-medium text-gray-700 mb-2">
+          <div className="lg:col-span-2">
+            <label className="block text-sm font-medium text-gray-700 mb-2">
               Surat Lamaran
-            </div>
-            <textarea
-              value={formData.cover_letter}
-              onChange={(e) =>
-                setFormData({ ...formData, cover_letter: e.target.value })
-              }
-              rows={8}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-teal-500 resize-none"
-              placeholder="Tulis surat lamaran Anda di sini..."
-            />
+            </label>
+            <Editor onChange={handleEditorChange} error={errors.cover_letter} />
+            {errors.cover_letter && (
+              <p className="mt-1 text-sm text-red-500">{errors.cover_letter}</p>
+            )}
           </div>
 
-          {/* Submit Button */}
-          <div className="flex justify-end">
-            <button
-              // onClick={handleSubmit}
-              className="px-6 py-2 bg-teal-600 text-white font-medium rounded-md hover:bg-teal-700 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:ring-offset-2 transition-colors duration-200"
+          {/* Action Buttons */}
+          <div className="flex flex-col sm:flex-row gap-3 mt-8 justify-end">
+            <Link
+              href={`/dashboard/lowongan/${id}`}
+              onClick={async (e) => {
+                e.preventDefault();
+                const isConfirm = await alertConfirm(
+                  "Apakah anda yakin ingin membatalkan!"
+                );
+                if (isConfirm) {
+                  route.push(`/dashboard/lowongan/${id}`);
+                }
+              }}
+              className="px-6 py-2 border border-gray-300 text-gray-700 rounded-md hover:bg-gray-50 transition-colors cursor-pointer"
             >
-              Lamar
+              Batal
+            </Link>
+            <button
+              type="submit"
+              disabled={isSubmitting}
+              className="px-6 py-2 bg-accent text-white rounded-md hover:bg-accent-hover transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {isSubmitting ? "Mengirim..." : "Kirim"}
             </button>
           </div>
         </form>

@@ -14,6 +14,7 @@ import Cookies from "js-cookie";
 import { API, ENDPOINTS } from "../../../utils/config";
 import { getGreeting } from "@/utils/getGreeting";
 import Image from "next/image";
+import { alertSuccess } from "@/libs/alert";
 
 interface Profile {
   photo_profile?: string | null;
@@ -69,8 +70,17 @@ const Dashboard: React.FC = () => {
     }
   };
 
+  const alertLogin = async () => {
+    const loginSuccess = localStorage.getItem("login-success");
+    if (loginSuccess) {
+      await alertSuccess("Berhasil masuk!");
+      localStorage.removeItem("login-success");
+    }
+  };
+
   useEffect(() => {
     fetchProfile();
+    alertLogin();
   }, []);
 
   return (

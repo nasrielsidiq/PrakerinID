@@ -14,6 +14,7 @@ import { useEffect, useState } from "react";
 import { API, ENDPOINTS } from "../../../../../utils/config";
 import Cookies from "js-cookie";
 import useDebounce from "@/hooks/useDebounce";
+import Link from "next/link";
 
 interface Lamaran {
   id: number;
@@ -34,6 +35,11 @@ interface InternshipApplication {
     name: string;
   };
   status: string;
+  major: string | null;
+  curriculum_vitae: {
+    id: string;
+    name: string;
+  };
 }
 
 const lamaranPage: React.FC = () => {
@@ -96,6 +102,38 @@ const lamaranPage: React.FC = () => {
     fetchInternshipAplication();
   }, [debouncedQuery]);
 
+  const handleDownload = async (cvId: string) => {
+    console.log("Downloading CV with ID:", cvId);
+    try {
+      const response = await API.get(
+        `${ENDPOINTS.CURRICULUM_VITAE}/${cvId}/download`,
+        {
+          headers: {
+            Authorization: `Bearer ${Cookies.get("userToken")}`,
+          },
+          responseType: "blob",
+        }
+      );
+      const url = window.URL.createObjectURL(new Blob([response.data]));
+      const link = document.createElement("a");
+      link.href = url;
+
+      // Bisa static atau ambil dari backend Content-Disposition
+      const nameCv = internshipApplications.find((application) => {
+        return application.curriculum_vitae.id === cvId;
+      });
+
+      link.setAttribute("download", `${nameCv?.curriculum_vitae.name}.pdf`);
+
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      window.URL.revokeObjectURL(url);
+    } catch (error: any) {
+      console.error("Error downloading CV:", error.response.data.errors);
+    }
+  };
+
   return (
     <main className="p-6">
       <h1 className="text-accent-dark text-sm mb-5">Lamaran Magang</h1>
@@ -103,7 +141,7 @@ const lamaranPage: React.FC = () => {
         <BriefcaseBusiness className="w-5 h-5" />
         <h2 className="text-2xl mt-2">Lamaran Magang</h2>
       </div>
-      
+
       <div className="rounded-t-2xl  bg-accent">
         <div className="relative">
           <Search
@@ -162,8 +200,7 @@ const lamaranPage: React.FC = () => {
                     {application.school.name}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                    {/* {application.jurusan} */}
-                    Masih dummy
+                    {application.major ?? "-"}
                   </td>
                   <td
                     className={`px-6 py-4 whitespace-nowrap text-sm ${changeStatusColor(
@@ -173,16 +210,24 @@ const lamaranPage: React.FC = () => {
                     {changeStatus(application.status)}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-white">
-                    <span className="bg-green-500 rounded-full p-1">Unduh</span>
+                    <button
+                      type="button"
+                      onClick={() =>
+                        handleDownload(application.curriculum_vitae.id)
+                      }
+                      className="bg-green-500 rounded-full py-1 px-2 cursor-pointer hover:bg-green-600"
+                    >
+                      Unduh
+                    </button>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                     <div className="flex space-x-2">
-                      <button
-                        onClick={() => router.push(`lamaran/${application.id}`)}
+                      <Link
+                        href={`/dashboard/industry/lamaran/${application.id}`}
                         className="text-blue-600 hover:text-blue-800 cursor-pointer"
                       >
                         <CircleAlert size={16} />
-                      </button>
+                      </Link>
                     </div>
                   </td>
                 </tr>

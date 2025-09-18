@@ -14,6 +14,7 @@ import { API, ENDPOINTS } from "../../../../utils/config";
 import Cookies from "js-cookie";
 import useDebounce from "@/hooks/useDebounce";
 import { alertConfirm, alertSuccess } from "@/libs/alert";
+import Link from "next/link";
 
 interface CVItem {
   id: string;
@@ -44,7 +45,11 @@ const CvPage: React.FC = () => {
         link.href = url;
 
         // Bisa static atau ambil dari backend Content-Disposition
-        link.setAttribute("download", `cv-${cvId}.pdf`);
+        const nameCv = cvList.find((cv) => {
+          return cv.id === cvId;
+        });
+
+        link.setAttribute("download", `${nameCv?.name}.pdf`);
 
         document.body.appendChild(link);
         link.click();
@@ -191,10 +196,10 @@ const CvPage: React.FC = () => {
                   Nama CV
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Download
+                  Unduh
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Preview
+                  Lihat
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Aksi
@@ -215,7 +220,7 @@ const CvPage: React.FC = () => {
                       onClick={() => handleDownload(cv.id)}
                       className="bg-green-500 hover:bg-green-600 text-white px-3 py-1 rounded text-xs font-medium cursor-pointer"
                     >
-                      Download
+                      Unduh
                     </button>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
@@ -228,9 +233,12 @@ const CvPage: React.FC = () => {
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                     <div className="flex space-x-2">
-                      <button className="text-blue-600 hover:text-blue-800 cursor-pointer">
+                      <Link
+                        href={`/dashboard/cv/${cv.id}/ubah`}
+                        className="text-blue-600 hover:text-blue-800 cursor-pointer"
+                      >
                         <Edit size={16} />
-                      </button>
+                      </Link>
                       <button
                         onClick={() => handleDelete(cv.id)}
                         className="text-red-600 hover:text-red-800 cursor-pointer"
@@ -260,7 +268,7 @@ const CvPage: React.FC = () => {
                   className="bg-green-500 hover:bg-green-600 text-white px-3 py-1 rounded text-xs font-medium flex items-center"
                 >
                   <Download size={12} className="mr-1" />
-                  Download
+                  Unduh
                 </button>
                 <button
                   onClick={() => handlePreview(cv.id)}
@@ -272,9 +280,12 @@ const CvPage: React.FC = () => {
               </div>
 
               <div className="flex justify-end space-x-2">
-                <button className="text-blue-600 hover:text-blue-800 p-1 cursor-pointer">
+                <Link
+                  href={`/dashhboard/cv/${cv.id}/ubah`}
+                  className="text-blue-600 hover:text-blue-800 p-1 cursor-pointer"
+                >
                   <Edit size={16} />
-                </button>
+                </Link>
                 <button
                   onClick={() => handleDelete(cv.id)}
                   className="text-red-600 hover:text-red-800 p-1 cursor-pointer"

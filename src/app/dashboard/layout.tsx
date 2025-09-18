@@ -20,7 +20,9 @@ import {
   CircleArrowLeft,
   BookOpen,
   MessageSquareText,
-  Handshake, // TAMBAHKAN: LogOut
+  Handshake,
+  HelpCircle,
+  UserRound, // TAMBAHKAN: LogOut
 } from "lucide-react";
 import Link from "next/link";
 import Cookies from "js-cookie";
@@ -110,12 +112,12 @@ export default function DashboardLayout({
           },
           {
             icon: CheckSquare,
-            label: "Task List",
+            label: "Daftar Tugas",
             href: "/dashboard/tasklist",
           },
           {
             icon: MessageSquare,
-            label: "Feedback",
+            label: "Ulasan",
             href: "/dashboard/feedback",
           },
           {
@@ -134,6 +136,16 @@ export default function DashboardLayout({
             href: "/dashboard",
           },
           {
+            icon: UsersRound,
+            label: "Siswa Magang",
+            href: "/dashboard/siswa-magang",
+          },
+          {
+            icon: HelpCircle,
+            label: "Tes",
+            href: "/dashboard/tes",
+          },
+          {
             icon: Briefcase,
             label: "Lowongan",
             href: "/dashboard/lowongan",
@@ -145,7 +157,7 @@ export default function DashboardLayout({
           },
           {
             icon: CheckSquare,
-            label: "Task List",
+            label: "Daftar Tugas",
             href: "/dashboard/tasklist",
           },
           {
@@ -155,7 +167,7 @@ export default function DashboardLayout({
           },
           {
             icon: Handshake,
-            label: "MOU",
+            label: "Kerja Sama",
             href: "/dashboard/mou",
           },
           {
@@ -165,9 +177,10 @@ export default function DashboardLayout({
           },
           {
             icon: MessageSquareText,
-            label: "Feedback",
+            label: "Ulasan",
             href: "/dashboard/feedback",
           },
+
           {
             icon: User,
             label: "Profile",
@@ -195,7 +208,7 @@ export default function DashboardLayout({
           },
           {
             icon: Handshake,
-            label: "MOU",
+            label: "Kerja Sama",
             href: "/dashboard/mou",
           },
           {
@@ -205,7 +218,7 @@ export default function DashboardLayout({
           },
           {
             icon: MessageSquareText,
-            label: "Feedback",
+            label: "Ulasan",
             href: "/dashboard/feedback",
           },
           {
@@ -387,7 +400,7 @@ export default function DashboardLayout({
       {/* Main Content Area */}
       <div className="lg:ml-64 flex flex-col min-h-screen">
         {/* --- MODIFIKASI BAGIAN HEADER DI SINI --- */}
-        <header className="fixed top-0 right-0 left-0 lg:left-64 z-40 bg-accent text-white shadow-sm border-b">
+        <header className="fixed top-0 right-0 left-0 lg:left-64 z-40 bg-accent text-white shadow-sm ">
           <div className="flex items-center justify-between px-6 py-4">
             <div className="flex items-center space-x-4">
               <button
@@ -429,7 +442,7 @@ export default function DashboardLayout({
 
                 {isDropdownOpen && (
                   <div className="absolute right-0 mt-2 w-56 bg-white rounded-md shadow-lg py-1 z-50 text-gray-800">
-                    <div className="px-4 py-2 border-b">
+                    <div className="px-4 py-2">
                       <p className="text-sm font-semibold">{profile.name}</p>
                       <p className="text-xs text-gray-500">{profile.email}</p>
                     </div>
@@ -479,7 +492,7 @@ export default function DashboardLayout({
 
         <main className="pt-20 px-6 pb-6 flex-grow">{children}</main>
 
-        <footer className="bg-white border-t py-4 px-6">
+        <footer className="bg-white py-4 px-6">
           <p className="text-center text-sm text-gray-500">
             © 2025 Prakerin ID. All rights reserved.
           </p>

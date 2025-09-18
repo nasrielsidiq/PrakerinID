@@ -9,13 +9,14 @@ import {
 import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
 import { use, useEffect, useLayoutEffect, useState } from "react";
-import { API, ENDPOINTS } from "../../../../../../utils/config";
 import Cookies from "js-cookie";
 import RenderBlocks from "@/components/RenderBlocks";
 import Image from "next/image";
+import { API, ENDPOINTS } from "../../../../../../../utils/config";
 
 interface Application {
   user: {
+    email: string;
     photo_profile: File | null;
   };
   student: {
@@ -26,13 +27,12 @@ interface Application {
   major: {
     name: string | null;
   } | null;
-  cover_letter: string;
-  cv_id: string;
 }
 
 const detailLamaran = ({ params }: { params: Promise<{ id: string }> }) => {
   const [application, setApplication] = useState<Application>({
     user: {
+      email: "",
       photo_profile: null,
     },
     student: {
@@ -43,12 +43,9 @@ const detailLamaran = ({ params }: { params: Promise<{ id: string }> }) => {
     major: {
       name: "",
     },
-    cover_letter: "",
-    cv_id: "",
   });
   const { id } = use(params);
   const router = useRouter();
-  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
 
   const fetchData = async () => {
     try {
@@ -59,23 +56,7 @@ const detailLamaran = ({ params }: { params: Promise<{ id: string }> }) => {
             Authorization: `Bearer ${Cookies.get("userToken")}`,
           },
         }
-      );
-      const preview = await API.get(
-        `${ENDPOINTS.CURRICULUM_VITAE}/${response.data.data.curriculum_vitae_id}/preview`,
-        {
-          headers: {
-            Authorization: `Bearer ${Cookies.get("userToken")}`,
-          },
-          responseType: "blob", // penting!
-        }
-      );
-
-      const fileBlob = new Blob([preview.data], {
-        type: "application/pdf",
-      });
-      const fileUrl = URL.createObjectURL(fileBlob);
-
-      setPreviewUrl(fileUrl); // ini nanti dipakai di <embed>
+      ); // ini nanti dipakai di <embed>
 
       console.log(response);
       setApplication(response.data.data);
@@ -96,11 +77,18 @@ const detailLamaran = ({ params }: { params: Promise<{ id: string }> }) => {
         >
           Lamaran
         </Link>{" "}
-        -&gt; Detail Lamaran
+        -&gt;{" "}
+        <Link
+          className="hover:underline hover:text-accent"
+          href={`/dashboard/industry/lamaran/${id}`}
+        >
+          Detail Lamaran
+        </Link>{" "}
+        -&gt; Jadwalkan Lamaran
       </h1>
       <div className="flex items-center mb-8  space-x-2 font-extrabold text-accent">
         <BriefcaseBusiness className="w-5 h-5" />
-        <h2 className="text-2xl mt-2">Detail Lamaran Magang</h2>
+        <h2 className="text-2xl mt-2">Jadwalkan Lamaran Magang</h2>
       </div>
       {/* Description Section */}
       <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-6">
@@ -135,55 +123,40 @@ const detailLamaran = ({ params }: { params: Promise<{ id: string }> }) => {
             </div>
           </div>
         </div>
-        <h3 className="text-lg font-semibold text-gray-900 mb-4">
-          Surat Lamaran
-        </h3>
-        <div className="text-gray-700 text-sm leading-relaxed space-y-3 mb-5">
-          <RenderBlocks data={application.cover_letter} />
+        <div className="my-5">
+          <span className="text-gray-800">Email Pelamar: </span>{" "}
+          <Link
+            rel="stylesheet"
+            className="text-blue-500 font-medium"
+            target="_blank"
+            href={`mailto:${application.user.email}`}
+          >
+            {application.user.email}
+          </Link>
         </div>
-        {/* Content Area - Placeholder for job description */}
-        <div className="my-6 text-gray-600">
-          <div className="w-full rounded-md border">
-            {/* PDF preview */}
-            {previewUrl && (
-              <embed
-                src={previewUrl}
-                type="application/pdf"
-                width="100%"
-                height="600px"
-                className="w-full"
-              />
-            )}
-          </div>
+        <div className="my-2">
+          <span className="text-gray-800">Undangan Test: </span>
+        </div>
+        <div className="bg-gray-200 rounded-2xl text-gray-700 text-sm h-100 leading-relaxed space-y-3 mb-5">
+          <textarea
+            name="message"
+            id=""
+            className="h-full w-full p-5 resize-none focus:border-0 rounded-2xl"
+          ></textarea>
         </div>
         <div className="flex justify-end space-x-5">
           <Link
-            href={"/dashboard/industry/lamaran"}
+            href={`/dashboard/industry/lamaran/${id}`}
             className="p-3 px-5 bg-gray-300 text-gray-600 rounded-xl hover:bg-gray-400"
           >
             Kembali
           </Link>
           <Link
-            href={`/dashboard/industry/lamaran/${id}/tolak`}
-            className="p-3 px-5 bg-red-500 text-gray-100 rounded-xl hover:bg-red-600 "
+            href={`/dashboard/industry/lamaran/${id}/reject`}
+            className="p-3 px-5 bg-accent text-gray-100 rounded-xl hover:bg-accent-hover "
           >
-            Tolak Lamaran
+            Jadwalkan Test
           </Link>
-          {true ? (
-            <Link
-              href={`/dashboard/industry/lamaran/${id}/terima`}
-              className="p-3 px-5 bg-accent text-gray-100 rounded-xl hover:bg-accent-hover "
-            >
-              Terima Lamaran
-            </Link>
-          ) : (
-            <Link
-              href={`/dashboard/industry/lamaran/${id}/accept`}
-              className="p-3 px-5 bg-accent text-gray-100 rounded-xl hover:bg-accent-hover "
-            >
-              Jadwalkan Test
-            </Link>
-          )}
         </div>
       </div>
     </main>

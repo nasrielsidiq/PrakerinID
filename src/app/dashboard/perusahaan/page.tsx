@@ -18,7 +18,7 @@ interface Perusahaan {
 
 interface CompanyCount {
   company_count: number;
-  company_mou_count: number;
+  mou_count: number;
 }
 
 type ActiveTab = "Semua" | "Sudah Mou" | "Belum Mou";
@@ -32,7 +32,7 @@ const PerusahaanPage: React.FC = () => {
   const [activeTab, setActiveTab] = useState<ActiveTab>("Semua");
   const [companyCount, setCompanyCount] = useState<CompanyCount>({
     company_count: 0,
-    company_mou_count: 0,
+    mou_count: 0,
   });
 
   const fetchCompany = async () => {
@@ -110,7 +110,7 @@ const PerusahaanPage: React.FC = () => {
         </div>
       </div>
       <div className="lg:flex lg:justify-between items-end mb-5">
-        <div className="flex gap-4 border-2">
+        <div className="flex gap-4">
           <div className="bg-white p-3 rounded-2xl flex items-center justify-between space-x-5 px-5 mb-5 lg:mb-0 w-64">
             <div className="text-black">
               <h1 className="text-2xl font-extrabold">
@@ -123,7 +123,7 @@ const PerusahaanPage: React.FC = () => {
           <div className="bg-white p-3 rounded-2xl flex items-center justify-between space-x-5 px-5 mb-5 lg:mb-0 w-64">
             <div className="text-black">
               <h1 className="text-2xl font-extrabold">
-                {companyCount.company_mou_count}
+                {companyCount.mou_count}
               </h1>
               <span className="text-sm">Telah Mou</span>
             </div>

@@ -318,7 +318,7 @@ export default function SiswaLowongan() {
         <div
           className={`${
             showFilter ? "grid" : "hidden"
-          } bg-white grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4 border p-3 rounded-lg shadow-sm`}
+          } bg-white grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4 p-3 rounded-lg shadow-sm`}
         >
           <select
             name="province_id"

@@ -10,10 +10,10 @@ import Link from "next/link";
 
 interface Perusahaan {
   id: string;
-  photo_profile?: string | null;
+  photo_profile: string | null;
   name: string;
-  city_regency?: string;
-  province?: string;
+  city_regency: string | null;
+  province: string | null;
   mou: false;
 }
 
@@ -22,14 +22,14 @@ interface CompanyCount {
   company_mou_count: number;
 }
 
-type ActiveTab = "Semua" | "Sudah Mou" | "Belum Mou";
+type ActiveTab = "Semua" | "Sudah Kerja Sama" | "Belum Kerja Sama";
 
 const SekolahPage: React.FC = () => {
   const router = useRouter();
   const [inputSearch, setInputSearch] = useState<string>("");
   const debouncedQuery = useDebounce(inputSearch, 1000);
   const [perusahaan, setPerushaan] = useState<Perusahaan[]>([]);
-  const tabs = ["Semua", "Sudah Mou", "Belum Mou"];
+  const tabs = ["Semua", "Sudah Kerja Sama", "Belum Kerja Sama"];
   const [activeTab, setActiveTab] = useState<ActiveTab>("Semua");
   const [companyCount, setCompanyCount] = useState<CompanyCount>({
     company_count: 0,
@@ -45,7 +45,7 @@ const SekolahPage: React.FC = () => {
           is_mou:
             activeTab === "Semua"
               ? undefined
-              : activeTab === "Sudah Mou"
+              : activeTab === "Sudah Kerja Sama"
               ? true
               : false,
         },
@@ -59,8 +59,8 @@ const SekolahPage: React.FC = () => {
         id: item.id,
         photo_profile: item.photo_profile,
         name: item.name,
-        // city_regency: item.city_regency.name,
-        // province: item.province.name,
+        city_regency: item.city_regency.name,
+        province: item.province.name,
       }));
       setPerushaan(data);
     } catch (error) {
@@ -109,7 +109,7 @@ const SekolahPage: React.FC = () => {
         </div>
       </div>
       <div className="lg:flex lg:justify-between items-end mb-5">
-        <div className="flex gap-4 border-2">
+        <div className="flex gap-4 ">
           <div className="bg-white p-3 rounded-2xl flex items-center justify-between space-x-5 px-5 mb-5 lg:mb-0 w-64">
             <div className="text-black">
               <h1 className="text-2xl font-extrabold">
@@ -124,7 +124,7 @@ const SekolahPage: React.FC = () => {
               <h1 className="text-2xl font-extrabold">
                 {companyCount.company_mou_count}
               </h1>
-              <span className="text-sm">Telah Mou</span>
+              <span className="text-sm">Telah Kerja Sama</span>
             </div>
             <BookOpen className="w-10 h-10  text-yellow-400" />
           </div>
@@ -197,7 +197,8 @@ const SekolahPage: React.FC = () => {
                 <div className="ms-3">
                   <h5 className="text-accent font-bold">{data.name}</h5>
                   <span className="flex">
-                    <MapPin /> {data.city_regency}, {data.province}
+                    <MapPin /> {data.city_regency ?? "-"},{" "}
+                    {data.province ?? "-"}
                   </span>
                 </div>
               </div>
@@ -213,7 +214,7 @@ const SekolahPage: React.FC = () => {
               {/* Tombol pojok kanan atas */}
               {data.mou && (
                 <h4 className="absolute text-sm top-0 right-0 bg-accent text-white px-3 py-1 rounded-bl-2xl">
-                  Sudah Mou
+                  Sudah Kerja Sama
                 </h4>
               )}
             </div>

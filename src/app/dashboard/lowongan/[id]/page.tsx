@@ -7,6 +7,10 @@ import {
   MapPin,
   MessageCircle,
   UserCircle,
+  Users,
+  Clock,
+  Calendar,
+  GraduationCap,
 } from "lucide-react";
 import Link from "next/link";
 import { use, useEffect, useState } from "react";
@@ -14,10 +18,15 @@ import { API, ENDPOINTS } from "../../../../../utils/config";
 import Cookies from "js-cookie";
 import RenderBlocks from "@/components/RenderBlocks";
 import Image from "next/image";
+import { getDurationUnit } from "@/utils/getDurationUnit";
 
 interface JobOpening {
   title: string;
   description: any;
+  grade: string;
+  location: string;
+  qouta: number;
+  type: string;
   company: {
     name: string;
   };
@@ -31,13 +40,26 @@ interface JobOpening {
   user: {
     photo_profile: string;
   };
+  duration: {
+    duration_unit: string;
+    duration_value: number;
+  };
+  field: {
+    name: string;
+  };
 }
 
 const DetailLowongan = ({ params }: { params: Promise<{ id: string }> }) => {
   const { id } = use(params);
+
+  const [authorization, setAuthorization] = useState<string>("");
   const [jobOpening, setJobOpening] = useState<JobOpening>({
     title: "",
     description: "",
+    grade: "",
+    location: "",
+    qouta: 0,
+    type: "",
     company: {
       name: "",
     },
@@ -50,6 +72,13 @@ const DetailLowongan = ({ params }: { params: Promise<{ id: string }> }) => {
     save_job_opening: false,
     user: {
       photo_profile: "",
+    },
+    field: {
+      name: "",
+    },
+    duration: {
+      duration_unit: "",
+      duration_value: 0,
     },
   });
 
@@ -96,7 +125,49 @@ const DetailLowongan = ({ params }: { params: Promise<{ id: string }> }) => {
 
   useEffect(() => {
     fetchJobOpening();
+    setAuthorization(Cookies.get("authorization") as string);
   }, []);
+
+  const getLocation = (
+    location: "onsite" | "remote" | "hybrid" | "field"
+  ): string => {
+    switch (location) {
+      case "onsite":
+        return "Kerja di kantor (Onsite/WFO)";
+      case "remote":
+        return "Kerja di jarak jauh (Remote/WFH)";
+      case "hybrid":
+        return "Hibrida (Hybrid)";
+      case "field":
+        return "Kerja lapangan (Field Work)";
+      default:
+        return "";
+    }
+  };
+
+  const getType = (type: "full_time" | "part_time"): string => {
+    switch (type) {
+      case "full_time":
+        return "Penuh Waktu (Full-time)";
+      case "part_time":
+        return "Paruh Waktu (Part-time)";
+      default:
+        return "";
+    }
+  };
+
+  const getGrade = (grade: "smk" | "mahasiswa" | "all"): string => {
+    switch (grade) {
+      case "smk":
+        return "SMK";
+      case "mahasiswa":
+        return "Mahasiswa";
+      case "all":
+        return "Semua";
+      default:
+        return "";
+    }
+  };
 
   return (
     <main className="p-6">
@@ -158,7 +229,7 @@ const DetailLowongan = ({ params }: { params: Promise<{ id: string }> }) => {
 
             {/* Action Buttons */}
             <div className="flex flex-col sm:flex-row gap-3 lg:flex-shrink-0">
-              {Cookies.get("userToken") === "student" ? (
+              {authorization === "student" ? (
                 <>
                   <button className="flex items-center justify-center gap-2 bg-orange-500 hover:bg-orange-600 text-white px-4 py-2 rounded-lg font-medium transition-colors">
                     <MessageCircle className="w-4 h-4" />
@@ -203,11 +274,93 @@ const DetailLowongan = ({ params }: { params: Promise<{ id: string }> }) => {
             </div>
           </div>
 
-          {/* Divider */}
-          <div className="border-t border-gray-200"></div>
+          {/* Info Lowongan Section */}
+          <div className="bg-white py-6 mb-6">
+            <h3 className="text-lg font-semibold text-gray-900 mb-4">
+              Informasi Lowongan
+            </h3>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm">
+              {/* Tingkat Pendidikan */}
+              <div className="flex items-start space-x-3 p-3 rounded-lg border border-gray-100 shadow-sm hover:shadow-md transition">
+                <GraduationCap className="w-5 h-5 text-accent shrink-0 mt-1" />
+                <div>
+                  <p className="text-gray-500">Tingkat Pendidikan</p>
+                  <p className="font-medium text-gray-900">
+                    {getGrade(jobOpening.grade as "smk" | "mahasiswa" | "all")}
+                  </p>
+                </div>
+              </div>
+
+              {/* Lokasi Magang */}
+              <div className="flex items-start space-x-3 p-3 rounded-lg border border-gray-100 shadow-sm hover:shadow-md transition">
+                <MapPin className="w-5 h-5 text-accent shrink-0 mt-1" />
+                <div>
+                  <p className="text-gray-500">Lokasi Magang</p>
+                  <p className="font-medium text-gray-900">
+                    {getLocation(
+                      jobOpening.location as
+                        | "onsite"
+                        | "remote"
+                        | "hybrid"
+                        | "field"
+                    )}
+                  </p>
+                </div>
+              </div>
+
+              {/* Kuota Magang */}
+              <div className="flex items-start space-x-3 p-3 rounded-lg border border-gray-100 shadow-sm hover:shadow-md transition">
+                <Users className="w-5 h-5 text-accent shrink-0 mt-1" />
+                <div>
+                  <p className="text-gray-500">Kuota Magang</p>
+                  <p className="font-medium text-gray-900">
+                    {jobOpening.qouta} Orang
+                  </p>
+                </div>
+              </div>
+
+              {/* Jenis Magang */}
+              <div className="flex items-start space-x-3 p-3 rounded-lg border border-gray-100 shadow-sm hover:shadow-md transition">
+                <Clock className="w-5 h-5 text-accent shrink-0 mt-1" />
+                <div>
+                  <p className="text-gray-500">Jenis Magang</p>
+                  <p className="font-medium text-gray-900">
+                    {getType(jobOpening.type as "full_time" | "part_time")}
+                  </p>
+                </div>
+              </div>
+
+              {/* Bidang Magang */}
+              <div className="flex items-start space-x-3 p-3 rounded-lg border border-gray-100 shadow-sm hover:shadow-md transition">
+                <BriefcaseBusiness className="w-5 h-5 text-accent shrink-0 mt-1" />
+                <div>
+                  <p className="text-gray-500">Bidang Magang</p>
+                  <p className="font-medium text-gray-900">
+                    {jobOpening.field.name}
+                  </p>
+                </div>
+              </div>
+
+              {/* Durasi Magang */}
+              <div className="flex items-start space-x-3 p-3 rounded-lg border border-gray-100 shadow-sm hover:shadow-md transition">
+                <Calendar className="w-5 h-5 text-accent shrink-0 mt-1" />
+                <div>
+                  <p className="text-gray-500">Durasi Magang</p>
+                  <p className="font-medium text-gray-900">
+                    {jobOpening.duration.duration_value}{" "}
+                    {getDurationUnit(jobOpening.duration.duration_unit)}
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
 
           {/* Content Area - Placeholder for job description */}
-          <div className="mt-6 text-gray-600">
+          <h3 className="text-lg font-semibold text-gray-900 mb-4">
+            Deskripsi
+          </h3>
+          <div className="text-gray-600">
             <RenderBlocks data={jobOpening.description} />
           </div>
         </div>

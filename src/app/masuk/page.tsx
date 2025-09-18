@@ -68,7 +68,7 @@ export default function LoginPage() {
         sameSite: "strict",
       });
 
-      await alertSuccess("Anda berhasil masuk!");
+      localStorage.setItem("login-success", "OK");
 
       router.push("/dashboard");
     } catch (error: AxiosError | unknown) {

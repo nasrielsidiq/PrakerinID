@@ -1,22 +1,18 @@
 import Swal from "sweetalert2";
 
 export const alertSuccess = async (message: string) => {
-  return Swal.fire({
+  return toast.fire({
     icon: "success",
     title: "Berhasil",
     text: message,
-    confirmButtonColor: "#3085d6",
-    confirmButtonText: "Tutup",
   });
 };
 
 export const alertError = async (message: string) => {
-  return Swal.fire({
+  return toast.fire({
     icon: "error",
     title: "Gagal",
     text: message,
-    confirmButtonColor: "#d33",
-    confirmButtonText: "Tutup",
   });
 };
 
@@ -33,3 +29,15 @@ export const alertConfirm = async (message: string) => {
   });
   return result.isConfirmed;
 };
+
+const toast = Swal.mixin({
+  toast: true,
+  position: "top-right",
+  iconColor: "white",
+  customClass: {
+    popup: "colored-toast",
+  },
+  showConfirmButton: false,
+  timer: 3000,
+  timerProgressBar: true,
+});

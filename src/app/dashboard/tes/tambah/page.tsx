@@ -1,6 +1,6 @@
 "use client";
 import dynamic from "next/dynamic";
-import { Briefcase, BriefcaseBusiness } from "lucide-react";
+import { Briefcase, BriefcaseBusiness, HelpCircle } from "lucide-react";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { EditorProps } from "@/components/Editor";
@@ -134,15 +134,15 @@ const tambahLowonganPage: React.FC = () => {
       <h1 className="text-accent-dark text-sm mb-5">
         <Link
           className="hover:underline hover:text-accent"
-          href={"/dashboard/lowongan"}
+          href={"/dashboard/tes"}
         >
-          Lowongan
+          Tes
         </Link>{" "}
-        -&gt; Tambah Lowongan
+        -&gt; Tambah Tes
       </h1>
       <div className="flex items-center  space-x-2 font-extrabold text-accent">
-        <BriefcaseBusiness className="w-5 h-5" />
-        <h2 className="text-2xl mt-2">Lowongan Magang</h2>
+        <HelpCircle className="w-5 h-5" />
+        <h2 className="text-2xl mt-2">Tes</h2>
       </div>
 
       {/* Form Card */}
@@ -152,12 +152,10 @@ const tambahLowonganPage: React.FC = () => {
       >
         <div className="flex items-center gap-4 mb-6">
           <div className="bg-gray-200 p-2 rounded-full w-10 h-10 my-auto">
-            <Briefcase className="text-accent" size={24} />
+            <HelpCircle className="text-accent" size={24} />
           </div>
           <div className="flex flex-col">
-            <h2 className="text-xl font-semibold text-gray-800">
-              Tambah Lowongan
-            </h2>
+            <h2 className="text-xl font-semibold text-gray-800">Tambah Tes</h2>
             <p className="text-gray-400">
               Silahkan isi semua informasi yang dibutuhkan
             </p>
@@ -165,15 +163,15 @@ const tambahLowonganPage: React.FC = () => {
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 text-gray-600">
-          {/* Nama Lowongan */}
+          {/* Nama tes */}
           <div className="lg:col-span-2">
             <label className="block text-sm font-medium text-gray-700 mb-2">
-              Judul Lowongan
+              Judul Tes
             </label>
             <input
               type="text"
               className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-accent focus:border-transparent"
-              placeholder="Masukkan judul lowongan"
+              placeholder="Masukkan judul tes"
               value={formData.title}
               onChange={(e) =>
                 setFormData({ ...formData, title: e.target.value })
@@ -181,158 +179,23 @@ const tambahLowonganPage: React.FC = () => {
             />
           </div>
 
-          {/* Jenis Magang */}
-          <div>
+          {/* Link tes */}
+          <div className="lg:col-span-2">
             <label className="block text-sm font-medium text-gray-700 mb-2">
-              Jenis Magang
-            </label>
-            <select
-              value={formData.type}
-              onChange={(e) =>
-                setFormData({ ...formData, type: e.target.value as type })
-              }
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-accent focus:border-transparent"
-            >
-              <option value="">Pilih jenis magang</option>
-              <option value="part_time">Paruh Waktu (Part-time)</option>
-              <option value="full_time">Penuh Waktu (Full-time)</option>
-            </select>
-          </div>
-
-          {/* Lokasi Magang */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Lokasi Magang
-            </label>
-            <select
-              value={formData.location}
-              onChange={(e) =>
-                setFormData({
-                  ...formData,
-                  location: e.target.value as location,
-                })
-              }
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-accent focus:border-transparent"
-            >
-              <option value="">Pilih lokasi magang</option>
-              <option value="onsite">Kerja di kantor (Onsite/WFO)</option>
-              <option value="remote">Kerja jarak jauh (Remote/WFH)</option>
-              <option value="hybrid">Hibrida (Hybrid)</option>
-              <option value="field">Kerja lapangan (Field Work)</option>
-            </select>
-          </div>
-
-          {/* Tingkat Pendidikan */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Tingkat Pendidikan
-            </label>
-            <select
-              value={formData.grade}
-              onChange={(e) =>
-                setFormData({ ...formData, grade: e.target.value as grade })
-              }
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-accent focus:border-transparent"
-            >
-              <option value="">Pilih tingkat pendidikan</option>
-              <option value="all">Semua</option>
-              <option value="smk">SMK</option>
-              <option value="mahasiswa">Mahasiswa</option>
-            </select>
-          </div>
-
-          {/* Status Magang */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Status Magang
-            </label>
-            <select
-              value={formData.is_paid as string}
-              onChange={(e) =>
-                setFormData({ ...formData, is_paid: e.target.value })
-              }
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-accent focus:border-transparent"
-            >
-              <option value="">Pilih status magang</option>
-              <option value="true">Dibayar (Paid)</option>
-              <option value="false">Tidak dibayar (Unpaid)</option>
-            </select>
-          </div>
-
-          {/* Kuota Magang */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Kuota Magang
+              Link Tes
             </label>
             <input
-              type="number"
-              value={formData.quota}
-              onChange={handleChangeQuota}
+              type="text"
               className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-accent focus:border-transparent"
+              placeholder="Masukkan link tes"
+              value={formData.title}
+              onChange={(e) =>
+                setFormData({ ...formData, title: e.target.value })
+              }
             />
           </div>
 
-          {/* Status Ketersediaan */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Apakah masih tersedia?
-            </label>
-            <select
-              value={formData.is_available as string}
-              onChange={(e) =>
-                setFormData({ ...formData, is_available: e.target.value })
-              }
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-accent focus:border-transparent"
-            >
-              <option value="true">Tersedia</option>
-              <option value="false">Tidak Tersedia</option>
-            </select>
-          </div>
-
-          {/* Field Magang */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Bidang Magang
-            </label>
-            <select
-              value={formData.field_id}
-              onChange={(e) =>
-                setFormData({ ...formData, field_id: e.target.value })
-              }
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-accent focus:border-transparent"
-            >
-              <option value="">Pilih bidang magang</option>
-              {fields.map((field) => (
-                <option key={field.id} value={field.id}>
-                  {field.name}
-                </option>
-              ))}
-            </select>
-          </div>
-
-          {/* Durasi Magang */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Durasi Magang
-            </label>
-            <select
-              value={formData.duration_id}
-              onChange={(e) =>
-                setFormData({ ...formData, duration_id: e.target.value })
-              }
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-accent focus:border-transparent"
-            >
-              <option value="">Pilih durasi magang</option>
-              {durations.map((duration) => (
-                <option key={duration.id} value={duration.id}>
-                  {duration.duration_value}{" "}
-                  {getDurationUnit(duration.duration_unit)}
-                </option>
-              ))}
-            </select>
-          </div>
-
-          {/* Deskripsi */}
+          {/* Deskripsi Tes */}
           <div className="lg:col-span-2">
             <label className="block text-sm font-medium text-gray-700 mb-2">
               Deskripsi

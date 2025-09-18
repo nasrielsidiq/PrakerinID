@@ -24,7 +24,7 @@ const FeedbackPage: React.FC = () => {
 
 
   return (
-    <main className="p-6 min-h-screen">
+    <main className="p-6 min-h-screen relative">
       <h1 className="text-accent-dark text-sm mb-5">Feedback</h1>
       <div className="mb-8">
         <div className="flex items-center space-x-2 font-extrabold text-accent">

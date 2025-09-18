@@ -22,11 +22,17 @@ interface Company {
   company: {
     name: string;
     description: string | null;
+    address: string;
+    phone_number: string | null;
+    website: string | null;
   };
   city_regency: {
     name: string;
   };
   province: {
+    name: string;
+  };
+  sector: {
     name: string;
   };
   job_openings: {
@@ -46,11 +52,17 @@ const DetailPerusahaanPage = ({
     company: {
       name: "",
       description: null,
+      address: "",
+      phone_number: "",
+      website: "",
     },
     city_regency: {
       name: "",
     },
     province: {
+      name: "",
+    },
+    sector: {
       name: "",
     },
     job_openings: [],
@@ -154,6 +166,68 @@ const DetailPerusahaanPage = ({
             )}
           </div>
         </div>
+
+        {/* Info Perusahaan Section */}
+        <div className="bg-white py-6 mb-6">
+          <h3 className="text-lg font-semibold text-gray-900 mb-4">
+            Informasi Perusahaan
+          </h3>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm">
+            {/* Alamat */}
+            {company.company.address && (
+              <div className="flex items-start space-x-3 p-3 rounded-lg border border-gray-100 shadow-sm hover:shadow-md transition">
+                <MapPin className="w-5 h-5 text-accent shrink-0 mt-1" />
+                <div>
+                  <p className="text-gray-500">Alamat</p>
+                  <p className="font-medium text-gray-900">
+                    {company.company.address}
+                  </p>
+                </div>
+              </div>
+            )}
+
+            {/* Alamat */}
+            {company.sector.name && (
+              <div className="flex items-start space-x-3 p-3 rounded-lg border border-gray-100 shadow-sm hover:shadow-md transition">
+                <MapPin className="w-5 h-5 text-accent shrink-0 mt-1" />
+                <div>
+                  <p className="text-gray-500">Alamat</p>
+                  <p className="font-medium text-gray-900">
+                    {company.sector.name}
+                  </p>
+                </div>
+              </div>
+            )}
+
+            {/* Alamat */}
+            {company.company.phone_number && (
+              <div className="flex items-start space-x-3 p-3 rounded-lg border border-gray-100 shadow-sm hover:shadow-md transition">
+                <MapPin className="w-5 h-5 text-accent shrink-0 mt-1" />
+                <div>
+                  <p className="text-gray-500">Alamat</p>
+                  <p className="font-medium text-gray-900">
+                    {company.company.phone_number}
+                  </p>
+                </div>
+              </div>
+            )}
+
+            {/* Alamat */}
+            {company.company.website && (
+              <div className="flex items-start space-x-3 p-3 rounded-lg border border-gray-100 shadow-sm hover:shadow-md transition">
+                <MapPin className="w-5 h-5 text-accent shrink-0 mt-1" />
+                <div>
+                  <p className="text-gray-500">Alamat</p>
+                  <p className="font-medium text-gray-900">
+                    {company.company.website}
+                  </p>
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+
         <h3 className="text-lg font-semibold text-gray-900 mb-4">Deskripsi</h3>
         <div className="text-gray-700 text-sm leading-relaxed mb-10">
           <RenderBlocks data={company.company.description} />

@@ -10,7 +10,11 @@ export interface EditorProps {
   initialData?: any;
 }
 
-export default function Editor({ onChange, initialData }: EditorProps) {
+export default function Editor({
+  onChange,
+  initialData,
+  error,
+}: EditorProps & { error?: string }) {
   const editorRef = useRef<EditorJS | null>(null);
   const [hasInitialized, setHasInitialized] = useState(false);
 
@@ -66,7 +70,9 @@ export default function Editor({ onChange, initialData }: EditorProps) {
     <div className="w-full">
       <div
         id="editorjs"
-        className="w-full border border-gray-300 rounded-lg py-4 px-16 min-h-[200px] focus-within:ring-2 focus-within:ring-cyan-500 focus-within:border-cyan-500 text-black"
+        className={`w-full border  rounded-lg py-4 px-16 min-h-[200px] focus-within:ring-2 focus-within:ring-cyan-500 focus-within:border-cyan-500 text-black ${
+          error ? "border-red-500" : "border-gray-300"
+        }`}
       />
     </div>
   );

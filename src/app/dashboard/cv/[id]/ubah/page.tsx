@@ -1,7 +1,7 @@
 "use client";
 import { FileText } from "lucide-react";
-import { ChangeEvent, useEffect, useRef, useState } from "react";
-import { API, ENDPOINTS } from "../../../../../utils/config";
+import { ChangeEvent, use, useEffect, useRef, useState } from "react";
+import { API, ENDPOINTS } from "../../../../../../utils/config";
 import Cookies from "js-cookie";
 import { alertConfirm, alertError, alertSuccess } from "@/libs/alert";
 import Link from "next/link";
@@ -19,7 +19,9 @@ interface FormErrors {
   file?: string;
 }
 
-const CreatePage: React.FC = () => {
+const UbahCvPage = ({ params }: { params: Promise<{ id: string }> }) => {
+  const { id } = use(params);
+
   const route = useRouter();
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
   const [formData, setFormData] = useState<FormData>({
@@ -67,12 +69,20 @@ const CreatePage: React.FC = () => {
     setIsSubmitting(true);
 
     try {
-      await API.post(ENDPOINTS.CURRICULUM_VITAE, formData, {
-        headers: {
-          "Content-Type": "multipart/form-data",
-          Authorization: `Bearer ${Cookies.get("userToken")}`,
+      console.log(formData);
+      await API.post(
+        `${ENDPOINTS.CURRICULUM_VITAE}/${id}?_method=PATCH`,
+        {
+          name: formData.name,
+          file: typeof formData.file === "string" ? undefined : formData.file,
         },
-      });
+        {
+          headers: {
+            "Content-Type": "multipart/form-data",
+            Authorization: `Bearer ${Cookies.get("userToken")}`,
+          },
+        }
+      );
 
       await alertSuccess("Berhasil menambahkan CV");
       // cleanup local preview & form
@@ -84,14 +94,12 @@ const CreatePage: React.FC = () => {
       setPreviewUrl(null);
       if (fileInputRef.current) fileInputRef.current.value = "";
       route.push("/dashboard/cv");
-    } catch (error) {
+    } catch (error: AxiosError | unknown) {
       if (error instanceof AxiosError) {
         const responseError = error.response?.data.errors;
-
         if (typeof responseError === "string") {
           await alertError(responseError);
         } else {
-          console.log("a");
           setErrors(responseError);
         }
       }
@@ -114,9 +122,36 @@ const CreatePage: React.FC = () => {
     fileInputRef.current?.click();
   };
 
+  const fetchData = async () => {
+    try {
+      const cv = API.get(`${ENDPOINTS.CURRICULUM_VITAE}/${id}`, {
+        headers: {
+          Authorization: `Bearer ${Cookies.get("userToken")}`,
+        },
+      });
+      const preview = API.get(`${ENDPOINTS.CURRICULUM_VITAE}/${id}/preview`, {
+        headers: {
+          Authorization: `Bearer ${Cookies.get("userToken")}`,
+        },
+        responseType: "blob", // penting!
+      });
+
+      const response = await Promise.all([cv, preview]);
+      setFormData(response[0].data.data);
+      const fileBlob = new Blob([response[1].data], {
+        type: "application/pdf",
+      });
+      const fileUrl = URL.createObjectURL(fileBlob);
+
+      setPreviewUrl(fileUrl); // ini nanti dipakai di <embed>
+    } catch (error) {
+      console.error(error);
+    }
+  };
+
   useEffect(() => {
-    console.log(errors);
-  }, [errors]);
+    fetchData();
+  }, []);
 
   return (
     <main className="p-6">
@@ -127,7 +162,7 @@ const CreatePage: React.FC = () => {
         >
           Curiculum Vitae
         </Link>{" "}
-        -&gt; Tambah Curiculum Vitae
+        -&gt; Ubah Curiculum Vitae
       </h1>
 
       <div className="mb-8">
@@ -143,7 +178,7 @@ const CreatePage: React.FC = () => {
       >
         <div className="flex space-x-5">
           <div>
-            <h1 className="text-xl text-gray-800 font-extrabold">Tambah CV</h1>
+            <h1 className="text-xl text-gray-800 font-extrabold">Ubah CV</h1>
             <span className="text-sm text-gray-300">
               Silahkan isi semua informasi yang dibutuhkan
             </span>
@@ -262,4 +297,4 @@ const CreatePage: React.FC = () => {
   );
 };
 
-export default CreatePage;
+export default UbahCvPage;
