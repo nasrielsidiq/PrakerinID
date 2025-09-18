@@ -60,6 +60,10 @@ const detailLamaran = ({ params }: { params: Promise<{ id: string }> }) => {
           },
         }
       );
+
+      console.log(response);
+      setApplication(response.data.data);
+
       const preview = await API.get(
         `${ENDPOINTS.CURRICULUM_VITAE}/${response.data.data.curriculum_vitae_id}/preview`,
         {
@@ -76,9 +80,6 @@ const detailLamaran = ({ params }: { params: Promise<{ id: string }> }) => {
       const fileUrl = URL.createObjectURL(fileBlob);
 
       setPreviewUrl(fileUrl); // ini nanti dipakai di <embed>
-
-      console.log(response);
-      setApplication(response.data.data);
     } catch (error) {
       console.error(error);
     }

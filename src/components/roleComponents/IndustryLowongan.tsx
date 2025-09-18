@@ -47,48 +47,6 @@ interface JobOpening {
 export function IndustryLowongan() {
   const route = useRouter();
   const [jobOpenings, setJobOpenings] = useState<JobOpening[]>([]);
-  const [lowongan, setLowongan] = useState<Lowongan[]>([
-    {
-      title: "Social Media Marketing",
-      icon: null,
-      name: "Makerindo Prima Solusi",
-      kota: "Bandung",
-      provinsi: "Jawa Barat",
-      time: 1,
-    },
-    {
-      title: "Social Media Marketing",
-      icon: null,
-      name: "Makerindo Prima Solusi",
-      kota: "Bandung",
-      provinsi: "Jawa Barat",
-      time: 1,
-    },
-    {
-      title: "Social Media Marketing",
-      icon: null,
-      name: "Makerindo Prima Solusi",
-      kota: "Bandung",
-      provinsi: "Jawa Barat",
-      time: 1,
-    },
-    {
-      title: "Social Media Marketing",
-      icon: null,
-      name: "Makerindo Prima Solusi",
-      kota: "Bandung",
-      provinsi: "Jawa Barat",
-      time: 1,
-    },
-    {
-      title: "Social Media Marketing",
-      icon: null,
-      name: "Makerindo Prima Solusi",
-      kota: "Bandung",
-      provinsi: "Jawa Barat",
-      time: 1,
-    },
-  ]);
 
   const fetchJobOpenings = async () => {
     try {

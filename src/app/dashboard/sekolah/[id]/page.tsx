@@ -5,6 +5,7 @@ import {
   BookOpen,
   FileText,
   Globe,
+  Handshake,
   Hash,
   Lock,
   MapPin,
@@ -157,8 +158,8 @@ const DetailSekolahPage = ({ params }: { params: Promise<{ id: string }> }) => {
                 href={`/dashboard/sekolah/${id}/mou`}
                 className="bg-accent text-white px-4 py-2 rounded-md text-sm font-medium transition-colors flex items-center space-x-2 whitespace-nowrap cursor-pointer"
               >
-                <span className="">Ajukan Mou</span>
-                <FileText className="w-4" />
+                <span className="">Ajukan Kerja Sama</span>
+                <Handshake className="w-4" />
               </Link>
             )}
           </div>

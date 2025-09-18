@@ -1,6 +1,6 @@
 "use client";
 
-import { BookOpen, Briefcase, Building, Send } from "lucide-react";
+import { BookOpen, Briefcase, Building, Handshake, Send } from "lucide-react";
 import {
   ChangeEvent,
   FormEvent,
@@ -29,11 +29,15 @@ const Editor = dynamic<EditorProps & { error?: string }>(
 interface FormData {
   school_id?: string;
   company_id?: string;
+  start_date: string;
+  end_date: string;
   file: null | File;
   message: any;
 }
 
 interface FormErrors {
+  start_date?: string;
+  end_date?: string;
   file?: string;
   message?: string;
 }
@@ -49,6 +53,8 @@ const BuatKerjaSamaPage = ({ params }: { params: Promise<{ id: string }> }) => {
   const currentPreviewRef = useRef<string | null>(null);
 
   const [formData, setFormData] = useState<FormData>({
+    start_date: "",
+    end_date: "",
     file: null,
     message: "",
   });
@@ -96,6 +102,7 @@ const BuatKerjaSamaPage = ({ params }: { params: Promise<{ id: string }> }) => {
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
+    console.log(formData);
 
     try {
       setIsSubmitting(true);
@@ -115,6 +122,13 @@ const BuatKerjaSamaPage = ({ params }: { params: Promise<{ id: string }> }) => {
           "Content-Type": "multipart/form-data",
           Authorization: `Bearer ${Cookies.get("userToken")}`,
         },
+      });
+
+      setFormData({
+        start_date: "",
+        end_date: "",
+        file: null,
+        message: "",
       });
 
       await alertSuccess("Pengajuan kerja sama berhasil di kirim!");
@@ -155,7 +169,7 @@ const BuatKerjaSamaPage = ({ params }: { params: Promise<{ id: string }> }) => {
       </h1>
       <div className="mb-8">
         <div className="flex items-center space-x-2 font-extrabold text-accent">
-          <BookOpen className="w-5 h-5" />
+          <Handshake className="w-5 h-5" />
           <h2 className="text-2xl mt-2">Pengajuan Kerja Sama</h2>
         </div>
       </div>
@@ -163,11 +177,11 @@ const BuatKerjaSamaPage = ({ params }: { params: Promise<{ id: string }> }) => {
       {/* Form Card */}
       <form
         onSubmit={handleSubmit}
-        className="bg-white rounded-lg shadow-sm p-6 m-auto my-10 max-w-4xl"
+        className="bg-white rounded-lg shadow-sm p-6 m-auto my-10 max-w-4xl flex flex-col gap-6"
       >
-        <div className="flex items-center gap-4 mb-6">
+        <div className="flex items-center gap-4">
           <div className="bg-gray-200 p-2 rounded-full w-10 h-10 my-auto">
-            <BookOpen className="text-accent" size={24} />
+            <Handshake className="text-accent" size={24} />
           </div>
           <div className="flex flex-col">
             <h2 className="text-xl font-semibold text-gray-800">
@@ -176,6 +190,50 @@ const BuatKerjaSamaPage = ({ params }: { params: Promise<{ id: string }> }) => {
             <p className="text-gray-400">
               Silahkan isi semua informasi yang dibutuhkan
             </p>
+          </div>
+        </div>
+
+        <div className="grid grid-cols-2 gap-6">
+          <div>
+            <label
+              htmlFor="start-date"
+              className="block text-sm font-medium text-gray-700 mb-2"
+            >
+              Tanggal Mulai
+            </label>
+            <input
+              type="date"
+              value={formData.start_date}
+              onChange={(e) =>
+                setFormData({ ...formData, start_date: e.target.value })
+              }
+              id="start-date"
+              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-accent focus:border-transparent"
+            />
+            {errors.start_date && (
+              <p className="mt-2 text-sm text-red-500">{errors.start_date}</p>
+            )}
+          </div>
+
+          <div>
+            <label
+              htmlFor="end-date"
+              className="block text-sm font-medium text-gray-700 mb-2"
+            >
+              Tanggal Berakhir
+            </label>
+            <input
+              id="end-date"
+              type="date"
+              value={formData.end_date}
+              onChange={(e) =>
+                setFormData({ ...formData, end_date: e.target.value })
+              }
+              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-accent focus:border-transparent"
+            />
+            {errors.end_date && (
+              <p className="mt-2 text-sm text-red-500">{errors.end_date}</p>
+            )}
           </div>
         </div>
 
