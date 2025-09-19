@@ -8,6 +8,7 @@ import {
   MapPin,
   Scale,
   UserCircle,
+  Loader
 } from "lucide-react";
 import Link from "next/link";
 import { useEffect, useState } from "react";
@@ -18,6 +19,7 @@ import useDebounce from "@/hooks/useDebounce";
 import Image from "next/image";
 import PaginationComponent from "@/components/PaginationComponent";
 import { Page } from "@/models/pagination";
+import LoaderData from "../loader";
 
 interface InternshipApplicationCount {
   total: number;
@@ -445,7 +447,7 @@ export default function SiswaLowongan() {
         </div>
       </div>
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 p-0 sm:p-6">
-        {jobOpenings.map((job) => (
+        {jobOpenings && loading !== true? jobOpenings.map((job) => (
           <Link
             key={job.id}
             href={`lowongan/${job.id}`}
@@ -511,7 +513,7 @@ export default function SiswaLowongan() {
               </button>
             </div>
           </Link>
-        ))}
+        )): <Loader />}
       </div>
       <div className="px-2 sm:px-6">
         <PaginationComponent

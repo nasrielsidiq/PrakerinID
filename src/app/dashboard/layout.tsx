@@ -22,7 +22,15 @@ import {
   MessageSquareText,
   Handshake,
   HelpCircle,
-  UserRound, // TAMBAHKAN: LogOut
+  UserRound,
+  Database,
+  Building2,
+  Factory,
+  IdCard,
+  CalendarClock,
+  GraduationCap,
+  BriefcaseBusiness,
+  Map, // TAMBAHKAN: LogOut
 } from "lucide-react";
 import Link from "next/link";
 import Cookies from "js-cookie";
@@ -237,6 +245,43 @@ export default function DashboardLayout({
             href: "/dashboard",
           },
           {
+            icon: Database,
+            label: "Master Data",
+            children: [
+              { icon: Map, label: "Provinsi", href: "/dashboard/provinsi" },
+              {
+                icon: Building2,
+                label: "Kota/Kabupaten",
+                href: "/dashboard/kota-kabupaten",
+              },
+              {
+                icon: Factory,
+                label: "Sektor Perusahaan",
+                href: "/dashboard/sektor",
+              },
+              {
+                icon: IdCard,
+                label: "Posisi Magang",
+                href: "/dashboard/posisi",
+              },
+              {
+                icon: CalendarClock,
+                label: "Durasi Magang",
+                href: "/dashboard/durasi",
+              },
+              {
+                icon: GraduationCap,
+                label: "Jurusan Siswa",
+                href: "/dashboard/jurusan",
+              },
+              {
+                icon: BriefcaseBusiness,
+                label: "Bidang Magang",
+                href: "/dashboard/bidang",
+              },
+            ],
+          },
+          {
             icon: Building,
             label: "Perusahaan",
             href: "/dashboard/perusahaan",
@@ -246,39 +291,7 @@ export default function DashboardLayout({
             label: "Lowongan",
             href: "/dashboard/lowongan",
           },
-          {
-            icon: Briefcase,
-            label: "Master Data",
-            children: [
-              {
-                icon: Briefcase,
-                label: "Provinsi",
-                href: "/dashboard/provinsi",
-              },
-              {
-                icon: Briefcase,
-                label: "Kota/Kabupaten",
-                href: "/dashboard/kota-kabupaten",
-              },
-              { icon: Briefcase, label: "Sektor", href: "/dashboard/sektor" },
-              {
-                icon: Briefcase,
-                label: "Posisi Magang",
-                href: "/dashboard/sektor",
-              },
-              {
-                icon: Briefcase,
-                label: "Durasi Magang",
-                href: "/dashboard/sektor",
-              },
-              { icon: Briefcase, label: "Jurusan", href: "/dashboard/sektor" },
-              {
-                icon: Briefcase,
-                label: "Bidang Perusahaan",
-                href: "/dashboard/sektor",
-              },
-            ],
-          },
+
           {
             icon: Award,
             label: "Penghargaan",
