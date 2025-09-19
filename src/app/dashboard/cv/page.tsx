@@ -15,6 +15,8 @@ import Cookies from "js-cookie";
 import useDebounce from "@/hooks/useDebounce";
 import { alertConfirm, alertSuccess } from "@/libs/alert";
 import Link from "next/link";
+import { Page } from "@/models/pagination";
+import PaginationComponent from "@/components/PaginationComponent";
 
 interface CVItem {
   id: string;
@@ -26,6 +28,11 @@ const CvPage: React.FC = () => {
   const debouncedQuery = useDebounce(searchTerm, 1000);
   const router = useRouter();
   const [cvList, setCvList] = useState<CVItem[]>([]);
+  const [page, setPage] = useState<Page>({
+    activePage: 1,
+    pages: 1,
+  });
+  const [loading, setLoading] = useState<boolean>(false);
 
   const handleDownload = async (cvId: string) => {
     console.log("Downloading CV with ID:", cvId);
@@ -85,21 +92,31 @@ const CvPage: React.FC = () => {
     }
   };
 
-  const fetchCv = async () => {
+  const fetchCv = async (selectedPage = page.activePage) => {
+    if (loading) return;
+    setLoading(true);
     try {
-      const response = await API.get(
-        `${ENDPOINTS.CURRICULUM_VITAE}?page=1&limit=10&search=${searchTerm}`,
-        {
-          headers: {
-            Authorization: `Bearer ${Cookies.get("userToken")}`,
-          },
-        }
-      );
+      const response = await API.get(`${ENDPOINTS.CURRICULUM_VITAE}`, {
+        params: {
+          page: selectedPage,
+          limit: 10,
+          search: searchTerm,
+        },
+        headers: {
+          Authorization: `Bearer ${Cookies.get("userToken")}`,
+        },
+      });
       if (response.status === 200) {
         setCvList(response.data.data);
+        setPage({
+          activePage: selectedPage,
+          pages: response.data.last_page,
+        });
       }
     } catch (error: any) {
       console.error("Error fetching CVs:", error.response.data.errors);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -136,7 +153,14 @@ const CvPage: React.FC = () => {
     }
 
     fetchCv();
-  }, [debouncedQuery]);
+  }, [debouncedQuery, page.activePage]);
+
+  const handlePageChange = (selectedPage: number) => {
+    setPage((prev) => ({
+      ...prev,
+      activePage: selectedPage,
+    }));
+  };
 
   return (
     <main className="flex-1 p-4 lg:p-6">
@@ -304,6 +328,12 @@ const CvPage: React.FC = () => {
           </div>
         )}
       </div>
+      <PaginationComponent
+        activePage={page.activePage}
+        totalPages={page.pages}
+        onPageChange={handlePageChange}
+        loading={loading}
+      />
     </main>
   );
 };

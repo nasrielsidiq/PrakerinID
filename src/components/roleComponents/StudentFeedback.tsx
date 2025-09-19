@@ -11,6 +11,7 @@ import React, { useEffect, useState } from "react";
 import { API, ENDPOINTS } from "../../../utils/config";
 import Cookies from "js-cookie";
 import PaginationComponent from "../PaginationComponent"; // sesuaikan path jika perlu
+import Page from "@/models/pagination"
 
 interface Perusahaan {
   user?: {
@@ -20,10 +21,10 @@ interface Perusahaan {
   kota: string;
   provinsi: string;
 }
-interface Pages {
-  activePages: number;
-  pages: number;
-}
+// interface Pages {
+//   activePage: number;
+//   pages: number;
+// }
 
 const StudentFeedback = () => {
   const [close, setClose] = useState<boolean>(true);
@@ -35,8 +36,8 @@ const StudentFeedback = () => {
     { kota: "Bandung", name: "Makerindo Prima Solusi", provinsi: "Jawa Barat" },
     { kota: "Bandung", name: "Makerindo Prima Solusi", provinsi: "Jawa Barat" },
   ]);
-  const [page, setPage] = useState<Pages>({
-    activePages: 1,
+  const [page, setPage] = useState<Page>({
+    activePage: 1,
     pages: 1,
   });
   const [feedback, setFeedback] = useState("");
@@ -44,7 +45,7 @@ const StudentFeedback = () => {
   const [rating, setRating] = useState<number>(0); // rating 1-5
   const [loading, setLoading] = useState(false);
 
-  const fetchCompany = async (selectedPage = page.activePages) => {
+  const fetchCompany = async (selectedPage = page.activePage) => {
     if (loading) return; // kalau lagi loading, abaikan click berikutnya
     setLoading(true);
 
@@ -72,7 +73,7 @@ const StudentFeedback = () => {
         }));
         setPerushaan(data);
         setPage({
-          activePages: selectedPage,
+          activePage: selectedPage,
           pages: response.data.last_page, // pastikan ini adalah total halaman
         });
       }
@@ -97,13 +98,13 @@ const StudentFeedback = () => {
   };
 
   useEffect(() => {
-    fetchCompany(page.activePages);
-  }, [page.activePages]);
+    fetchCompany(page.activePage);
+  }, [page.activePage]);
 
   const handlePageChange = (selectedPage: number) => {
     setPage((prev) => ({
       ...prev,
-      activePages: selectedPage,
+      activePage: selectedPage,
     }));
     // fetchCompany(selectedPage); // Tidak perlu, sudah di useEffect
   };
@@ -220,7 +221,7 @@ const StudentFeedback = () => {
           ))}
         </div>
         <PaginationComponent
-          activePage={page.activePages}
+          activePage={page.activePage}
           totalPages={page.pages}
           onPageChange={handlePageChange}
           loading={loading}

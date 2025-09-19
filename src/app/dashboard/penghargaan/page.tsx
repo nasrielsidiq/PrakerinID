@@ -11,10 +11,10 @@ const CertificateCard = ({ title, date, imageUrl }: { title: string, date: strin
   return (
     <div className=" bg-white rounded-xl shadow-md p-4 flex flex-col items-center text-center space-y-3 hover:shadow-lg transition-shadow">
       <div className="w-40 h-40 relative flex items-center justify-center">
-        <Image 
-          src={imageUrl} 
-          alt={title} 
-          layout="fill" 
+        <Image
+          src={imageUrl}
+          alt={title}
+          layout="fill"
           objectFit="contain"
         />
       </div>
@@ -60,3 +60,30 @@ const penghargaanPage: React.FC = () => {
     )
 }
 export default penghargaanPage;
+
+// import { Role } from "@/models/user";
+// import React, { useEffect, useState } from "react";
+// import Cookies from "js-cookie";
+// import { AdminAchievement } from "@/components/Achievement/AdminAchievement";
+
+// const PenghargaanPage = () => {
+//   const [authorization, setAuthorization] = useState<Role>("");
+
+//   const RolePage: React.FC = () => {
+//     if (role === "company") return <AdminAchievement />;
+//     if (role === "student") return <Nona />;
+//     if (role === "school") return <SchoolDashboard />;
+//   };
+
+//   useEffect(() => {
+//     setAuthorization(Cookies.get("authorization") as Role);
+//   }, []);
+
+//   return (
+//     <>
+//       <Authorization />
+//     </>
+//   );
+// };
+
+// export default PenghargaanPage;

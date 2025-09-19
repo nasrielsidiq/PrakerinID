@@ -6,6 +6,8 @@ import { API, ENDPOINTS } from "../../../../utils/config";
 import Cookies from "js-cookie";
 import Image from "next/image";
 import useDebounce from "@/hooks/useDebounce";
+import TabsCompenent from "@/components/TabsCompenent";
+import PaginationComponent from "@/components/PaginationComponent";
 
 interface Perusahaan {
   id: string;
@@ -21,6 +23,11 @@ interface CompanyCount {
   mou_count: number;
 }
 
+interface Pages {
+  activePages: number;
+  pages: number;
+}
+
 type ActiveTab = "Semua" | "Sudah Mou" | "Belum Mou";
 
 const PerusahaanPage: React.FC = () => {
@@ -28,19 +35,29 @@ const PerusahaanPage: React.FC = () => {
   const [inputSearch, setInputSearch] = useState<string>("");
   const debouncedQuery = useDebounce(inputSearch, 1000);
   const [perusahaan, setPerushaan] = useState<Perusahaan[]>([]);
-  const tabs = ["Semua", "Sudah Mou", "Belum Mou"];
+  const tabs: ActiveTab[] = ["Semua", "Sudah Mou", "Belum Mou"];
   const [activeTab, setActiveTab] = useState<ActiveTab>("Semua");
   const [companyCount, setCompanyCount] = useState<CompanyCount>({
     company_count: 0,
     mou_count: 0,
   });
+  const [pages, setPages] = useState<Pages>({
+    activePages: 1,
+    pages: 1,
+  });
+  const [loading, setLoading] = useState<boolean>(false);
 
-  const fetchCompany = async () => {
+  const fetchCompany = async (selectedPages = pages.activePages) => {
+    if (loading) return;
+    setLoading(true);
+
     try {
       const response = await API.get(ENDPOINTS.USERS, {
         params: {
           search: inputSearch,
           role: "company",
+          page: selectedPages,
+          limit: 6,
           is_mou:
             activeTab === "Semua"
               ? undefined
@@ -54,7 +71,7 @@ const PerusahaanPage: React.FC = () => {
       });
 
       if (response.status === 200) {
-        console.log("Company fetched successfully:", response.data.data);
+        console.log("Company fetched successfully:", response.data);
         const data = response.data.data.map((item: any) => ({
           id: item.id,
           photo_profile: item.photo_profile,
@@ -63,9 +80,15 @@ const PerusahaanPage: React.FC = () => {
           province: item.province.name,
         }));
         setPerushaan(data);
+        setPages({
+          activePages: selectedPages,
+          pages: response.data.last_page,
+        });
       }
     } catch (error) {
       console.error("Error fetching company:", error);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -76,10 +99,8 @@ const PerusahaanPage: React.FC = () => {
           Authorization: `Bearer ${Cookies.get("userToken")}`,
         },
       });
-      if (response.status === 200) {
-        console.log("Company Count fetched successfully:", response.data.data);
-        setCompanyCount(response.data.data);
-      }
+      console.log("Company Count fetched successfully:", response.data.data);
+      setCompanyCount(response.data.data);
     } catch (error) {
       console.error("Error fetching company count:", error);
     }
@@ -93,12 +114,19 @@ const PerusahaanPage: React.FC = () => {
       }
     }
 
-    fetchCompany();
-  }, [debouncedQuery, activeTab]);
+    fetchCompany(pages.activePages);
+  }, [debouncedQuery, activeTab, pages.activePages]);
 
   useEffect(() => {
     fetchCompanyCount();
   }, []);
+
+  const handleChangePage = (selectedPage: number) => {
+    setPages((prev) => ({
+      ...prev,
+      activePages: selectedPage,
+    }));
+  };
 
   return (
     <main className="p-6">
@@ -157,22 +185,14 @@ const PerusahaanPage: React.FC = () => {
       </div>
 
       <div className="flex gap-2 mb-6">
-        {tabs.map((tab) => (
-          <button
-            key={tab}
-            onClick={() => setActiveTab(tab as ActiveTab)}
-            className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors shadow-sm ${
-              activeTab === tab
-                ? "bg-accent text-white shadow-sm"
-                : "bg-gray-100 text-gray-600 hover:text-gray-800"
-            }`}
-          >
-            {tab}
-          </button>
-        ))}
+        <TabsCompenent
+          data={tabs}
+          activeTab={activeTab}
+          setActiveTab={setActiveTab}
+        />
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-5 text-black">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-5 text-black ">
         {perusahaan.length !== 0 ? (
           perusahaan.map((data, index) => (
             <div
@@ -225,6 +245,12 @@ const PerusahaanPage: React.FC = () => {
           </div>
         )}
       </div>
+      <PaginationComponent
+        activePage={pages.activePages}
+        totalPages={pages.pages}
+        onPageChange={handleChangePage}
+        loading={loading}
+      />
     </main>
   );
 };

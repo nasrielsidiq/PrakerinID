@@ -5,6 +5,7 @@ import {
   MapPin,
   UserCircle,
   X,
+  XCircle,
 } from "lucide-react";
 import { Timestamp } from "next/dist/server/lib/cache-handlers/types";
 import { useRouter } from "next/navigation";
@@ -83,14 +84,14 @@ export function IndustryLowongan() {
       <div className="flex justify-end mb-6">
         <Link
           href="/dashboard/industry/tambah_lowongan"
-          className="text-white bg-accent rounded-xl p-3 px-5 flex items-center space-x-2"
+          className="text-white bg-accent rounded-xl p-3 px-5 flex items-center space-x-2 shadow-md hover:bg-accent-hover"
         >
-          <CirclePlus className="w-5 h-5 " />
+          <CirclePlus className="w-5 h-5" />
           <span>Tambah Lowongan</span>
         </Link>
       </div>
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 p-6">
-        {jobOpenings.length !== 0 ? (
+        {jobOpenings &&
           jobOpenings.map((data) => (
             <Link
               href={`/dashboard/lowongan/${data.id}`}
@@ -140,11 +141,14 @@ export function IndustryLowongan() {
                 </span>
               </div>
             </Link>
-          ))
-        ) : (
-          <p className="text-center text-gray-500">
-            Anda belum membuat lowongan pekerjaan.
-          </p>
+          ))}
+        {jobOpenings.length === 0 && (
+          <div className="text-center py-12 col-span-2 ">
+            <XCircle className="w-12 h-12 text-red-500/50 mx-auto mb-4" />
+            <p className="text-gray-500">
+              Tidak ada lowongan magang yang ditemukan
+            </p>
+          </div>
         )}
       </div>
     </>

@@ -35,7 +35,8 @@ import { alertConfirm } from "@/libs/alert";
 interface MenuItem {
   icon: React.ComponentType<any>;
   label: string;
-  href: string;
+  href?: string;
+  children?: MenuItem[]; // Untuk dropdown
 }
 
 interface Profile {
@@ -247,18 +248,41 @@ export default function DashboardLayout({
           },
           {
             icon: Briefcase,
-            label: "Provinsi",
-            href: "/dashboard/provinsi",
+            label: "Master Data",
+            children: [
+              {
+                icon: Briefcase,
+                label: "Provinsi",
+                href: "/dashboard/provinsi",
+              },
+              {
+                icon: Briefcase,
+                label: "Kota/Kabupaten",
+                href: "/dashboard/kota-kabupaten",
+              },
+              { icon: Briefcase, label: "Sektor", href: "/dashboard/sektor" },
+              {
+                icon: Briefcase,
+                label: "Posisi Magang",
+                href: "/dashboard/sektor",
+              },
+              {
+                icon: Briefcase,
+                label: "Durasi Magang",
+                href: "/dashboard/sektor",
+              },
+              { icon: Briefcase, label: "Jurusan", href: "/dashboard/sektor" },
+              {
+                icon: Briefcase,
+                label: "Bidang Perusahaan",
+                href: "/dashboard/sektor",
+              },
+            ],
           },
           {
-            icon: Briefcase,
-            label: "Kota/Kabupaten",
-            href: "/dashboard/kota-kabupaten",
-          },
-          {
-            icon: Briefcase,
-            label: "Sektor",
-            href: "/dashboard/sektor",
+            icon: Award,
+            label: "Penghargaan",
+            href: "/dashboard/penghargaan",
           },
           {
             icon: User,
@@ -365,34 +389,34 @@ export default function DashboardLayout({
             </div>
           </div>
           {menuItems.map((item, index) => (
-            <Link
-              key={index}
-              href={item.href}
-              onClick={() => {
-                setMenuItems((prevItems) =>
-                  prevItems.map((prevItem) =>
-                    prevItem.label === item.label
-                      ? { ...prevItem, active: true }
-                      : { ...prevItem, active: false }
-                  )
-                );
-                setSidebarOpen(false);
-              }}
-              className={`flex rounded-xl items-center mx-6 p-3 my-3 text-gray-700 transition-colors ${
-                (
-                  item.href === "/dashboard"
-                    ? pathName === item.href // hanya match persis
-                    : pathName === item.href ||
-                      pathName.startsWith(item.href + "/")
-                )
-                  ? // match exact + anak
-                    "bg-accent !text-white shadow-lg font-bold"
-                  : "hover:bg-accent/10 hover:text-accent"
-              }`}
-            >
-              <item.icon className="w-5 h-5 mr-3" />
-              {item.label}
-            </Link>
+            <div key={index}>
+              {item.children ? (
+                <SidebarDropdownMenu
+                  item={item}
+                  pathName={pathName}
+                  setSidebarOpen={setSidebarOpen}
+                />
+              ) : (
+                <Link
+                  href={item.href!}
+                  onClick={() => setSidebarOpen(false)}
+                  className={`flex rounded-xl items-center mx-6 p-3 my-3 text-gray-700 transition-colors ${
+                    (
+                      item.href === "/dashboard"
+                        ? pathName === item.href
+                        : pathName === item.href ||
+                          pathName.startsWith(item.href + "/")
+                    )
+                      ? // match exact + anak
+                        "bg-accent !text-white shadow-lg font-bold"
+                      : "hover:bg-accent/10 hover:text-accent"
+                  }`}
+                >
+                  <item.icon className="w-5 h-5 mr-3" />
+                  {item.label}
+                </Link>
+              )}
+            </div>
           ))}
         </nav>
       </div>
@@ -504,6 +528,77 @@ export default function DashboardLayout({
           className="fixed inset-0 bg-black/50 z-40 lg:hidden"
           onClick={() => setSidebarOpen(false)}
         ></div>
+      )}
+    </div>
+  );
+}
+
+function SidebarDropdownMenu({
+  item,
+  pathName,
+  setSidebarOpen,
+}: {
+  item: MenuItem;
+  pathName: string;
+  setSidebarOpen: (open: boolean) => void;
+}) {
+  const [open, setOpen] = useState(false);
+
+  // Cek apakah salah satu child aktif
+  const isActive = item.children?.some(
+    (child) =>
+      pathName === child.href ||
+      (child.href && pathName.startsWith(child.href + "/"))
+  );
+
+  return (
+    <div className="mx-6 my-3">
+      <button
+        className={`flex w-full rounded-xl items-center p-3 text-gray-700 transition-colors ${
+          isActive
+            ? "bg-accent !text-white shadow-lg font-bold"
+            : "hover:bg-accent/10 hover:text-accent"
+        }`}
+        onClick={() => setOpen((prev) => !prev)}
+        type="button"
+      >
+        <item.icon className="w-5 h-5 mr-3" />
+        <span className="flex-1 text-left">{item.label}</span>
+        <svg
+          className={`w-4 h-4 ml-2 transition-transform ${
+            open ? "rotate-90" : ""
+          }`}
+          fill="none"
+          stroke="currentColor"
+          viewBox="0 0 24 24"
+        >
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            strokeWidth={2}
+            d="M9 5l7 7-7 7"
+          />
+        </svg>
+      </button>
+      {open && (
+        <div className="ml-6 mt-2 space-y-1">
+          {item.children?.map((child, idx) => (
+            <Link
+              key={idx}
+              href={child.href!}
+              onClick={() => setSidebarOpen(false)}
+              className={`flex items-center rounded-lg px-3 py-2 text-sm transition-colors ${
+                pathName === child.href ||
+                (child.href && pathName.startsWith(child.href + "/"))
+                  ? "bg-accent text-white font-bold"
+                  : "hover:bg-accent/10 hover:text-accent text-gray-700"
+              }`}
+            >
+              <child.icon className="w-4 h-4 mr-2" />
+              {child.label}
+            </Link>
+          ))}
+        </div>
       )}
     </div>
   );

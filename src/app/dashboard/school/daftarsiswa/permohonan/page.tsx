@@ -10,47 +10,108 @@ import {
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
+import { API, ENDPOINTS } from "../../../../../../utils/config";
+import Cookies from "js-cookie";
+import { AxiosError } from "axios";
+import { alertConfirm, alertError, alertSuccess } from "@/libs/alert";
 
-interface Task {
-  id: number;
-  title: string;
-  deadline: string;
-  status: "Sedang" | "Belum" | "Selesai";
-}
-const tasks: Task[] = [
-  {
-    id: 1,
-    title: "Analisis Sistem Informasi dikonoha",
-    deadline: "12-12-2025",
-    status: "Sedang",
-  },
-];
-const PermohonanSiswaPage: React.FC = () => {
-  const [activeTab, setActiveTab] = useState("Semua");
-  const [searchQuery, setSearchQuery] = useState("");
-  const tabs = ["Semua", "Belum", "Sedang", "Selesai"];
-  const router = useRouter();
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case "Sedang":
-        return "bg-green-100 text-green-800";
-      case "Belum":
-        return "bg-yellow-100 text-yellow-800";
-      case "Selesai":
-        return "bg-blue-100 text-blue-800";
-      default:
-        return "bg-gray-100 text-gray-800";
-    }
+interface Student {
+  id: string;
+  email: string;
+  student: {
+    name: string;
   };
+}
 
-  const fecthStudents = () => {
+const PermohonanSiswaPage: React.FC = () => {
+  const [searchQuery, setSearchQuery] = useState("");
+  const router = useRouter();
+
+  const [data, setData] = useState<Student[]>([]);
+
+  const fetchData = async () => {
     try {
+      const response = await API.get(`${ENDPOINTS.USERS}`, {
+        params: {
+          is_verified: false,
+          page: 1,
+          limit: 10,
+          role: "student",
+          search: searchQuery,
+        },
+        headers: {
+          Authorization: `Bearer ${Cookies.get("userToken")}`,
+        },
+      });
+      setData(response.data.data);
     } catch (error) {
       console.error(error);
     }
   };
 
-  useEffect(() => {}, []);
+  const handleAccept = async (userId: string) => {
+    const confirm = await alertConfirm(
+      "Apakah anda yakin ingin menerima siswa ini?"
+    );
+    if (!confirm) return;
+
+    try {
+      await API.post(
+        `${ENDPOINTS.USERS}/${userId}`,
+        {
+          _method: "PATCH",
+          is_verified: true,
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${Cookies.get("userToken")}`,
+          },
+        }
+      );
+      fetchData();
+      await alertSuccess("Siswa berhasil didaftarkan!");
+    } catch (error: AxiosError | unknown) {
+      if (error instanceof AxiosError) {
+        const responseError = error.response?.data.errors;
+        await alertError(responseError);
+      }
+      console.error(error);
+    }
+  };
+
+  const handleReject = async (userId: string) => {
+    const confirm = await alertConfirm(
+      "Apakah anda yakin ingin menolak siswa ini?"
+    );
+    if (!confirm) return;
+
+    try {
+      await API.post(
+        `${ENDPOINTS.USERS}/${userId}`,
+        {
+          _method: "PATCH",
+          is_verified: false,
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${Cookies.get("userToken")}`,
+          },
+        }
+      );
+      fetchData();
+      await alertSuccess("Siswa berhasil ditolak!");
+    } catch (error: AxiosError | unknown) {
+      if (error instanceof AxiosError) {
+        const responseError = error.response?.data.errors;
+        await alertError(responseError);
+      }
+      console.error(error);
+    }
+  };
+
+  useEffect(() => {
+    fetchData();
+  }, []);
 
   return (
     <main className="p-6">
@@ -80,7 +141,7 @@ const PermohonanSiswaPage: React.FC = () => {
           <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
           <input
             type="text"
-            placeholder="Cari Siswa..."
+            placeholder="Cari siswa yang sedang mendaftar..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             className="w-full bg-accent text-white placeholder-teal-200 pl-10 pr-4 py-3 rounded-t-2xl focus:outline-none focus:ring-2 focus:ring-teal-300"
@@ -103,26 +164,23 @@ const PermohonanSiswaPage: React.FC = () => {
               </tr>
             </thead>
             <tbody>
-              {tasks.map((task) => (
-                <tr key={task.id} className="border-b hover:bg-gray-50">
-                  <td className="p-4 text-gray-800">{task.id}</td>
-                  <td className="p-4 text-gray-800">{task.title}</td>
-                  <td className="p-4 text-gray-600">{task.deadline}</td>
-                  <td className="p-4">
-                    <span
-                      className={`px-3 py-1 rounded-full text-sm font-medium ${getStatusColor(
-                        task.status
-                      )}`}
-                    >
-                      {task.status}
-                    </span>
-                  </td>
-                  <td className="p-4">
+              {data.map((item, i) => (
+                <tr key={item.id} className="border-b hover:bg-gray-50">
+                  <td className="p-4 text-gray-800">{i + 1}</td>
+                  <td className="p-4 text-gray-800">{item.student.name}</td>
+                  <td className="p-4 text-gray-600">{item.email}</td>
+                  <td className="p-4 grid grid-cols-2 gap-2 w-48 ">
                     <button
-                      onClick={() => router.push("tasklist/tyd")}
-                      className="p-2 text-blue-600 hover:bg-blue-50 rounded-full transition-colors"
+                      onClick={() => handleAccept(item.id)}
+                      className="p-2 text-white hover:bg-green-600   bg-green-500 rounded-full transition-colors"
                     >
-                      <Info className="w-4 h-4" />
+                      Terima
+                    </button>
+                    <button
+                      onClick={() => handleReject(item.id)}
+                      className="p-2 text-white hover:bg-red-600 bg-red-500 rounded-full transition-colors"
+                    >
+                      Tolak
                     </button>
                   </td>
                 </tr>
@@ -131,11 +189,13 @@ const PermohonanSiswaPage: React.FC = () => {
           </table>
         </div>
 
-        {/* Empty State (if no tasks) */}
-        {tasks.length === 0 && (
+        {/* Empty State (if no data) */}
+        {data.length === 0 && (
           <div className="text-center py-12">
             <CheckSquare className="w-12 h-12 text-gray-300 mx-auto mb-4" />
-            <p className="text-gray-500">Tidak ada task yang ditemukan</p>
+            <p className="text-gray-500">
+              Tidak ada siswa yang sedang mendaftar ditemukan
+            </p>
           </div>
         )}
       </div>

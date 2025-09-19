@@ -16,6 +16,8 @@ import Cookies from "js-cookie";
 import { timeAgo } from "@/utils/timeAgo";
 import useDebounce from "@/hooks/useDebounce";
 import Image from "next/image";
+import PaginationComponent from "@/components/PaginationComponent";
+import { Page } from "@/models/pagination";
 
 interface InternshipApplicationCount {
   total: number;
@@ -68,6 +70,11 @@ interface Filter {
   duration_id: string;
 }
 
+// interface Page {
+//   activePage: number;
+//   page: number;
+// }
+
 export default function SiswaLowongan() {
   const [showFilter, setShowFilter] = useState<boolean>(true);
   const [filterData, setFilterData] = useState<Filter>({
@@ -90,6 +97,11 @@ export default function SiswaLowongan() {
   const [durations, setDurations] = useState<Duration[]>([]);
   const [inputSearch, setInputSearch] = useState<string>("");
   const debouncedQuery = useDebounce(inputSearch, 1000);
+  const [page, setPage] = useState<Page>({
+    activePage: 1,
+    pages: 1,
+  });
+  const [loading, setLoading] = useState<boolean>(false);
 
   const fetchInternshipAplicationCount = async () => {
     try {
@@ -109,10 +121,14 @@ export default function SiswaLowongan() {
     }
   };
 
-  const fetchJobOpenings = async () => {
+  const fetchJobOpenings = async (selectedPage = page.activePage) => {
+    if (loading) return;
+    setLoading(true);
     try {
       let params = {
         search: inputSearch,
+        page: selectedPage,
+        limit: 6,
       };
 
       if (showFilter) {
@@ -130,9 +146,15 @@ export default function SiswaLowongan() {
       if (response.status === 200) {
         console.log(response.data.data);
         setJobOpenings(response.data.data);
+        setPage({
+          activePage: selectedPage,
+          pages: response.data.last_page,
+        });
       }
     } catch (error) {
       console.log(error);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -232,7 +254,7 @@ export default function SiswaLowongan() {
     }
 
     fetchJobOpenings();
-  }, [debouncedQuery, filterData, showFilter]);
+  }, [debouncedQuery, filterData, showFilter, page.activePage]);
 
   const handleReset = () => {
     setFilterData({
@@ -244,10 +266,17 @@ export default function SiswaLowongan() {
     });
   };
 
+  const handlePageChange = (selectedPage: number) => {
+    setPage((prev) => ({
+      ...prev,
+      activePage: selectedPage,
+    }));
+  };
+
   return (
     <>
-      <div className=" mb-8">
-        <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-4 gap-4 mt-4">
+      <div className="mb-8">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mt-4">
           <div className="bg-white rounded-lg shadow-sm p-3 px-5 flex justify-between">
             <div className="text-accent-dark">
               <h1 className="font-extrabold  text-2xl">
@@ -287,14 +316,14 @@ export default function SiswaLowongan() {
         </div>
       </div>
       <div>
-        <div className="flex justify-between">
-          <div className="flex space-x-3 lg:pb-3  mb-3">
+        <div className="flex flex-col sm:flex-row sm:justify-between gap-3">
+          <div className="flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-3 lg:pb-3 mb-3">
             <input
               type="text"
               onChange={(e) => setInputSearch(e.target.value)}
               value={inputSearch}
               name="search"
-              className=" rounded-xl p-3  w-80 bg-white border border-gray-200 text-black"
+              className="rounded-xl p-3 w-full sm:w-80 bg-white border border-gray-200 text-black"
               placeholder="Cari Lowongan Magang"
             />
             <button
@@ -303,22 +332,22 @@ export default function SiswaLowongan() {
                 handleReset();
                 setShowFilter(!showFilter);
               }}
-              className="flex rounded-xl bg-white border border-accent text-accent hover:bg-accent transition-colors hover:text-white p-3"
+              className="flex rounded-xl bg-white border border-accent text-accent hover:bg-accent transition-colors hover:text-white p-3 items-center"
             >
-              <Funnel className="w-5 h-5" /> Filter
+              <Funnel className="w-5 h-5 mr-2" /> Filter
             </button>
           </div>
           <Link
             href={"/dashboard/lowongan/archive"}
-            className="flex bg-accent text-white p-3 max-h-12 items-center rounded-xl"
+            className="flex bg-accent text-white p-3 max-h-12 items-center rounded-xl justify-center"
           >
-            Tersimpan <Archive className="ml-5" />
+            Tersimpan <Archive className="ml-2" />
           </Link>
         </div>
         <div
           className={`${
             showFilter ? "grid" : "hidden"
-          } bg-white grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4 p-3 rounded-lg shadow-sm`}
+          } grid-cols-1 sm:grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4 p-3 rounded-lg shadow-sm bg-white mt-2`}
         >
           <select
             name="province_id"
@@ -415,12 +444,12 @@ export default function SiswaLowongan() {
           </button>
         </div>
       </div>
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 p-6">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 p-0 sm:p-6">
         {jobOpenings.map((job) => (
           <Link
             key={job.id}
             href={`lowongan/${job.id}`}
-            className="bg-white rounded-lg p-6 shadow-sm border border-gray-200 hover:shadow-md transition-shadow"
+            className="bg-white rounded-lg p-4 sm:p-6 shadow-sm border border-gray-200 hover:shadow-md transition-shadow flex flex-col"
           >
             <h3 className="font-semibold text-gray-900 text-lg mb-3">
               {job.title}
@@ -483,6 +512,14 @@ export default function SiswaLowongan() {
             </div>
           </Link>
         ))}
+      </div>
+      <div className="px-2 sm:px-6">
+        <PaginationComponent
+          activePage={page.activePage}
+          totalPages={page.pages}
+          onPageChange={handlePageChange}
+          loading={loading}
+        />
       </div>
     </>
   );

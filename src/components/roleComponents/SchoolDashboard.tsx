@@ -3,13 +3,10 @@ import {
   BriefcaseBusiness,
   Building,
   CircleArrowRight,
-  FileText,
-  Search,
   Users,
 } from "lucide-react";
 import RatingSummaryCompenent from "../RatingSummaryCompenent";
 import PieChartCompenent from "../Charts/PieChartCompenent";
-import BarChartComponent from "../Charts/BarChartCompenent";
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { RatingSummary } from "@/models/feedback";
@@ -59,11 +56,11 @@ export default function SchoolDashboard() {
 
   const fetchData = async () => {
     try {
-      // const internshipCount = API.get(`${ENDPOINTS.INTERNSHIPS}/count`, {
-      //   headers: {
-      //     Authorization: `Bearer ${Cookies.get("userToken")}`,
-      //   },
-      // });
+      const userpCount = API.get(`${ENDPOINTS.USERS}/count`, {
+        headers: {
+          Authorization: `Bearer ${Cookies.get("userToken")}`,
+        },
+      });
       const jobOpeningCount = API.get(`${ENDPOINTS.JOB_OPENINGS}/count`, {
         headers: {
           Authorization: `Bearer ${Cookies.get("userToken")}`,
@@ -82,9 +79,7 @@ export default function SchoolDashboard() {
         },
       });
       const response = await Promise.all([
-        jobOpeningCount,
-        jobOpeningCount,
-        jobOpeningCount,
+        userpCount,
         jobOpeningCount,
         achievementCount,
         rating,
@@ -92,13 +87,14 @@ export default function SchoolDashboard() {
 
       console.log(response);
       setSummary({
-        student_count: response[0].data.data,
-        student_internship_count: response[1].data.data,
-        job_opening_count: response[2].data.data,
-        company_count: response[3].data.data,
-        achievement_count: response[4].data.data,
+        student_count: response[0].data.data.student_count,
+        student_internship_count:
+          response[0].data.data.total_student_internship,
+        job_opening_count: response[1].data.data,
+        company_count: response[0].data.data.company_count,
+        achievement_count: response[2].data.data,
       });
-      setRatingSummary(response[5].data.data);
+      setRatingSummary(response[3].data.data);
     } catch (error) {
       console.error(error);
     }

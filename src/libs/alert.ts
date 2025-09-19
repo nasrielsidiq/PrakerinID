@@ -1,10 +1,11 @@
 import Swal from "sweetalert2";
 
-export const alertSuccess = async (message: string) => {
+export const alertSuccess = async (message: string, timer: number = 3000) => {
   return toast.fire({
     icon: "success",
     title: "Berhasil",
     text: message,
+    timer: timer,
   });
 };
 
@@ -13,6 +14,7 @@ export const alertError = async (message: string) => {
     icon: "error",
     title: "Gagal",
     text: message,
+    timer: 3000,
   });
 };
 
@@ -38,6 +40,5 @@ const toast = Swal.mixin({
     popup: "colored-toast",
   },
   showConfirmButton: false,
-  timer: 3000,
   timerProgressBar: true,
 });

@@ -16,13 +16,15 @@ const LowonganPage: React.FC = () => {
     if (role === "school") return null;
   };
   return (
-    <main className=" p-6">
-      <h1 className="text-accent-dark text-sm mb-5">Lowongan</h1>
-      <div className="flex items-center  space-x-2 font-extrabold text-accent">
+    <main className="p-4 sm:p-6 md:p-8">
+      <h1 className="text-accent-dark text-xs sm:text-sm mb-3 sm:mb-5">Lowongan</h1>
+      <div className="flex flex-col sm:flex-row sm:items-center gap-2 font-extrabold text-accent">
         <BriefcaseBusiness className="w-5 h-5" />
-        <h2 className="text-2xl mt-2">Lowongan Magang</h2>
+        <h2 className="text-xl sm:text-2xl mt-1 sm:mt-2">Lowongan Magang</h2>
       </div>
-      <RolePage />
+      <div className="mt-4 sm:mt-6">
+        <RolePage />
+      </div>
     </main>
   );
 };
