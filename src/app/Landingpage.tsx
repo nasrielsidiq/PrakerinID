@@ -1,5 +1,13 @@
 "use client";
 
+import {
+  ArrowRight,
+  CheckCircle,
+  CheckCircle2,
+  Inbox,
+  Search,
+  Users2,
+} from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
@@ -33,47 +41,21 @@ export default function LandingPage() {
               lamar, dan mulai perjalanan kariermu bersama kami.
             </p>
 
-            <div className="flex flex-col sm:flex-row gap-4 mt-8">
-              <div className="relative flex border border-gray-300 rounded-full items-center">
-                <div className="relative flex-1">
-                  <input
-                    type="text"
-                    onChange={(e) => setInputSearch(e.target.value)}
-                    value={inputSearch}
-                    placeholder="Cari lowongan magang impian anda..."
-                    className="w-full px-4 py-3 pl-12 focus:outline-none focus:ring-2 focus:ring-prakerin focus:border-transparent transition-all duration-300"
-                  />
-                  <svg
-                    className="absolute left-4 top-3.5 w-5 h-5 text-gray-400"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth="2"
-                      d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
-                    ></path>
-                  </svg>
-                </div>
-                <button
-                  onClick={handleSearch}
-                  className="relative bg-accent-dark w-8 h-8 ms-4 me-2 rounded-full text-white hover:bg-prakerin-dark transition-all duration-300 transform hover:scale-105 shadow-lg"
-                >
-                  <svg
-                    className="absolute inset-0 w-8 h-8 m-auto"
-                    xmlns="http://www.w3.org/2000/svg"
-                    fill="currentColor"
-                    viewBox="0 0 16 16"
-                  >
-                    <path
-                      fillRule="evenodd"
-                      d="M4 8a.5.5 0 0 1 .5-.5h5.793L8.146 5.354a.5.5 0 1 1 .708-.708l3 3a.5.5 0 0 1 0 .708l-3 3a.5.5 0 0 1-.708-.708L10.293 8.5H4.5A.5.5 0 0 1 4 8"
-                    />
-                  </svg>
-                </button>
-              </div>
+            <div className="relative items-center rounded-full shadow-md border border-gray-200 bg-gray-200/50 flex mt-8">
+              <input
+                type="text"
+                onChange={(e) => setInputSearch(e.target.value)}
+                value={inputSearch}
+                placeholder="Cari lowongan magang impian anda..."
+                className="w-full pl-12 pr-14 py-3 focus:outline-none focus:ring-2 focus:ring-accent focus:border-transparent transition-all duration-300 rounded-full"
+              />
+              <Search className="absolute left-4 w-5 h-5 text-gray-400" />
+              <button
+                onClick={handleSearch}
+                className="absolute right-4 bg-accent-dark w-8 h-8  rounded-full text-white hover:bg-prakerin-dark transition-all duration-300 transform hover:scale-105 shadow-lg"
+              >
+                <ArrowRight className=" w-6 h-6 m-auto" />
+              </button>
             </div>
 
             <div className="flex flex-wrap gap-2 mt-6">
@@ -126,19 +108,7 @@ export default function LandingPage() {
             <div className="space-y-8">
               <div className="flex items-start space-x-4 animate-fade-in-up">
                 <div className="w-12 h-12 md:w-16 md:h-16 bg-white/20 rounded-full flex items-center justify-center flex-shrink-0">
-                  <svg
-                    className="w-6 h-6 md:w-8 md:h-8 text-white"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
-                    />
-                  </svg>
+                  <CheckCircle2 className="w-6 h-6 md:w-8 md:h-8 text-white" />
                 </div>
                 <div>
                   <h3 className="text-lg md:text-xl font-bold mb-2">
@@ -153,19 +123,7 @@ export default function LandingPage() {
 
               <div className="flex items-start space-x-4 animate-fade-in-up animate-delay-200">
                 <div className="w-12 h-12 md:w-16 md:h-16 bg-white/20 rounded-full flex items-center justify-center flex-shrink-0">
-                  <svg
-                    className="w-6 h-6 md:w-8 md:h-8 text-white"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"
-                    />
-                  </svg>
+                  <Users2 className="w-6 h-6 md:w-8 md:h-8 text-white" />
                 </div>
                 <div>
                   <h3 className="text-lg md:text-xl font-bold mb-2">
@@ -180,19 +138,7 @@ export default function LandingPage() {
 
               <div className="flex items-start space-x-4 animate-fade-in-up animate-delay-400">
                 <div className="w-12 h-12 md:w-16 md:h-16 bg-white/20 rounded-full flex items-center justify-center flex-shrink-0">
-                  <svg
-                    className="w-6 h-6 md:w-8 md:h-8 text-white"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"
-                    />
-                  </svg>
+                  <Inbox className="w-6 h-6 md:w-8 md:h-8 text-white" />
                 </div>
                 <div>
                   <h3 className="text-lg md:text-xl font-bold mb-2">
@@ -211,6 +157,9 @@ export default function LandingPage() {
                 <div className="aspect-video bg-gradient-to-br from-gray-100 to-gray-200 rounded-xl mb-4 flex items-center justify-center">
                   <div className="text-center">
                     <div className="w-12 h-12 md:w-16 md:h-16 bg-prakerin rounded-full flex items-center justify-center mx-auto mb-4">
+                      <video>
+                        <source />
+                      </video>
                       <svg
                         className="w-6 h-6 md:w-8 md:h-8 text-white"
                         fill="none"

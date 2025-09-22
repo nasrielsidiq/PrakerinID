@@ -1,5 +1,4 @@
 "use client";
-import ThemeToggle from "@/components/themeToggle";
 import Link from "next/link";
 import PrakerinRegistrationSiswaForm from "./AsSiswa";
 import { useState } from "react";

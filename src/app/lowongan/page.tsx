@@ -72,7 +72,7 @@ export default function InternshipPage() {
           //     durasi: filters.durasi.join(","),
           // }
         });
-        setData(response.data.data);
+        // setData(response.data.data);
         console.log("Data fetched successfully:", response.data.data);
       } catch (error) {
         console.error("Error fetching data:", error);

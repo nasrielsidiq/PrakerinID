@@ -1,11 +1,10 @@
-'use client';
+"use client";
 
-import dynamic from 'next/dynamic';
-import { useState } from 'react';
-import type { EditorProps } from '@/components/Editor';
-import ThemeToggle from '@/components/themeToggle';
+import dynamic from "next/dynamic";
+import { useState } from "react";
+import type { EditorProps } from "@/components/Editor";
 
-const Editor = dynamic<EditorProps>(() => import('@/components/Editor'), {
+const Editor = dynamic<EditorProps>(() => import("@/components/Editor"), {
   ssr: false,
 });
 
@@ -14,14 +13,11 @@ export default function EditorPage() {
 
   const handleEditorChange = (data: any) => {
     setEditorData(data);
-    console.log('Editor data:', data);
+    console.log("Editor data:", data);
   };
 
   return (
     <>
-      <div className="hidden">
-        <ThemeToggle />
-      </div>
       <div className="max-w-3xl mx-auto p-4">
         <h1 className="text-2xl font-bold mb-4">Halaman Editor</h1>
         <Editor onChange={handleEditorChange} />
