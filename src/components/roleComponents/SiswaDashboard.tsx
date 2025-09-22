@@ -2,6 +2,8 @@ import { BriefcaseBusiness, Building, MapPin } from "lucide-react";
 import { useEffect, useState } from "react";
 import { API, ENDPOINTS } from "../../../utils/config";
 import Cookies from "js-cookie";
+import { AxiosError } from "axios";
+import { alertError } from "@/libs/alert";
 
 interface JobApplication {
   id: string;
@@ -41,7 +43,21 @@ interface InternshipApplication {
   };
 }
 
+interface Profile {
+  student: {
+    status: Status;
+  };
+}
+
+type Status = "not_started" | "ongoing" | "completed" | "";
+
 export default function SiswaDashboard() {
+  const [profile, setProfile] = useState<Profile>({
+    student: {
+      status: "",
+    },
+  });
+
   const jobApplications: JobApplication[] = [
     {
       id: "1",
@@ -54,45 +70,6 @@ export default function SiswaDashboard() {
         { name: "Pending", date: "03-06-2025", completed: true },
         { name: "Test", date: "05-06-2025", completed: true },
         { name: "Ditolak", date: "06-06-2025", completed: false },
-      ],
-    },
-    {
-      id: "2",
-      title: "Backend Web Developer",
-      company: "PT Makerindo Prima Solusi",
-      location: "Kabupaten Bandung, Jawa Barat",
-      currentStep: 3,
-      steps: [
-        { name: "Apply", date: "02-06-2025", completed: true },
-        { name: "Pending", date: "03-06-2025", completed: true },
-        { name: "Test", date: "05-06-2025", completed: true },
-        { name: "Ditolak", date: "06-06-2025", completed: false },
-      ],
-    },
-    {
-      id: "3",
-      title: "Frontend Web Developer",
-      company: "Instagram",
-      location: "Kabupaten Bandung, Jawa Barat",
-      currentStep: 2,
-      steps: [
-        { name: "Apply", date: "02-06-2025", completed: true },
-        { name: "Pending", date: "03-06-2025", completed: true },
-        { name: "Test", date: "05-06-2025", completed: false },
-        { name: "Interview", date: "", completed: false },
-      ],
-    },
-    {
-      id: "4",
-      title: "Frontend Web Developer",
-      company: "PT BNI",
-      location: "Kabupaten Bandung, Jawa Barat",
-      currentStep: 2,
-      steps: [
-        { name: "Apply", date: "02-06-2025", completed: true },
-        { name: "Pending", date: "03-06-2025", completed: true },
-        { name: "Test", date: "05-06-2025", completed: false },
-        { name: "Interview", date: "", completed: false },
       ],
     },
   ];
@@ -127,9 +104,7 @@ export default function SiswaDashboard() {
           },
         }
       );
-      if (response.status === 200) {
-        setInternshipApplicationCount(response.data.data);
-      }
+      setInternshipApplicationCount(response.data.data);
     } catch (error) {
       console.log(error);
     }
@@ -143,9 +118,7 @@ export default function SiswaDashboard() {
         },
       });
 
-      if (response.status === 200) {
-        setInternshipApplication(response.data.data);
-      }
+      setInternshipApplication(response.data.data);
 
       console.log("Internship Applications:", response.data.data);
     } catch (error) {
@@ -153,10 +126,53 @@ export default function SiswaDashboard() {
     }
   };
 
+  const fetchData = async () => {
+    try {
+      const response = await API.get(`${ENDPOINTS.USERS}/profile`, {
+        headers: {
+          Authorization: `Bearer ${Cookies.get("userToken")}`,
+        },
+      });
+
+      setProfile(response.data.data);
+      console.log(response.data.data);
+    } catch (error: AxiosError | unknown) {
+      if (error instanceof AxiosError) {
+        const responseError = error.response?.data.errors;
+        await alertError(responseError);
+      }
+      console.error(error);
+    }
+  };
+
+  const getStatus = (status: Status) => {
+    switch (status) {
+      case "completed":
+        return (
+          <span className="bg-teal-100 text-teal-800 text-xs font-medium px-2.5 py-0.5 rounded">
+            Selesai Magang
+          </span>
+        );
+      case "not_started":
+        return (
+          <span className="bg-teal-100 text-teal-800 text-xs font-medium px-2.5 py-0.5 rounded">
+            Mencari Magang
+          </span>
+        );
+      case "ongoing":
+        return (
+          <span className="bg-teal-100 text-teal-800 text-xs font-medium px-2.5 py-0.5 rounded">
+            Sedang Magang
+          </span>
+        );
+    }
+  };
+
   useEffect(() => {
     Promise.all([
       fetchIntermshipApplications(),
       fetchInternshipAplicationCount(),
+      fetchData(),
     ]);
   }, []);
   return (
@@ -173,9 +189,7 @@ export default function SiswaDashboard() {
           </p>
           <div className="flex items-center space-x-2">
             <span className="text-sm text-gray-600">Status:</span>
-            <span className="bg-teal-100 text-teal-800 text-xs font-medium px-2.5 py-0.5 rounded">
-              Mencari Magang
-            </span>
+            {getStatus(profile.student.status)}
           </div>
         </div>
       </div>
@@ -204,8 +218,8 @@ export default function SiswaDashboard() {
                 </div>
               </div> */}
 
-              {/* Progress Steps */}
-              {/* <div className="relative">
+          {/* Progress Steps */}
+          {/* <div className="relative">
                 <div className="flex justify-between items-center">
                   {application.steps.map((step, stepIndex) => (
                     <div
@@ -231,8 +245,8 @@ export default function SiswaDashboard() {
                   ))}
                 </div> */}
 
-              {/* Progress Line */}
-              {/* <div className="absolute top-4 left-4 right-4 h-0.5 bg-gray-300 z-1">
+          {/* Progress Line */}
+          {/* <div className="absolute top-4 left-4 right-4 h-0.5 bg-gray-300 z-1">
                   <div
                     className="h-full bg-teal-500 transition-all duration-300"
                     style={{
@@ -245,8 +259,8 @@ export default function SiswaDashboard() {
                   ></div>
                 </div> */}
 
-              {/* </div> */}
-            {/* </div>
+          {/* </div> */}
+          {/* </div>
           ))} */}
 
           {jobApplications.map((application) => (

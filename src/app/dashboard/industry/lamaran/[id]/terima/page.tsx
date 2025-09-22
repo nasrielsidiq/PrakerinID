@@ -1,11 +1,5 @@
 "use client";
-import {
-  BriefcaseBusiness,
-  Globe,
-  Lock,
-  MapPin,
-  UserCircle,
-} from "lucide-react";
+import { BriefcaseBusiness, UserCircle } from "lucide-react";
 import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
 import { use, useEffect, useLayoutEffect, useState } from "react";
@@ -13,6 +7,8 @@ import Cookies from "js-cookie";
 import RenderBlocks from "@/components/RenderBlocks";
 import Image from "next/image";
 import { API, ENDPOINTS } from "../../../../../../../utils/config";
+import { AxiosError } from "axios";
+import { alertConfirm, alertError, alertSuccess } from "@/libs/alert";
 
 interface Application {
   user: {
@@ -30,6 +26,8 @@ interface Application {
 }
 
 const detailLamaran = ({ params }: { params: Promise<{ id: string }> }) => {
+  const router = useRouter();
+
   const [application, setApplication] = useState<Application>({
     user: {
       email: "",
@@ -45,7 +43,6 @@ const detailLamaran = ({ params }: { params: Promise<{ id: string }> }) => {
     },
   });
   const { id } = use(params);
-  const router = useRouter();
 
   const fetchData = async () => {
     try {
@@ -67,6 +64,42 @@ const detailLamaran = ({ params }: { params: Promise<{ id: string }> }) => {
   useEffect(() => {
     fetchData();
   }, []);
+
+  const handleAccept = async () => {
+    const confirm = await alertConfirm(
+      "Apakah anda yakin akan lamaran magang ini menerima?"
+    );
+    if (!confirm) return;
+    try {
+      await API.patch(
+        `${ENDPOINTS.INTERNSHIP_APPLICATIONS}/${id}`,
+        {
+          status: "accepted",
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${Cookies.get("userToken")}`,
+          },
+        }
+      );
+
+      await alertSuccess("Anda telah menerima lamaran magang ini!");
+
+      router.push("/dashboard/industry/lamaran");
+
+      router;
+    } catch (error: AxiosError | unknown) {
+      if (error instanceof AxiosError) {
+        const responseError = error.response?.data.errors;
+        if (typeof responseError === "string") {
+          await alertError(responseError);
+        } else {
+          // setErrors(responseError);
+        }
+      }
+      console.error(error);
+    }
+  };
 
   return (
     <main className="p-6">
@@ -151,12 +184,13 @@ const detailLamaran = ({ params }: { params: Promise<{ id: string }> }) => {
           >
             Kembali
           </Link>
-          <Link
-            href={`/dashboard/industry/lamaran/${id}/reject`}
+          <button
+            type="button"
+            onClick={handleAccept}
             className="p-3 px-5 bg-accent text-gray-100 rounded-xl hover:bg-accent-hover "
           >
             Terima Lamaran
-          </Link>
+          </button>
         </div>
       </div>
     </main>

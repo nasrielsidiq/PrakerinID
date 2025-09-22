@@ -31,7 +31,7 @@ const PaginationComponent: React.FC<PaginationProps> = ({
   // }
 
   return (
-    <div className="grid grid-cols-5 bg-white border-1 border-gray-200 h-10 w-[200px] m-auto me-0 mt-5 rounded-xl overflow-hidden justify-items-stretch">
+    <div className={`${totalPages === 1 ? 'hidden':null} grid grid-cols-5 bg-white border-1 border-gray-200 h-10 w-[200px] m-auto me-0 mt-5 rounded-xl overflow-hidden justify-items-stretch`}>
       <button
         className="bg-accent hover:bg-accent-hover cursor-pointer text-white px-3 disabled:cursor-not-allowed disabled:bg-gray-300"
         disabled={loading || activePage === 1 ? true : false}

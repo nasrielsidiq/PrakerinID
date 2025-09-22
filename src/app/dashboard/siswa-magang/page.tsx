@@ -10,6 +10,7 @@ import { useRouter } from "next/navigation";
 import { Timestamp } from "next/dist/server/lib/cache-handlers/types";
 import Image from "next/image";
 import { timeAgo } from "@/utils/timeAgo";
+import NotFoundCompoenent from "@/components/NotFoundCompoenent";
 
 interface Lowongan {
   title: string;
@@ -40,59 +41,13 @@ interface JobOpening {
   };
 }
 
-const LowonganPage: React.FC = () => {
+const SiswMagangPage: React.FC = () => {
   const [role, setRole] = useState<string>();
-  useEffect(() => {
-    fetchJobOpenings();
-    setRole(Cookies.get("authorization"));
-  }, []);
 
   const route = useRouter();
   const [jobOpenings, setJobOpenings] = useState<JobOpening[]>([]);
-  const [lowongan, setLowongan] = useState<Lowongan[]>([
-    {
-      title: "Social Media Marketing",
-      icon: null,
-      name: "Makerindo Prima Solusi",
-      kota: "Bandung",
-      provinsi: "Jawa Barat",
-      time: 1,
-    },
-    {
-      title: "Social Media Marketing",
-      icon: null,
-      name: "Makerindo Prima Solusi",
-      kota: "Bandung",
-      provinsi: "Jawa Barat",
-      time: 1,
-    },
-    {
-      title: "Social Media Marketing",
-      icon: null,
-      name: "Makerindo Prima Solusi",
-      kota: "Bandung",
-      provinsi: "Jawa Barat",
-      time: 1,
-    },
-    {
-      title: "Social Media Marketing",
-      icon: null,
-      name: "Makerindo Prima Solusi",
-      kota: "Bandung",
-      provinsi: "Jawa Barat",
-      time: 1,
-    },
-    {
-      title: "Social Media Marketing",
-      icon: null,
-      name: "Makerindo Prima Solusi",
-      kota: "Bandung",
-      provinsi: "Jawa Barat",
-      time: 1,
-    },
-  ]);
 
-  const fetchJobOpenings = async () => {
+  const fetchData = async () => {
     try {
       // let params = {
       //   search: inputSearch,
@@ -102,7 +57,8 @@ const LowonganPage: React.FC = () => {
       //   params = { ...params, ...filterData };
       // }
 
-      const response = await API.get(ENDPOINTS.JOB_OPENINGS, {
+      const response = await API.get(ENDPOINTS.USERS, {
+        params: {},
         headers: {
           Authorization: `Bearer ${Cookies.get("userToken")}`,
         },
@@ -116,6 +72,11 @@ const LowonganPage: React.FC = () => {
       console.log(error);
     }
   };
+
+  useEffect(() => {
+    fetchData();
+    setRole(Cookies.get("authorization"));
+  }, []);
 
   return (
     <main className=" p-6">
@@ -177,12 +138,12 @@ const LowonganPage: React.FC = () => {
             </Link>
           ))
         ) : (
-          <p className="text-center text-gray-500">
-            Anda belum memiliki siswa magang.
-          </p>
+          <div className="text-center py-12 col-span-2 ">
+            <NotFoundCompoenent text="Anda belum memiliki siswa magang." />
+          </div>
         )}
       </div>
     </main>
   );
 };
-export default LowonganPage;
+export default SiswMagangPage;

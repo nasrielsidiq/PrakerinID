@@ -28,7 +28,10 @@ interface Application {
   } | null;
   cover_letter: string;
   cv_id: string;
+  status: Status;
 }
+
+type Status = "in_progress" | "accepted" | "rejected" | "";
 
 const detailLamaran = ({ params }: { params: Promise<{ id: string }> }) => {
   const [application, setApplication] = useState<Application>({
@@ -45,6 +48,7 @@ const detailLamaran = ({ params }: { params: Promise<{ id: string }> }) => {
     },
     cover_letter: "",
     cv_id: "",
+    status: "",
   });
   const { id } = use(params);
   const router = useRouter();
@@ -164,26 +168,30 @@ const detailLamaran = ({ params }: { params: Promise<{ id: string }> }) => {
           >
             Kembali
           </Link>
-          <Link
-            href={`/dashboard/industry/lamaran/${id}/tolak`}
-            className="p-3 px-5 bg-red-500 text-gray-100 rounded-xl hover:bg-red-600 "
-          >
-            Tolak Lamaran
-          </Link>
-          {true ? (
-            <Link
-              href={`/dashboard/industry/lamaran/${id}/terima`}
-              className="p-3 px-5 bg-accent text-gray-100 rounded-xl hover:bg-accent-hover "
-            >
-              Terima Lamaran
-            </Link>
-          ) : (
-            <Link
-              href={`/dashboard/industry/lamaran/${id}/accept`}
-              className="p-3 px-5 bg-accent text-gray-100 rounded-xl hover:bg-accent-hover "
-            >
-              Jadwalkan Test
-            </Link>
+          {application.status === "in_progress" && (
+            <>
+              <Link
+                href={`/dashboard/industry/lamaran/${id}/tolak`}
+                className="p-3 px-5 bg-red-500 text-gray-100 rounded-xl hover:bg-red-600 "
+              >
+                Tolak Lamaran
+              </Link>
+              {true ? (
+                <Link
+                  href={`/dashboard/industry/lamaran/${id}/terima`}
+                  className="p-3 px-5 bg-accent text-gray-100 rounded-xl hover:bg-accent-hover "
+                >
+                  Terima Lamaran
+                </Link>
+              ) : (
+                <Link
+                  href={`/dashboard/industry/lamaran/${id}/tes`}
+                  className="p-3 px-5 bg-accent text-gray-100 rounded-xl hover:bg-accent-hover "
+                >
+                  Jadwalkan Test
+                </Link>
+              )}
+            </>
           )}
         </div>
       </div>

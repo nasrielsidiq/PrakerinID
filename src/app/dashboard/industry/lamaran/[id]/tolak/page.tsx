@@ -13,6 +13,8 @@ import Cookies from "js-cookie";
 import RenderBlocks from "@/components/RenderBlocks";
 import Image from "next/image";
 import { API, ENDPOINTS } from "../../../../../../../utils/config";
+import { alertConfirm, alertError, alertSuccess } from "@/libs/alert";
+import { AxiosError } from "axios";
 
 interface Application {
   user: {
@@ -56,7 +58,7 @@ const detailLamaran = ({ params }: { params: Promise<{ id: string }> }) => {
             Authorization: `Bearer ${Cookies.get("userToken")}`,
           },
         }
-      ); // ini nanti dipakai di <embed>
+      );
 
       console.log(response);
       setApplication(response.data.data);
@@ -67,6 +69,43 @@ const detailLamaran = ({ params }: { params: Promise<{ id: string }> }) => {
   useEffect(() => {
     fetchData();
   }, []);
+
+  const handleReject = async () => {
+    const confirm = await alertConfirm(
+      "Apakah anda yakin akan menolak lamaran magang ini menerima?"
+    );
+    if (!confirm) return;
+    try {
+      await API.patch(
+        `${ENDPOINTS.INTERNSHIP_APPLICATIONS}/${id}`,
+        {
+          status: "rejected",
+          
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${Cookies.get("userToken")}`,
+          },
+        }
+      );
+
+      await alertSuccess("Anda telah menerima menolak lamaran magang ini!");
+
+      router.push("/dashboard/industry/lamaran");
+
+      router;
+    } catch (error: AxiosError | unknown) {
+      if (error instanceof AxiosError) {
+        const responseError = error.response?.data.errors;
+        if (typeof responseError === "string") {
+          await alertError(responseError);
+        } else {
+          // setErrors(responseError);
+        }
+      }
+      console.error(error);
+    }
+  };
 
   return (
     <main className="p-6">
@@ -151,12 +190,13 @@ const detailLamaran = ({ params }: { params: Promise<{ id: string }> }) => {
           >
             Kembali
           </Link>
-          <Link
-            href={`/dashboard/industry/lamaran/${id}/reject`}
+          <button
+            type="button"
+            onClick={handleReject}
             className="p-3 px-5 bg-red-500 text-gray-100 rounded-xl hover:bg-red-600 "
           >
             Tolak Lamaran
-          </Link>
+          </button>
         </div>
       </div>
     </main>

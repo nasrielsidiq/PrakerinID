@@ -15,6 +15,7 @@ import Cookies from "js-cookie";
 import { timeAgo } from "@/utils/timeAgo";
 import Link from "next/link";
 import Image from "next/image";
+import NotFoundCompoenent from "../NotFoundCompoenent";
 
 interface Lowongan {
   title: string;
@@ -144,10 +145,7 @@ export function IndustryLowongan() {
           ))}
         {jobOpenings.length === 0 && (
           <div className="text-center py-12 col-span-2 ">
-            <XCircle className="w-12 h-12 text-red-500/50 mx-auto mb-4" />
-            <p className="text-gray-500">
-              Tidak ada lowongan magang yang ditemukan
-            </p>
+            <NotFoundCompoenent text="Tidak ada lowongan magang yang ditemukan" />
           </div>
         )}
       </div>

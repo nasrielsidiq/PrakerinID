@@ -13,6 +13,7 @@ import { API, ENDPOINTS } from "../../../../utils/config";
 import Cookies from "js-cookie";
 import useDebounce from "@/hooks/useDebounce";
 import Link from "next/link";
+import NotFoundCompoenent from "@/components/NotFoundCompoenent";
 
 interface Task {
   id: number;
@@ -152,29 +153,29 @@ const TasklistPage: React.FC = () => {
               </tr>
             </thead>
             <tbody>
-              {tasks.map((task, index) => (
-                <tr key={task.id} className="border-b hover:bg-gray-50">
-                  <td className="p-4 text-gray-800">{index + 1}</td>
-                  <td className="p-4 text-gray-800">{task.title}</td>
-                  <td className="p-4">
-                    <button
-                      onClick={() => router.push(`tasklist/${task.id}`)}
-                      className="p-2 text-blue-600 hover:bg-blue-50 rounded-full transition-colors cursor-pointer"
-                    >
-                      <Info className="w-4 h-4" />
-                    </button>
-                  </td>
-                </tr>
-              ))}
+              {tasks.length &&
+                tasks.map((task, index) => (
+                  <tr key={task.id} className="border-b hover:bg-gray-50">
+                    <td className="p-4 text-gray-800">{index + 1}</td>
+                    <td className="p-4 text-gray-800">{task.title}</td>
+                    <td className="p-4">
+                      <button
+                        onClick={() => router.push(`tasklist/${task.id}`)}
+                        className="p-2 text-blue-600 hover:bg-blue-50 rounded-full transition-colors cursor-pointer"
+                      >
+                        <Info className="w-4 h-4" />
+                      </button>
+                    </td>
+                  </tr>
+                ))}
             </tbody>
           </table>
         </div>
 
         {/* Empty State (if no tasks) */}
         {tasks.length === 0 && (
-          <div className="text-center py-12">
-            <CheckSquare className="w-12 h-12 text-gray-300 mx-auto mb-4" />
-            <p className="text-gray-500">Tidak ada task yang ditemukan</p>
+          <div className="text-center py-12 col-span-2 ">
+            <NotFoundCompoenent text="Anda belum memiliki tes." />
           </div>
         )}
       </div>
