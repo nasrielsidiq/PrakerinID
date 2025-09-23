@@ -15,6 +15,7 @@ import { API, ENDPOINTS } from "../../../../../utils/config";
 import Cookies from "js-cookie";
 import useDebounce from "@/hooks/useDebounce";
 import Link from "next/link";
+import NotFoundCompoenent from "@/components/NotFoundCompoenent";
 
 interface Lamaran {
   id: number;
@@ -271,9 +272,8 @@ const lamaranPage: React.FC = () => {
         </div>
 
         {internshipApplications.length === 0 && (
-          <div className="p-8 text-center text-gray-500">
-            <FileText size={48} className="mx-auto mb-4 text-gray-300" />
-            <p>Tidak ada lamaran yang ditemukan</p>
+          <div className="text-center py-12 col-span-2 ">
+            <NotFoundCompoenent text="Belum ada orang yang melamar." />
           </div>
         )}
       </div>

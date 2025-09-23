@@ -30,7 +30,8 @@ import {
   CalendarClock,
   GraduationCap,
   BriefcaseBusiness,
-  Map, // TAMBAHKAN: LogOut
+  Map,
+  ClipboardCheck, // TAMBAHKAN: LogOut
 } from "lucide-react";
 import Link from "next/link";
 import Cookies from "js-cookie";
@@ -120,7 +121,7 @@ export default function DashboardLayout({
             href: "/dashboard/perusahaan",
           },
           {
-            icon: CheckSquare,
+            icon: ClipboardCheck,
             label: "Daftar Tugas",
             href: "/dashboard/tasklist",
           },
@@ -134,7 +135,7 @@ export default function DashboardLayout({
             label: "Sertifikat",
             href: "/dashboard/sertifikat",
           },
-          { icon: User, label: "Profile", href: "/dashboard/profile" },
+          { icon: User, label: "Profil", href: "/dashboard/profile" },
         ]);
         break;
       case "company":
@@ -165,7 +166,7 @@ export default function DashboardLayout({
             href: "/dashboard/industry/lamaran",
           },
           {
-            icon: CheckSquare,
+            icon: ClipboardCheck,
             label: "Daftar Tugas",
             href: "/dashboard/tasklist",
           },
@@ -192,7 +193,7 @@ export default function DashboardLayout({
 
           {
             icon: User,
-            label: "Profile",
+            label: "Profil",
             href: "/dashboard/profile",
           },
         ]);
@@ -232,7 +233,7 @@ export default function DashboardLayout({
           },
           {
             icon: User,
-            label: "Profile",
+            label: "Profil",
             href: "/dashboard/profile",
           },
         ]);
@@ -299,7 +300,7 @@ export default function DashboardLayout({
           },
           {
             icon: User,
-            label: "Profile",
+            label: "Profil",
             href: "/dashboard/profile",
           },
         ]);

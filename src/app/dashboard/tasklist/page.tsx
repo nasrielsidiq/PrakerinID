@@ -12,6 +12,7 @@ import { API, ENDPOINTS } from "../../../../utils/config";
 import Cookies from "js-cookie";
 import useDebounce from "@/hooks/useDebounce";
 import Link from "next/link";
+import NotFoundCompoenent from "@/components/NotFoundCompoenent";
 
 interface Task {
   id: number;
@@ -118,11 +119,11 @@ const TasklistPage: React.FC = () => {
     <main className="p-6">
       {/* Page Header */}
       <div className="mb-6">
-        <h1 className="text-accent-dark text-sm mb-5">Tasklist</h1>
+        <h1 className="text-accent-dark text-sm mb-5">Daftar Tugas</h1>
         <div className="mb-8">
           <div className="flex items-center space-x-2 font-extrabold text-accent">
             <ClipboardCheck className="w-5 h-5" />
-            <h2 className="text-2xl mt-2">Task List</h2>
+            <h2 className="text-2xl mt-2">Daftar Tugas</h2>
           </div>
         </div>
 
@@ -149,7 +150,7 @@ const TasklistPage: React.FC = () => {
               className="text-white bg-accent rounded-xl p-3 px-5 flex items-center space-x-2"
             >
               <CirclePlus className="w-5 h-5 " />
-              <span>Tambah Task</span>
+              <span>Tambah Tugas</span>
             </Link>
           </div>
         )}
@@ -162,7 +163,7 @@ const TasklistPage: React.FC = () => {
           <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
           <input
             type="text"
-            placeholder="Cari Task..."
+            placeholder="Cari tugas..."
             value={inputSearch}
             onChange={(e) => setInputSearch(e.target.value)}
             className="w-full bg-accent text-white placeholder-teal-200 pl-10 pr-4 py-3 rounded-t-2xl focus:outline-none focus:ring-2 focus:ring-teal-300"
@@ -174,7 +175,7 @@ const TasklistPage: React.FC = () => {
               <tr>
                 <th className="text-left p-3 font-medium text-gray-600">No</th>
                 <th className="text-left p-3 font-medium text-gray-600">
-                  Task
+                  Nama Tugas
                 </th>
                 <th className="text-left p-3 font-medium text-gray-600">
                   Deadline
@@ -204,13 +205,13 @@ const TasklistPage: React.FC = () => {
                       {getStatus(task.status)}
                     </span>
                   </td>
-                  <td className="p-4">
-                    <button
-                      onClick={() => router.push(`tasklist/${task.id}`)}
-                      className="p-2 text-blue-600 hover:bg-blue-50 rounded-full transition-colors cursor-pointer"
+                  <td className="p-4 flex items-center">
+                    <Link
+                      href={`/dashboard/tasklist/${task.id}`}
+                      className="w-fit h-fit text-blue-600 hover:text-blue-600/75 rounded-full transition-colors cursor-pointer"
                     >
-                      <Info className="w-4 h-4" />
-                    </button>
+                      <Info className="w-4 h-4 " />
+                    </Link>
                   </td>
                 </tr>
               ))}
@@ -220,9 +221,8 @@ const TasklistPage: React.FC = () => {
 
         {/* Empty State (if no tasks) */}
         {tasks.length === 0 && (
-          <div className="text-center py-12">
-            <CheckSquare className="w-12 h-12 text-gray-300 mx-auto mb-4" />
-            <p className="text-gray-500">Tidak ada task yang ditemukan</p>
+          <div className="text-center py-12 col-span-2 ">
+            <NotFoundCompoenent text="Anda belum memiliki tugas." />
           </div>
         )}
       </div>

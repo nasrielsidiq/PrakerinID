@@ -11,7 +11,7 @@ import React, { useEffect, useState } from "react";
 import { API, ENDPOINTS } from "../../../utils/config";
 import Cookies from "js-cookie";
 import PaginationComponent from "../PaginationComponent"; // sesuaikan path jika perlu
-import Page from "@/models/pagination"
+import { Page } from "@/models/pagination";
 
 interface Perusahaan {
   user?: {
@@ -21,10 +21,6 @@ interface Perusahaan {
   kota: string;
   provinsi: string;
 }
-// interface Pages {
-//   activePage: number;
-//   pages: number;
-// }
 
 const StudentFeedback = () => {
   const [close, setClose] = useState<boolean>(true);

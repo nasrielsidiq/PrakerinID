@@ -11,6 +11,8 @@ import { Timestamp } from "next/dist/server/lib/cache-handlers/types";
 import Image from "next/image";
 import { timeAgo } from "@/utils/timeAgo";
 import NotFoundCompoenent from "@/components/NotFoundCompoenent";
+import PaginationComponent from "@/components/PaginationComponent";
+import { Page } from "@/models/pagination";
 
 interface Lowongan {
   title: string;
@@ -41,42 +43,64 @@ interface JobOpening {
   };
 }
 
-const SiswMagangPage: React.FC = () => {
-  const [role, setRole] = useState<string>();
+interface StudentIntership {
+  id: string;
+  email: string;
+  phone_number: string | null;
+  photo_profile: string | null;
+  student: {
+    name: string;
+  };
+  school: {
+    name: string;
+  };
+  internship: {
+    role: string;
+  };
+}
 
-  const route = useRouter();
-  const [jobOpenings, setJobOpenings] = useState<JobOpening[]>([]);
+const SiswMagangPage: React.FC = () => {
+  const [isLoading, setIsLoading] = useState<boolean>(false);
+  const [page, setPage] = useState<Page>({
+    activePage: 1,
+    pages: 1,
+  });
+  const [data, setData] = useState<StudentIntership[]>([]);
 
   const fetchData = async () => {
+    if (isLoading) return;
     try {
-      // let params = {
-      //   search: inputSearch,
-      // };
-
-      // if (showFilter) {
-      //   params = { ...params, ...filterData };
-      // }
-
+      setIsLoading(true);
       const response = await API.get(ENDPOINTS.USERS, {
-        params: {},
+        params: {
+          page: page.activePage,
+          // limit: 
+          role: "student",
+        },
         headers: {
           Authorization: `Bearer ${Cookies.get("userToken")}`,
         },
-        // params: {
-        //   ...params,
-        // },
       });
       console.log(response.data.data);
-      setJobOpenings(response.data.data);
+      setPage({ ...page, pages: response.data.last_page });
+      setData(response.data.data);
     } catch (error) {
       console.log(error);
+    } finally {
+      setIsLoading(false);
     }
+  };
+
+  const handlePageChange = (selectedPage: number) => {
+    setPage((prev) => ({
+      ...prev,
+      activePage: selectedPage,
+    }));
   };
 
   useEffect(() => {
     fetchData();
-    setRole(Cookies.get("authorization"));
-  }, []);
+  }, [page.activePage]);
 
   return (
     <main className=" p-6">
@@ -86,57 +110,55 @@ const SiswMagangPage: React.FC = () => {
         <h2 className="text-2xl mt-2">Siswa Magang</h2>
       </div>
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 p-6">
-        {jobOpenings.length !== 0 ? (
-          jobOpenings.map((data) => (
-            <Link
-              href={`/dashboard/lowongan/${data.id}`}
-              className="bg-white rounded-lg p-6 shadow-sm border border-gray-200 hover:shadow-md transition-shadow"
-              key={data.id}
-            >
-              <h3 className="font-semibold text-gray-900 text-lg mb-3">
-                {data.title}
-              </h3>
-              <div className="flex justify-between items-start mb-4">
-                <div className="flex items-center space-x-3">
-                  {data.user.photo_profile ? (
-                    <div className="w-15 h-15 relative rounded-full border-white border">
-                      <Image
-                        src={`${process.env.NEXT_PUBLIC_API_URL}/storage/photo-profile/${data.user.photo_profile}`}
-                        alt="Logo Perusahaan"
-                        fill
-                        sizes="100%"
-                        className="object-cover rounded-full"
-                      />
-                    </div>
-                  ) : (
-                    <UserCircle className="w-15 h-15 text-[var(--color-accent)]" />
-                  )}
-                  <div>
-                    <h3 className="font-semibold text-gray-900 text-lg">
-                      {data.company.name}
-                    </h3>
-                    <div className="flex text-sm text-gray-500 space-x-2">
-                      <MapPin className="w-4 h-4 my-auto" />
-                      <p className="">
-                        {data.city_regency.name}, {data.province.name}
+        {data.length !== 0 ? (
+          <>
+            {data.map((item) => (
+              <Link
+                href={`/dashboard/siswa-magang/${item.id}`}
+                className="bg-white rounded-lg p-6 shadow-sm border border-gray-200 hover:shadow-md transition-shadow"
+                key={item.id}
+              >
+                <div className="flex justify-between items-start mb-4">
+                  <div className="flex items-center space-x-3">
+                    {item.photo_profile ? (
+                      <div className="w-15 h-15 relative rounded-full border-white border">
+                        <Image
+                          src={`${process.env.NEXT_PUBLIC_API_URL}/storage/photo-profile/${item.photo_profile}`}
+                          alt="Logo Perusahaan"
+                          fill
+                          sizes="100%"
+                          className="object-cover rounded-full"
+                        />
+                      </div>
+                    ) : (
+                      <UserCircle className="w-15 h-15 text-[var(--color-accent)]" />
+                    )}
+                    <div className="flex-col flex gap-1">
+                      <div>
+                        <h4 className="font-semibold text-gray-900 text-lg">
+                          {item.student.name}
+                        </h4>
+                        <h5 className="text-gray-700">
+                          {item.internship.role ?? "Belum memiliki bidang"}
+                        </h5>
+                      </div>
+                      <p className="text-sm text-gray-500">
+                        Kontak : {item.email} | {item.phone_number ?? "-"}
                       </p>
                     </div>
                   </div>
                 </div>
-                {data.is_paid && (
-                  <span className="bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-sm font-medium">
-                    Paid
-                  </span>
-                )}
-              </div>
-
-              <div className="flex justify-between items-center border-t-2 border-gray-200 pt-3">
-                <span className="text-gray-500 text-sm">
-                  {timeAgo(data.updated_at)}
-                </span>
-              </div>
-            </Link>
-          ))
+              </Link>
+            ))}
+            <div className="lg:col-span-2">
+              <PaginationComponent
+                activePage={page.activePage}
+                loading={isLoading}
+                onPageChange={handlePageChange}
+                totalPages={page.pages}
+              />
+            </div>
+          </>
         ) : (
           <div className="text-center py-12 col-span-2 ">
             <NotFoundCompoenent text="Anda belum memiliki siswa magang." />

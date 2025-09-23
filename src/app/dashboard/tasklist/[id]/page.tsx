@@ -12,6 +12,7 @@ interface Task {
   due_date: string;
   status: string;
   description: string;
+  link: string | null;
 }
 
 const DetailTasklistPage = ({
@@ -25,8 +26,9 @@ const DetailTasklistPage = ({
     id: "",
     title: "",
     due_date: "",
-    status: "Belum",
+    status: "",
     description: "",
+    link: "",
   });
 
   const getStatusColor = (status: string) => {
@@ -65,10 +67,8 @@ const DetailTasklistPage = ({
         },
       });
 
-      if (response.status === 200) {
-        console.log("Detail task fetched successfully:", response.data.data);
-        setTask(response.data.data);
-      }
+      console.log("Detail task fetched successfully:", response.data.data);
+      setTask(response.data.data);
     } catch (error) {
       console.error("Error fetching detail task:", error);
     }
@@ -86,14 +86,14 @@ const DetailTasklistPage = ({
           className="hover:underline hover:text-accent"
           href={"/dashboard/tasklist/"}
         >
-          Task List
+          Daftar Tugas
         </Link>{" "}
-        -&gt; Detail Task
+        -&gt; Detail Tugas
       </h1>
       <div className="mb-8">
         <div className="flex items-center space-x-2 font-extrabold text-accent">
           <ClipboardCheck className="w-5 h-5" />
-          <h2 className="text-2xl mt-2">Detail Task</h2>
+          <h2 className="text-2xl mt-2">Detail Tugas</h2>
         </div>
       </div>
 
@@ -101,8 +101,8 @@ const DetailTasklistPage = ({
       <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-6">
         <div className="flex flex-col items-end lg:flex-row lg:items-start lg:justify-between gap-4 pb-5 mb-5 border-b-1 border-gray-200">
           <div className="flex items-start space-x-4">
-            <div className="min-w-0 flex-1">
-              <h2 className="text-xl font-semibold text-gray-900 mb-2">
+            <div className="min-w-0 flex-1 gap-4">
+              <h2 className="text-lg font-semibold text-gray-900 mb-2">
                 {task.title}
               </h2>
               <div className="flex items-center space-x-2 text-gray-600 mb-3">
@@ -128,54 +128,21 @@ const DetailTasklistPage = ({
         <h3 className="text-lg font-semibold text-gray-900 mb-4">Deskripsi</h3>
         <div className="text-gray-700 text-sm leading-relaxed space-y-3 mb-5">
           <p>{task.description}</p>
-          {/* <p>
-            PT Makerindo Cipta Solusi adalah perusahaan teknologi yang bergerak
-            di bidang pengembangan solusi digital dan rekayasa perangkat keras
-            untuk mendukung transformasi industri 4.0 di Indonesia. Berdiri
-            sejak tahun [Tahun Berdiri], kami berkomitmen untuk menghadirkan
-            inovasi terdepan yang mampu menjawab tantangan zaman dengan semangat
-            tumbuh bersama klien.
-          </p>
-          <p>
-            Dengan spesialisasi pada pengembangan sistem IoT (Internet of
-            Things), otomasi industri, serta solusi perangkat lunak kustom, PT
-            Makerindo Cipta Solusi telah menjadi mitra terpercaya bagi berbagai
-            sektor, termasuk manufaktur, agrikultur, pendidikan, dan
-            pemerintahan selama bertahun-tahun.
-          </p>
-          <p>
-            Kami percaya bahwa teknologi bukan hanya alat, tetapi juga jembatan
-            untuk menciptakan efisiensi, transparansi, dan pertumbuhan
-            berkelanjutan. Oleh karena itu, setiap solusi yang kami kembangkan
-            selalu berorientasi pada kebutuhan klien dan kemajuan teknologi
-            terkini.
-          </p> */}
         </div>
-        {/* <h3 className="text-lg font-semibold text-gray-900 mb-6">
-                    Lowongan Magang di Perusahaan ini
-                </h3> */}
-        {/* <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
-                    {jobPositions.map((position, index) => (
-                        <div
-                            key={index}
-                            className="border border-gray-200 rounded-lg p-4 hover:border-gray-300 hover:shadow-sm transition-all cursor-pointer group bg-white"
-                        >
-                            <div className="flex items-center justify-between">
-                                <div className="flex-1 min-w-0">
-                                    <h4 className="font-medium text-gray-900 text-sm mb-1 truncate">
-                                        {position.title}
-                                    </h4>
-                                    <p className="text-xs text-gray-500">{position.duration}</p>
-                                </div>
-                                <div className="ml-3 flex-shrink-0">
-                                    <div className="w-6 h-6 rounded-full border border-red-500 flex items-center justify-center group-hover:border-red-400 transition-colors">
-                                        <ArrowRight className="w-4  text-red-500" />
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    ))}
-                </div> */}
+        {task.link && (
+          <>
+            <h3 className="text-lg font-semibold text-gray-900 mb-4">Link</h3>
+            <div className="text-gray-700 text-sm leading-relaxed space-y-3 mb-5">
+              <Link
+                href={task.link}
+                target="_blank"
+                className="text-blue-500 underline"
+              >
+                {task.link}
+              </Link>
+            </div>
+          </>
+        )}
       </div>
     </main>
   );

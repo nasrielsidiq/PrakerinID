@@ -71,9 +71,8 @@ const tambahLowonganPage: React.FC = () => {
     console.log("Form submitted", formData);
     try {
       setIsSubmitting(true);
-      formData.is_available = Boolean(formData.is_available);
-      formData.is_paid =
-        formData.is_paid !== "" ? Boolean(formData.is_paid) : formData.is_paid;
+      formData.is_available = formData.is_available === "true" ? true : false;
+      formData.is_paid = formData.is_paid === "true" ? true : false;
 
       await API.post(ENDPOINTS.JOB_OPENINGS, formData, {
         headers: {

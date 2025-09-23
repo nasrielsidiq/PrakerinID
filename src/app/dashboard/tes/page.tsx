@@ -153,7 +153,7 @@ const TasklistPage: React.FC = () => {
               </tr>
             </thead>
             <tbody>
-              {tasks.length &&
+              {tasks &&
                 tasks.map((task, index) => (
                   <tr key={task.id} className="border-b hover:bg-gray-50">
                     <td className="p-4 text-gray-800">{index + 1}</td>

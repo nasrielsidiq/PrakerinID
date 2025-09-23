@@ -94,9 +94,14 @@ export default function SiswaDashboard() {
       in_progress: 0,
     });
 
-  const fetchInternshipAplicationCount = async () => {
+  const fetchData = async () => {
     try {
-      const response = await API.get(
+      const profile = API.get(`${ENDPOINTS.USERS}/profile`, {
+        headers: {
+          Authorization: `Bearer ${Cookies.get("userToken")}`,
+        },
+      });
+      const internshipApplicationCount = API.get(
         `${ENDPOINTS.INTERNSHIP_APPLICATIONS}/count`,
         {
           headers: {
@@ -104,38 +109,23 @@ export default function SiswaDashboard() {
           },
         }
       );
-      setInternshipApplicationCount(response.data.data);
-    } catch (error) {
-      console.log(error);
-    }
-  };
-
-  const fetchIntermshipApplications = async () => {
-    try {
-      const response = await API.get(ENDPOINTS.INTERNSHIP_APPLICATIONS, {
+      const internshipApplication = API.get(ENDPOINTS.INTERNSHIP_APPLICATIONS, {
         headers: {
           Authorization: `Bearer ${Cookies.get("userToken")}`,
         },
       });
 
-      setInternshipApplication(response.data.data);
+      const response = await Promise.all([
+        profile,
+        internshipApplicationCount,
+        internshipApplication,
+      ]);
 
-      console.log("Internship Applications:", response.data.data);
-    } catch (error) {
-      console.error(error);
-    }
-  };
+      setProfile(response[0].data.data);
+      setInternshipApplicationCount(response[1].data.data);
+      setInternshipApplication(response[2].data.data);
 
-  const fetchData = async () => {
-    try {
-      const response = await API.get(`${ENDPOINTS.USERS}/profile`, {
-        headers: {
-          Authorization: `Bearer ${Cookies.get("userToken")}`,
-        },
-      });
-
-      setProfile(response.data.data);
-      console.log(response.data.data);
+      console.log(response);
     } catch (error: AxiosError | unknown) {
       if (error instanceof AxiosError) {
         const responseError = error.response?.data.errors;
@@ -169,12 +159,9 @@ export default function SiswaDashboard() {
   };
 
   useEffect(() => {
-    Promise.all([
-      fetchIntermshipApplications(),
-      fetchInternshipAplicationCount(),
-      fetchData(),
-    ]);
+    fetchData();
   }, []);
+
   return (
     <>
       {/* Resume Section */}
