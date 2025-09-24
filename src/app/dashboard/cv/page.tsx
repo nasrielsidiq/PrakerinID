@@ -17,6 +17,7 @@ import { alertConfirm, alertSuccess } from "@/libs/alert";
 import Link from "next/link";
 import { Page } from "@/models/pagination";
 import PaginationComponent from "@/components/PaginationComponent";
+import LoaderData from "@/components/loader"
 
 interface CVItem {
   id: string;
@@ -231,7 +232,7 @@ const CvPage: React.FC = () => {
               </tr>
             </thead>
             <tbody className="bg-white divide-y divide-gray-200">
-              {cvList.map((cv, index) => (
+              {cvList && loading !== true ? cvList.map((cv, index) => (
                 <tr key={cv.id} className="hover:bg-gray-50">
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                     {index + 1}
@@ -272,7 +273,9 @@ const CvPage: React.FC = () => {
                     </div>
                   </td>
                 </tr>
-              ))}
+              )): (
+                <LoaderData />
+              )}
             </tbody>
           </table>
         </div>
@@ -321,7 +324,7 @@ const CvPage: React.FC = () => {
           ))}
         </div>
 
-        {cvList.length === 0 && (
+        {loading !== true && cvList.length === 0 && (
           <div className="p-8 text-center text-gray-500">
             <FileText size={48} className="mx-auto mb-4 text-gray-300" />
             <p>Tidak ada CV yang ditemukan</p>

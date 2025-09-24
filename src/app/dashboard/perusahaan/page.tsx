@@ -8,6 +8,8 @@ import Image from "next/image";
 import useDebounce from "@/hooks/useDebounce";
 import TabsCompenent from "@/components/TabsCompenent";
 import PaginationComponent from "@/components/PaginationComponent";
+import NotFoundComponent from "@/components/NotFoundComponent";
+import LoaderData from "@/components/loader";
 
 interface Perusahaan {
   id: string;
@@ -28,14 +30,14 @@ interface Pages {
   pages: number;
 }
 
-type ActiveTab = "Semua" | "Sudah Mou" | "Belum Mou";
+type ActiveTab = "Semua" | "Sudah Kerja Sama" | "Belum Kerja Sama";
 
 const PerusahaanPage: React.FC = () => {
   const router = useRouter();
   const [inputSearch, setInputSearch] = useState<string>("");
   const debouncedQuery = useDebounce(inputSearch, 1000);
   const [perusahaan, setPerushaan] = useState<Perusahaan[]>([]);
-  const tabs: ActiveTab[] = ["Semua", "Sudah Mou", "Belum Mou"];
+  const tabs: ActiveTab[] = ["Semua", "Sudah Kerja Sama", "Belum Kerja Sama"];
   const [activeTab, setActiveTab] = useState<ActiveTab>("Semua");
   const [companyCount, setCompanyCount] = useState<CompanyCount>({
     company_count: 0,
@@ -61,7 +63,7 @@ const PerusahaanPage: React.FC = () => {
           is_mou:
             activeTab === "Semua"
               ? undefined
-              : activeTab === "Sudah Mou"
+              : activeTab === "Sudah Kerja Sama"
               ? true
               : false,
         },
@@ -70,21 +72,19 @@ const PerusahaanPage: React.FC = () => {
         },
       });
 
-      if (response.status === 200) {
-        console.log("Company fetched successfully:", response.data);
-        const data = response.data.data.map((item: any) => ({
-          id: item.id,
-          photo_profile: item.photo_profile,
-          name: item.company.name,
-          city_regency: item.city_regency.name,
-          province: item.province.name,
-        }));
-        setPerushaan(data);
-        setPages({
-          activePages: selectedPages,
-          pages: response.data.last_page,
-        });
-      }
+      console.log("Company fetched successfully:", response.data);
+      const data = response.data.data.map((item: any) => ({
+        id: item.id,
+        photo_profile: item.photo_profile,
+        name: item.company.name,
+        city_regency: item.city_regency.name,
+        province: item.province.name,
+      }));
+      setPerushaan(data);
+      setPages({
+        activePages: selectedPages,
+        pages: response.data.last_page,
+      });
     } catch (error) {
       console.error("Error fetching company:", error);
     } finally {
@@ -153,7 +153,7 @@ const PerusahaanPage: React.FC = () => {
               <h1 className="text-2xl font-extrabold">
                 {companyCount.mou_count}
               </h1>
-              <span className="text-sm">Telah Mou</span>
+              <span className="text-sm">Telah Kerja Sama</span>
             </div>
             <Building className="w-10 h-10  text-yellow-400" />
           </div>
@@ -164,7 +164,7 @@ const PerusahaanPage: React.FC = () => {
               type="text"
               onChange={(e) => setInputSearch(e.target.value)}
               value={inputSearch}
-              placeholder="Cari Perusahaan..."
+              placeholder="Cari p erusahaan..."
               className="text-gray-600 w-full px-4 py-3 pl-12 focus:outline-none focus:ring-2 focus:ring-prakerin focus:border-transparent transition-all duration-300"
             />
             <svg
@@ -193,7 +193,7 @@ const PerusahaanPage: React.FC = () => {
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-5 text-black ">
-        {perusahaan.length !== 0 ? (
+        {perusahaan && loading !== true ? (
           perusahaan.map((data, index) => (
             <div
               className="relative bg-white flex flex-col md:flex-row space-x-5 p-6 px-10 md:px-5 rounded-2xl justify-between items-end md:items-center 
@@ -234,14 +234,17 @@ const PerusahaanPage: React.FC = () => {
               {/* Tombol pojok kanan atas */}
               {data.mou && (
                 <h4 className="absolute text-sm top-0 right-0 bg-accent text-white px-3 py-1 rounded-bl-2xl">
-                  Sudah Mou
+                  Sudah Kerja Sama
                 </h4>
               )}
             </div>
           ))
         ) : (
-          <div className="col-span-1 md:col-span-2 text-center text-gray-500">
-            Tidak ada perusahaan yang ditemukan.
+          <LoaderData />
+        )}
+        {perusahaan.length === 0 && loading !== true && (
+          <div className="text-center py-12 col-span-2 ">
+            <NotFoundComponent text="Tidak ada sekolah yang ditemukan." />
           </div>
         )}
       </div>

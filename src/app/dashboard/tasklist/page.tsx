@@ -12,7 +12,7 @@ import { API, ENDPOINTS } from "../../../../utils/config";
 import Cookies from "js-cookie";
 import useDebounce from "@/hooks/useDebounce";
 import Link from "next/link";
-import NotFoundCompoenent from "@/components/NotFoundCompoenent";
+import NotFoundComponent from "@/components/NotFoundComponent";
 
 interface Task {
   id: number;
@@ -173,17 +173,19 @@ const TasklistPage: React.FC = () => {
           <table className="w-full">
             <thead className="bg-gray-50 border-b">
               <tr>
-                <th className="text-left p-3 font-medium text-gray-600">No</th>
-                <th className="text-left p-3 font-medium text-gray-600">
+                <th className="text-left p-3 font-medium text-gray-600 uppercase">
+                  No
+                </th>
+                <th className="text-left p-3 font-medium text-gray-600 uppercase">
                   Nama Tugas
                 </th>
-                <th className="text-left p-3 font-medium text-gray-600">
-                  Deadline
+                <th className="text-left p-3 font-medium text-gray-600 uppercase">
+                  Tenggat Waktu
                 </th>
-                <th className="text-left p-3 font-medium text-gray-600">
+                <th className="text-left p-3 font-medium text-gray-600 uppercase">
                   Status
                 </th>
-                <th className="text-left p-3 font-medium text-gray-600">
+                <th className="text-left p-3 font-medium text-gray-600 uppercase">
                   Aksi
                 </th>
               </tr>
@@ -222,7 +224,7 @@ const TasklistPage: React.FC = () => {
         {/* Empty State (if no tasks) */}
         {tasks.length === 0 && (
           <div className="text-center py-12 col-span-2 ">
-            <NotFoundCompoenent text="Anda belum memiliki tugas." />
+            <NotFoundComponent text="Anda belum memiliki tugas." />
           </div>
         )}
       </div>

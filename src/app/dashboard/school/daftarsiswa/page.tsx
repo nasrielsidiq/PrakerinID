@@ -7,12 +7,16 @@ import {
   UsersRound,
 } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
+import { ChangeEvent, useEffect, useRef, useState } from "react";
 import { API, ENDPOINTS } from "../../../../../utils/config";
 import Cookies from "js-cookie";
 import TabsComponent from "@/components/TabsCompenent";
 import Link from "next/link";
 import useDebounce from "@/hooks/useDebounce";
+import { alertConfirm, alertError, alertSuccess } from "@/libs/alert";
+import NotFoundComponent from "@/components/NotFoundComponent";
+import PaginationComponent from "@/components/PaginationComponent";
+import { Page } from "@/models/pagination";
 
 interface Student {
   id: number;
@@ -29,10 +33,15 @@ interface Student {
 const DaftarSiswaPage: React.FC = () => {
   const [activeTab, setActiveTab] = useState("Semua");
   const [searchTerm, setSearchTerm] = useState("");
+  const [isLoading, setIsLoading] = useState<boolean>(false);
   const debouncedQuery = useDebounce(searchTerm, 1000);
   const [students, setStudents] = useState<Student[]>([]);
   const tabs = ["Semua", "Belum Magang", "Sedang Magang", "Selesai Magang"];
-  const router = useRouter();
+  const fileRef = useRef<HTMLInputElement | null>(null);
+  const [pages, setPages] = useState<Page>({
+    activePage: 1,
+    pages: 1,
+  });
 
   const getStatusColor = (status: string): string => {
     switch (status) {
@@ -62,6 +71,8 @@ const DaftarSiswaPage: React.FC = () => {
 
   const fetchStudents = async () => {
     try {
+      setIsLoading(true);
+
       let status: string | undefined;
       switch (activeTab) {
         case "Sedang Magang":
@@ -80,7 +91,7 @@ const DaftarSiswaPage: React.FC = () => {
       const response = await API.get(`${ENDPOINTS.USERS}`, {
         params: {
           is_verified: true,
-          page: 1,
+          page: pages.activePage,
           limit: 10,
           role: "student",
           status: status,
@@ -90,12 +101,15 @@ const DaftarSiswaPage: React.FC = () => {
           Authorization: `Bearer ${Cookies.get("userToken")}`,
         },
       });
-      if (response.status === 200) {
-        console.log("Fetched students:", response.data);
-        setStudents(response.data.data);
-      }
+      setStudents(response.data.data);
+      setPages({
+        ...pages,
+        pages: response.data.last_page,
+      });
     } catch (error) {
       console.error("Error fetching students:", error);
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -108,7 +122,83 @@ const DaftarSiswaPage: React.FC = () => {
     }
 
     fetchStudents();
-  }, [debouncedQuery, activeTab]);
+  }, [debouncedQuery, activeTab, pages.activePage]);
+
+  const handleDownload = async () => {
+    try {
+      const response = await API.get(
+        `${ENDPOINTS.USERS}/student/import/template`,
+        {
+          headers: {
+            Authorization: `Bearer ${Cookies.get("userToken")}`,
+          },
+          responseType: "blob",
+        }
+      );
+
+      const url = window.URL.createObjectURL(new Blob([response.data]));
+      const link = document.createElement("a");
+      link.href = url;
+
+      link.setAttribute("download", `prakerin-siswa-template.csv`);
+
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      window.URL.revokeObjectURL(url);
+    } catch (error) {
+      console.error(error);
+    }
+  };
+
+  const handleButtonImport = async () => {
+    fileRef.current?.click();
+  };
+
+  const handleFileChange = async (e: ChangeEvent<HTMLInputElement>) => {
+    console.log("panggil");
+    const file = e.target.files?.[0];
+
+    if (!file) return;
+
+    if (file.type !== "text/csv") {
+      e.target.value = "";
+      await alertError("File harus CSV!");
+      return;
+    }
+
+    const confirm = await alertConfirm(
+      "Apakah anda yakin ingin mengimport siswa?"
+    );
+    if (!confirm) {
+      e.target.value = "";
+      return;
+    }
+
+    try {
+      const formData = new FormData();
+      formData.append("file", file);
+      await API.post(`${ENDPOINTS.USERS}/student/import`, formData, {
+        headers: {
+          Authorization: `Bearer ${Cookies.get("userToken")}`,
+          "Content-Type": "multipart/form-data",
+        },
+      });
+      fetchStudents();
+      await alertSuccess("Berhasil ditambahkan");
+    } catch (error) {
+      console.error(error);
+    } finally {
+      e.target.value = "";
+    }
+  };
+
+  const handleChangePage = (selectedPage: number) => {
+    setPages((prev) => ({
+      ...prev,
+      activePage: selectedPage,
+    }));
+  };
 
   return (
     <main className="p-6">
@@ -134,6 +224,28 @@ const DaftarSiswaPage: React.FC = () => {
 
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-end mb-6">
         <div className="flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-2">
+          <button
+            onClick={handleDownload}
+            className=" bg-slate-400 hover:bg-slate-500 colors text-white px-4 py-2 rounded-lg text-sm font-medium flex items-center justify-center cursor-pointer"
+          >
+            <ClipboardCopy size={16} className="mr-1" />
+            Untuh Template Import
+          </button>
+          <button
+            onClick={handleButtonImport}
+            className="bg-green-400 hover:bg-green-500 text-white px-4 py-2 rounded-lg text-sm font-medium flex items-center justify-center cursor-pointer"
+          >
+            <ClipboardCopy size={16} className="mr-1" />
+            Import
+          </button>
+
+          <input
+            type="file"
+            ref={fileRef}
+            className="hidden"
+            accept=".csv"
+            onChange={handleFileChange}
+          />
           <Link
             href="/dashboard/school/daftarsiswa/permohonan"
             className="bg-vip hover:bg-orange-400 text-white px-4 py-2 rounded-lg text-sm font-medium flex items-center justify-center"
@@ -168,17 +280,19 @@ const DaftarSiswaPage: React.FC = () => {
           <table className="w-full">
             <thead className="bg-gray-50 border-b">
               <tr>
-                <th className="text-left p-3 font-medium text-gray-600">No</th>
-                <th className="text-left p-3 font-medium text-gray-600">
-                  Name
+                <th className="text-left p-3 font-medium text-gray-600 uppercase">
+                  No
                 </th>
-                <th className="text-left p-3 font-medium text-gray-600">
+                <th className="text-left p-3 font-medium text-gray-600 uppercase">
+                  Nama
+                </th>
+                <th className="text-left p-3 font-medium text-gray-600 uppercase">
                   Kelas
                 </th>
-                <th className="text-left p-3 font-medium text-gray-600">
+                <th className="text-left p-3 font-medium text-gray-600 uppercase">
                   Jurusan
                 </th>
-                <th className="text-left p-3 font-medium text-gray-600">
+                <th className="text-left p-3 font-medium text-gray-600 uppercase">
                   Status
                 </th>
               </tr>
@@ -187,7 +301,9 @@ const DaftarSiswaPage: React.FC = () => {
               {students &&
                 students.map((task, index) => (
                   <tr key={index} className="border-b hover:bg-gray-50">
-                    <td className="p-4 text-gray-800">{index + 1}</td>
+                    <td className="p-4 text-gray-800">
+                      {index + 1 + (pages.activePage - 1) * 10}
+                    </td>
                     <td className="p-4 text-gray-800">{task.student.name}</td>
                     <td className="p-4 text-gray-800">
                       {task.student.class ?? "-"}
@@ -212,12 +328,17 @@ const DaftarSiswaPage: React.FC = () => {
 
         {/* Empty State (if no tasks) */}
         {students.length === 0 && (
-          <div className="text-center py-12">
-            <CheckSquare className="w-12 h-12 text-gray-300 mx-auto mb-4" />
-            <p className="text-gray-500">Tidak ada siswa yang ditemukan</p>
+          <div className="text-center py-12 col-span-2 ">
+            <NotFoundComponent text="Tidak ada siswa yang ditemukan." />
           </div>
         )}
       </div>
+      <PaginationComponent
+        activePage={pages.activePage}
+        totalPages={pages.pages}
+        onPageChange={handleChangePage}
+        loading={isLoading}
+      />
     </main>
   );
 };

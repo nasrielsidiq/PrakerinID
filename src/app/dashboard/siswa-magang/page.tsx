@@ -10,7 +10,7 @@ import { useRouter } from "next/navigation";
 import { Timestamp } from "next/dist/server/lib/cache-handlers/types";
 import Image from "next/image";
 import { timeAgo } from "@/utils/timeAgo";
-import NotFoundCompoenent from "@/components/NotFoundCompoenent";
+import NotFoundComponent from "@/components/NotFoundComponent";
 import PaginationComponent from "@/components/PaginationComponent";
 import { Page } from "@/models/pagination";
 
@@ -74,7 +74,7 @@ const SiswMagangPage: React.FC = () => {
       const response = await API.get(ENDPOINTS.USERS, {
         params: {
           page: page.activePage,
-          // limit: 
+          limit: 10,
           role: "student",
         },
         headers: {
@@ -161,7 +161,7 @@ const SiswMagangPage: React.FC = () => {
           </>
         ) : (
           <div className="text-center py-12 col-span-2 ">
-            <NotFoundCompoenent text="Anda belum memiliki siswa magang." />
+            <NotFoundComponent text="Anda belum memiliki siswa magang." />
           </div>
         )}
       </div>

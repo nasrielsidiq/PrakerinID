@@ -15,6 +15,7 @@ import Cookies from "js-cookie";
 import useDebounce from "@/hooks/useDebounce";
 import { API, ENDPOINTS } from "../../../../utils/config";
 import Link from "next/link";
+import NotFoundComponent from "@/components/NotFoundComponent";
 
 interface KerjaSama {
   id: string;
@@ -307,9 +308,8 @@ const lamaranPage: React.FC = () => {
         </div>
 
         {data.length === 0 && (
-          <div className="p-8 text-center text-gray-500">
-            <FileText size={48} className="mx-auto mb-4 text-gray-300" />
-            <p>Tidak ada MOU yang ditemukan</p>
+          <div className="text-center py-12 col-span-2 ">
+            <NotFoundComponent text="Anda belum memiliki kerja sama." />
           </div>
         )}
       </div>

@@ -12,7 +12,7 @@ import { API, ENDPOINTS } from "../../../utils/config";
 import Cookies from "js-cookie";
 import PaginationComponent from "../PaginationComponent"; // sesuaikan path jika perlu
 import { Page } from "@/models/pagination";
-
+import LoaderData from "@/components/loader"
 interface Perusahaan {
   user?: {
     photo_profile: File | null;
@@ -24,14 +24,7 @@ interface Perusahaan {
 
 const StudentFeedback = () => {
   const [close, setClose] = useState<boolean>(true);
-  const [perusahaan, setPerushaan] = useState<Perusahaan[]>([
-    { kota: "Bandung", name: "Makerindo Prima Solusi", provinsi: "Jawa Barat" },
-    { kota: "Bandung", name: "Makerindo Prima Solusi", provinsi: "Jawa Barat" },
-    { kota: "Bandung", name: "Makerindo Prima Solusi", provinsi: "Jawa Barat" },
-    { kota: "Bandung", name: "Makerindo Prima Solusi", provinsi: "Jawa Barat" },
-    { kota: "Bandung", name: "Makerindo Prima Solusi", provinsi: "Jawa Barat" },
-    { kota: "Bandung", name: "Makerindo Prima Solusi", provinsi: "Jawa Barat" },
-  ]);
+  const [perusahaan, setPerushaan] = useState<Perusahaan[]>([]);
   const [page, setPage] = useState<Page>({
     activePage: 1,
     pages: 1,
@@ -192,7 +185,7 @@ const StudentFeedback = () => {
     <>
       <div className=" w-full h-full relative">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-5 text-black">
-          {perusahaan.map((data, index) => (
+          {perusahaan && loading !== true ? perusahaan.map((data, index) => (
             <div
               className="bg-white flex flex-col md:flex-row space-x-5 p-5 px-10 md:px-5 rounded-2xl justify-between items-end md:items-center"
               key={index}
@@ -214,7 +207,9 @@ const StudentFeedback = () => {
                 <CircleArrowRight className="w-4 h-4" />
               </button>
             </div>
-          ))}
+          )): (
+            <LoaderData />
+          )}
         </div>
         <PaginationComponent
           activePage={page.activePage}

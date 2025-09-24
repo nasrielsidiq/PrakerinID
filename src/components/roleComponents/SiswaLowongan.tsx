@@ -8,7 +8,7 @@ import {
   MapPin,
   Scale,
   UserCircle,
-  Loader
+  Loader,
 } from "lucide-react";
 import Link from "next/link";
 import { useEffect, useState } from "react";
@@ -20,6 +20,7 @@ import Image from "next/image";
 import PaginationComponent from "@/components/PaginationComponent";
 import { Page } from "@/models/pagination";
 import LoaderData from "../loader";
+import NotFoundComponent from "../NotFoundComponent";
 
 interface InternshipApplicationCount {
   total: number;
@@ -447,74 +448,79 @@ export default function SiswaLowongan() {
         </div>
       </div>
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 p-0 sm:p-6">
-        {jobOpenings && loading !== true? jobOpenings.map((job) => (
-          <Link
-            key={job.id}
-            href={`lowongan/${job.id}`}
-            className="bg-white rounded-lg p-4 sm:p-6 shadow-sm border border-gray-200 hover:shadow-md transition-shadow flex flex-col"
-          >
-            <h3 className="font-semibold text-gray-900 text-lg mb-3">
-              {job.title}
-            </h3>
-            <div className="flex justify-between items-start mb-4">
-              <div className="flex items-center space-x-3">
-                {job.user.photo_profile ? (
-                  <div className="w-15 h-15 relative rounded-full border-white border">
-                    <Image
-                      src={`${process.env.NEXT_PUBLIC_API_URL}/storage/photo-profile/${job.user.photo_profile}`}
-                      alt="Logo Perusahaan"
-                      fill
-                      sizes="100%"
-                      className="object-cover rounded-full"
-                    />
-                  </div>
-                ) : (
-                  <UserCircle className="w-15 h-15 text-[var(--color-accent)]" />
-                )}
-                {/* <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
-                  <div className="w-8 h-8 bg-gradient-to-tr from-yellow-400 via-red-500 to-purple-600 rounded-lg flex items-center justify-center">
-                    <span className="text-white text-xs font-bold">IG</span>
-                  </div>
-                </div> */}
-                <div>
-                  <h3 className="font-semibold text-gray-900 text-lg">
-                    {job.company.name}
-                  </h3>
-                  <div className="flex text-sm text-gray-500 space-x-2">
-                    <MapPin className="w-4 h-4 my-auto" />
-                    <p className="">
-                      {job.city_regency.name}, {job.province.name}
-                    </p>
+        {jobOpenings && loading !== true ? (
+          jobOpenings.map((job) => (
+            <Link
+              key={job.id}
+              href={`lowongan/${job.id}`}
+              className="bg-white rounded-lg p-4 sm:p-6 shadow-sm border border-gray-200 hover:shadow-md transition-shadow flex flex-col"
+            >
+              <h3 className="font-semibold text-gray-900 text-lg mb-3">
+                {job.title}
+              </h3>
+              <div className="flex justify-between items-start mb-4">
+                <div className="flex items-center space-x-3">
+                  {job.user.photo_profile ? (
+                    <div className="w-15 h-15 relative rounded-full border-white border">
+                      <Image
+                        src={`${process.env.NEXT_PUBLIC_API_URL}/storage/photo-profile/${job.user.photo_profile}`}
+                        alt="Logo Perusahaan"
+                        fill
+                        sizes="100%"
+                        className="object-cover rounded-full"
+                      />
+                    </div>
+                  ) : (
+                    <UserCircle className="w-15 h-15 text-[var(--color-accent)]" />
+                  )}
+                  <div>
+                    <h3 className="font-semibold text-gray-900 text-lg">
+                      {job.company.name}
+                    </h3>
+                    <div className="flex text-sm text-gray-500 space-x-2">
+                      <MapPin className="w-4 h-4 my-auto" />
+                      <p className="">
+                        {job.city_regency.name}, {job.province.name}
+                      </p>
+                    </div>
                   </div>
                 </div>
+                {job.is_paid && (
+                  <span className="bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-sm font-medium">
+                    Paid
+                  </span>
+                )}
               </div>
-              {job.is_paid && (
-                <span className="bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-sm font-medium">
-                  Paid
-                </span>
-              )}
-            </div>
 
-            <div className="flex justify-between items-center border-t-2 border-gray-200 pt-3">
-              <span className="text-gray-500 text-sm">
-                {timeAgo(job.updated_at)}
-              </span>
-              <button
-                type="button"
-                onClick={(e) => handleClickFavorite(e, job.id)}
-                className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
-              >
-                <Bookmark
-                  className={`w-5 h-5 ${
-                    job.save_job_opening ? "text-blue-500" : "text-gray-400"
-                  }`}
-                  fill={job.save_job_opening ? "currentColor" : "none"}
-                />
-              </button>
-            </div>
-          </Link>
-        )): <Loader />}
+              <div className="flex justify-between items-center border-t-2 border-gray-200 pt-3">
+                <span className="text-gray-500 text-sm">
+                  {timeAgo(job.updated_at)}
+                </span>
+                <button
+                  type="button"
+                  onClick={(e) => handleClickFavorite(e, job.id)}
+                  className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+                >
+                  <Bookmark
+                    className={`w-5 h-5 ${
+                      job.save_job_opening ? "text-blue-500" : "text-gray-400"
+                    }`}
+                    fill={job.save_job_opening ? "currentColor" : "none"}
+                  />
+                </button>
+              </div>
+            </Link>
+          ))
+        ) : (
+          <LoaderData />
+        )}
       </div>
+      {!loading && jobOpenings.length === 0 && (
+        <div className="text-center py-12 col-span-2 ">
+          <NotFoundComponent text="Tidak ada lowongan yang ditemukan." />
+        </div>
+      )}
+
       <div className="px-2 sm:px-6">
         <PaginationComponent
           activePage={page.activePage}

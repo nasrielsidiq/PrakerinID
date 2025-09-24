@@ -7,6 +7,7 @@ import Cookies from "js-cookie";
 import Image from "next/image";
 import useDebounce from "@/hooks/useDebounce";
 import Link from "next/link";
+import NotFoundComponent from "@/components/NotFoundComponent";
 
 interface Perusahaan {
   id: string;
@@ -135,7 +136,7 @@ const SekolahPage: React.FC = () => {
               type="text"
               onChange={(e) => setInputSearch(e.target.value)}
               value={inputSearch}
-              placeholder="Cari Sekolah..."
+              placeholder="Cari sekolah..."
               className="text-gray-600 w-full px-4 py-3 pl-12 focus:outline-none focus:ring-2 focus:ring-prakerin focus:border-transparent transition-all duration-300"
             />
             <svg
@@ -220,8 +221,8 @@ const SekolahPage: React.FC = () => {
             </div>
           ))
         ) : (
-          <div className="col-span-1 md:col-span-2 text-center text-gray-500">
-            Tidak ada Sekolah yang ditemukan.
+          <div className="text-center py-12 col-span-2 ">
+            <NotFoundComponent text="Tidak ada sekolah yang ditemukan." />
           </div>
         )}
       </div>

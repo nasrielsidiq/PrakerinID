@@ -4,24 +4,25 @@ import ContactPage from "@/components/Contact";
 import FooterPage from "@/components/Footer";
 import Navigation from "@/components/Navigation";
 import { useState } from "react";
+import UnderConstruction from "@/components/UnderConstruction";
 
 const cards = [
   {
-    title: "Our Story",
-    desc: "Berawal dari keresahan sederhana, kami ingin membuat peluang magang lebih mudah diakses siapa saja.",
-    bg: "bg-[url(/images/close-up-image.jpg)] bg-cover",
+    title: "Menambah Pengalaman",
+    desc: "Jaminan Pengalaman dengan industry industry yang terpercaya dan ter pantau dengan baik",
+    bg: "bg-[url(/images/pengalaman.jpeg)] bg-cover",
     gradient: "bg-gradient-to-t from-black/50 from-20% to-white/0",
   },
   {
-    title: "Our Vision",
-    desc: "Membantu mahasiswa Indonesia menemukan pengalaman kerja nyata yang relevan dengan bidang studi mereka, sehingga mereka dapat mempersiapkan diri dengan baik untuk memasuki dunia kerja.",
-    bg: "bg-[url(/images/close-up-image.jpg)] bg-cover",
+    title: "Meningkatkan Wawasan",
+    desc: "Menambah wawasan baru terkait ragam dunia industry yang ada",
+    bg: "bg-[url(/images/wawasan.jpeg)] bg-cover",
     gradient: "bg-gradient-to-t from-black/50 from-20% to-white/0",
   },
   {
-    title: "Our Mission",
-    desc: "Membantu mahasiswa Indonesia menemukan pengalaman kerja nyata yang relevan dengan bidang studi mereka, sehingga mereka dapat mempersiapkan diri dengan baik untuk memasuki dunia kerja.",
-    bg: "bg-[url(/images/close-up-image.jpg)] bg-cover",
+    title: "Mudah",
+    desc: "Memudah kan para Siswa atau Mahasiswa yang mencari tempat magang yang bagus dan berkualitas",
+    bg: "bg-[url(/images/mudah.jpeg)] bg-cover",
     gradient: "bg-gradient-to-t from-black/50 from-20% to-white/0",
   },
 ];
@@ -38,11 +39,13 @@ export default function AboutPage() {
     <>
       <Navigation section={""} setSection={() => {}} />
       {/* Section 1: Tentang Kami */}
+
+      {/* <UnderConstruction /> */}
       <section className="grid grid-cols-1 md:grid-cols-10 gap-6 mx-4 md:mx-20 mt-10">
         <div className="md:col-span-4">
           <h5 className="text-accent mb-3 md:mb-5">Tentang kami</h5>
           <h1 className="text-gray-700 text-2xl md:text-3xl font-bold">
-            Lorem ipsum dolor sit amet consectetur adipisicing elit. Lorem
+            Solusi Magang Terpercaya bagi Mahasiswa dan Talenta Muda
           </h1>
         </div>
         <div className="text-gray-600 flex items-center md:col-span-6 mt-4 md:mt-0">
@@ -109,25 +112,33 @@ export default function AboutPage() {
             </div>
           </div>
         </div>
-        <div className="bg-blue-300 col-span-1 md:col-span-4 rounded-2xl grid grid-flow-col grid-rows-5 min-h-[150px] mt-4 md:mt-0">
+        <div className="bg-blue-400 hover:bg-blue-500 col-span-1 md:col-span-4 rounded-2xl grid grid-flow-col grid-rows-5 min-h-[150px] mt-4 md:mt-0">
           <div className="col-span-3 row-span-2"></div>
           <div className="col-span-2 p-5 row-span-3 text-white">
-            <h1 className="text-xl md:text-2xl font-bold">Our Mission</h1>
+            <h1 className="text-xl md:text-2xl font-bold">Visi</h1>
             <p className="text-xs md:text-xs">
-              Membantu mahasiswa Indonesia menemukan pengalaman kerja nyata yang
-              relevan dengan bidang studi mereka, sehingga mereka dapat
-              mempersiapkan diri dengan baik untuk memasuki dunia kerja.
+              Menjadi platform magang digital terpercaya yang menjadi jembatan
+              utama antara mahasiswa, talenta muda, dan dunia kerja profesional
+              di Indonesia.
             </p>
           </div>
         </div>
         <div className="bg-accent col-span-1 md:col-span-4 rounded-2xl grid grid-flow-col grid-rows-5 min-h-[150px] mt-4 md:mt-0">
-          <div className="col-span-3 row-span-2"></div>
-          <div className="col-span-2 p-5 row-span-3 text-white">
+            <div className="col-span-3 row-span-2 hidden lg:block transition-all duration-300 hover:opacity-0"></div>
+            <div className="col-span-2 p-5 row-span-3 text-white bg-black/10 transition-all duration-300 hover:row-span-5 hover:bg-black/0">
             <h1 className="text-xl md:text-2xl font-bold">Our Mission</h1>
             <p className="text-xs md:text-xs">
-              Membantu mahasiswa Indonesia menemukan pengalaman kerja nyata yang
-              relevan dengan bidang studi mereka, sehingga mereka dapat
-              mempersiapkan diri dengan baik untuk memasuki dunia kerja.
+              1. Menyediakan peluang magang terverifikasi dari perusahaan
+              terpercaya di berbagai bidang industri.
+              <br />
+              2. Membekali mahasiswa dan talenta muda dengan pelatihan,
+              bimbingan, dan pengalaman kerja nyata.
+              <br />
+              3. Membangun ekosistem karier digital yang mendukung pertumbuhan
+              profesional sejak dini.
+              <br />
+              4. Menjadi mitra strategis perusahaan dalam menemukan talenta muda
+              potensial.
             </p>
           </div>
         </div>

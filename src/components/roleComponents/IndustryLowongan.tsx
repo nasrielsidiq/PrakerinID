@@ -15,7 +15,7 @@ import Cookies from "js-cookie";
 import { timeAgo } from "@/utils/timeAgo";
 import Link from "next/link";
 import Image from "next/image";
-import NotFoundCompoenent from "../NotFoundCompoenent";
+import NotFoundComponent from "../NotFoundComponent";
 
 interface Lowongan {
   title: string;
@@ -145,7 +145,7 @@ export function IndustryLowongan() {
           ))}
         {jobOpenings.length === 0 && (
           <div className="text-center py-12 col-span-2 ">
-            <NotFoundCompoenent text="Tidak ada lowongan magang yang ditemukan" />
+            <NotFoundComponent text="Tidak ada lowongan magang yang ditemukan." />
           </div>
         )}
       </div>

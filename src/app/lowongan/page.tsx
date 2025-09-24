@@ -4,6 +4,7 @@ import { API, ENDPOINTS } from "../../../utils/config";
 import dayjs from "dayjs";
 import { useRouter, useSearchParams } from "next/navigation";
 import DescriptionRendererLite from "@/components/RenderBlocksLite";
+import LoaderData from "@/components/loader";
 
 interface Province {
   id: string;
@@ -47,6 +48,7 @@ export default function InternshipPage() {
     duration_id: "",
   });
   const [fields, setFields] = useState<Field[]>([]);
+  const [loading, setLoading] = useState<boolean>(false);
 
   useEffect(() => {
     setInputSearch(keyword);
@@ -61,21 +63,25 @@ export default function InternshipPage() {
   });
 
   useEffect(() => {
+    if (loading) return;
+    setLoading(true);
     const fetchData = async () => {
       try {
         const response = await API.get(ENDPOINTS.JOB_OPENINGS, {
-          // params: {
-          //     provinsi: filters.provinsi.join(","),
-          //     kota: filters.kota.join(","),
-          //     grade: filters.pendidikan.join(","),
-          //     slug: search,
-          //     durasi: filters.durasi.join(","),
-          // }
+          params: {
+            provinsi: filters.provinsi.join(","),
+            kota: filters.kota.join(","),
+            grade: filters.pendidikan.join(","),
+            slug: search,
+            durasi: filters.durasi.join(","),
+          },
         });
-        // setData(response.data.data);
+        setData(response.data.data);
         console.log("Data fetched successfully:", response.data.data);
       } catch (error) {
         console.error("Error fetching data:", error);
+      } finally {
+        setLoading(false)
       }
     };
 
@@ -246,7 +252,7 @@ export default function InternshipPage() {
           {/* Card List */}
           <div className="w-full lg:flex-1 flex flex-col gap-6 mt-3">
             {/* card */}
-            {data &&
+            {data && loading !== true ? (
               data.map((item, index) => (
                 <div
                   key={index}
@@ -262,13 +268,12 @@ export default function InternshipPage() {
                       <h2 className="text-xl font-bold text-cyan-700">
                         {item.title}
                       </h2>
-                      <p className="text-gray-600 whitespace-pre-line">
-                        {item.description}
-                      </p>
-                      {/* <div className="mt-6 text-gray-600"> */}
-                      {/* <iframe src="/doc/taksonomi prakerin id.pdf" className="w-full h-screen border-0 bg-white/0" ></iframe> */}
-                      {/* <DescriptionRendererLite data={item.description} /> */}
-                      {/* </div> */}
+                      {/* <p className="text-gray-600 whitespace-pre-line">
+                        <DescriptionRendererLite data={item.description} />
+                      </p> */}
+                      <div className="mt-6 text-gray-600">
+                        <DescriptionRendererLite data={item.description} />
+                      </div>
                     </div>
                   </div>
                   <div className="flex col-span-4 items-center flex-wrap gap-4 text-sm text-gray-600">
@@ -296,7 +301,10 @@ export default function InternshipPage() {
                     </button>
                   </div>
                 </div>
-              ))}
+              ))
+            ) : (
+              <LoaderData />
+            )}
           </div>
           {/* Filter Box */}
           <div className="w-full lg:w-1/4 mt-8 lg:mt-0">

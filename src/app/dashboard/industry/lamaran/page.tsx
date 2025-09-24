@@ -15,7 +15,7 @@ import { API, ENDPOINTS } from "../../../../../utils/config";
 import Cookies from "js-cookie";
 import useDebounce from "@/hooks/useDebounce";
 import Link from "next/link";
-import NotFoundCompoenent from "@/components/NotFoundCompoenent";
+import NotFoundComponent from "@/components/NotFoundComponent";
 
 interface Lamaran {
   id: number;
@@ -139,7 +139,7 @@ const lamaranPage: React.FC = () => {
     <main className="p-6">
       <h1 className="text-accent-dark text-sm mb-5">Lamaran Magang</h1>
       <div className="flex items-center mb-8  space-x-2 font-extrabold text-accent">
-        <BriefcaseBusiness className="w-5 h-5" />
+        <FileText className="w-5 h-5" />
         <h2 className="text-2xl mt-2">Lamaran Magang</h2>
       </div>
 
@@ -151,7 +151,7 @@ const lamaranPage: React.FC = () => {
           />
           <input
             type="text"
-            placeholder="Cari Siswa..."
+            placeholder="Cari lamaran..."
             value={inputSearch}
             onChange={(e) => setInputSearch(e.target.value)}
             className="w-full pl-10 pr-4 py-3 text-white placeholder-teal-200 rounded-2xl focus:outline-none focus:ring-2 focus:ring-teal-400"
@@ -273,7 +273,7 @@ const lamaranPage: React.FC = () => {
 
         {internshipApplications.length === 0 && (
           <div className="text-center py-12 col-span-2 ">
-            <NotFoundCompoenent text="Belum ada orang yang melamar." />
+            <NotFoundComponent text="Belum ada orang yang melamar." />
           </div>
         )}
       </div>

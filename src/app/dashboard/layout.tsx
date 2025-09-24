@@ -31,7 +31,9 @@ import {
   GraduationCap,
   BriefcaseBusiness,
   Map,
-  ClipboardCheck, // TAMBAHKAN: LogOut
+  ClipboardCheck,
+  Stamp,
+  Medal, // TAMBAHKAN: LogOut
 } from "lucide-react";
 import Link from "next/link";
 import Cookies from "js-cookie";
@@ -131,7 +133,7 @@ export default function DashboardLayout({
             href: "/dashboard/feedback",
           },
           {
-            icon: Award,
+            icon: Medal,
             label: "Sertifikat",
             href: "/dashboard/sertifikat",
           },
@@ -161,7 +163,7 @@ export default function DashboardLayout({
             href: "/dashboard/lowongan",
           },
           {
-            icon: Briefcase,
+            icon: FileText,
             label: "Lamaran",
             href: "/dashboard/industry/lamaran",
           },
@@ -190,7 +192,11 @@ export default function DashboardLayout({
             label: "Ulasan",
             href: "/dashboard/feedback",
           },
-
+          {
+            icon: Medal,
+            label: "Sertifikat",
+            href: "/dashboard/sertifikat",
+          },
           {
             icon: User,
             label: "Profil",

@@ -21,6 +21,7 @@ import { AxiosError } from "axios";
 import { Province } from "@/models/province";
 import { CityRegency } from "@/models/cityRegency";
 import { Sector } from "@/models/sector";
+import LoaderData from "@/components/loader"
 
 const Editor = dynamic<EditorProps>(() => import("@/components/Editor"), {
   ssr: false,
@@ -37,7 +38,7 @@ interface UserForm {
 interface CompanyForm {
   name: string;
   province_id: string;
-  city_regencies_id: string;
+  city_regency_id: string;
   sector_id: string;
   address: string;
   phone_number: string;
@@ -52,6 +53,7 @@ interface SchoolForm {
   accreditation: string;
   phone_number: string;
   website: string;
+  city_regency_id: string;
 }
 
 interface StudentForm {
@@ -80,7 +82,7 @@ export default function ProfilePage() {
   const [companyForm, setCompanyForm] = useState<CompanyForm>({
     name: "",
     province_id: "",
-    city_regencies_id: "",
+    city_regency_id: "",
     sector_id: "",
     address: "",
     phone_number: "",
@@ -94,6 +96,7 @@ export default function ProfilePage() {
     accreditation: "",
     phone_number: "",
     website: "",
+    city_regency_id: "",
   });
   const [studentForm, setStudentForm] = useState<StudentForm>({
     name: "",
@@ -116,7 +119,11 @@ export default function ProfilePage() {
   const [isSubmittingDesc, setIsSubmittingDesc] = useState<boolean>(false);
   const [profileImage, setProfileImage] = useState<string | null>(null);
 
+  const [loading, setLoading] = useState<boolean>(false);
+
   const fetchProfile = async () => {
+    if (loading) return;
+    setLoading(true)
     try {
       const response = await API.get(`${ENDPOINTS.USERS}/profile`, {
         headers: {
@@ -165,6 +172,8 @@ export default function ProfilePage() {
       }
     } catch (error) {
       console.error("Error fetching profile:", error);
+    } finally {
+      setLoading(false)
     }
   };
 
@@ -269,6 +278,8 @@ export default function ProfilePage() {
   };
 
   const fetchData = async () => {
+    if (loading) return
+    setLoading(true)
     try {
       const provinces = API.get(`${ENDPOINTS.PROVINCES}`);
       const cityRegencies = API.get(`${ENDPOINTS.CITY_REGENCIES}`);
@@ -280,6 +291,8 @@ export default function ProfilePage() {
       setSectors(response[2].data.data);
     } catch (error) {
       console.error(error);
+    } finally{
+      setLoading(false)
     }
   };
 
@@ -296,6 +309,10 @@ export default function ProfilePage() {
   return (
     // Konten utama dimulai di sini
     <main className="space-y-8 p-6">
+
+      {loading === true && (
+        <LoaderData />
+      )}
       {/* Judul Halaman untuk Tampilan Mobile */}
       <h1 className="text-2xl font-semibold text-gray-900 md:hidden">
         Profile
@@ -484,32 +501,6 @@ export default function ProfilePage() {
                 </div>
                 <div>
                   <label
-                    htmlFor="company-province"
-                    className="block text-sm font-medium text-gray-700 mb-1"
-                  >
-                    Provinsi
-                  </label>
-                  <select
-                    id="company-province"
-                    value={companyForm.province_id}
-                    onChange={(e) => {
-                      setCompanyForm({
-                        ...companyForm,
-                        province_id: e.target.value,
-                      });
-                    }}
-                    className="w-full border-gray-300 rounded-md shadow-sm focus:ring-cyan-500 focus:border-cyan-500 sm:text-sm p-2"
-                  >
-                    <option value="">Pilih Provinsi</option>
-                    {provinces.map((province) => (
-                      <option key={province.id} value={province.id}>
-                        {province.name}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-                <div>
-                  <label
                     htmlFor="company-city-regency"
                     className="block text-sm font-medium text-gray-700 mb-1"
                   >
@@ -517,11 +508,11 @@ export default function ProfilePage() {
                   </label>
                   <select
                     id="company-city-regency"
-                    value={companyForm.city_regencies_id}
+                    value={companyForm.city_regency_id}
                     onChange={(e) => {
                       setCompanyForm({
                         ...companyForm,
-                        city_regencies_id: e.target.value,
+                        city_regency_id: e.target.value,
                       });
                     }}
                     className="w-full border-gray-300 rounded-md shadow-sm focus:ring-cyan-500 focus:border-cyan-500 sm:text-sm p-2"
@@ -686,6 +677,32 @@ export default function ProfilePage() {
                     }}
                     className="w-full border-gray-300 rounded-md shadow-sm focus:ring-cyan-500 focus:border-cyan-500 sm:text-sm p-2"
                   />
+                </div>
+                <div>
+                  <label
+                    htmlFor="company-city-regency"
+                    className="block text-sm font-medium text-gray-700 mb-1"
+                  >
+                    Kota/Kabupaten
+                  </label>
+                  <select
+                    id="school-city-regency"
+                    value={schoolForm.city_regency_id}
+                    onChange={(e) => {
+                      setSchoolForm({
+                        ...schoolForm,
+                        city_regency_id: e.target.value,
+                      });
+                    }}
+                    className="w-full border-gray-300 rounded-md shadow-sm focus:ring-cyan-500 focus:border-cyan-500 sm:text-sm p-2"
+                  >
+                    <option value="">Pilih Kota/Kabupaten</option>
+                    {cityRegencies.map((cityRegency) => (
+                      <option key={cityRegency.id} value={cityRegency.id}>
+                        {cityRegency.name}
+                      </option>
+                    ))}
+                  </select>
                 </div>
                 <div>
                   <label

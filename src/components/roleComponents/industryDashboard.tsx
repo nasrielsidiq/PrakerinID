@@ -1,5 +1,7 @@
 import {
+  Award,
   BadgeCheck,
+  Briefcase,
   BriefcaseBusiness,
   CircleArrowRight,
   FileText,
@@ -15,6 +17,7 @@ import Cookies from "js-cookie";
 import { API, ENDPOINTS } from "../../../utils/config";
 import { RatingSummary } from "@/models/feedback";
 import { mapRatingToData } from "@/utils/mapRatingToData";
+import NotFoundComponent from "../NotFoundComponent";
 
 interface InternshipApplication {
   id: string;
@@ -119,7 +122,7 @@ export default function IndustryDashboard() {
             </h1>
             <h3 className=" text-md">Total Lowongan</h3>
           </div>
-          <BriefcaseBusiness className="text-accent w-7 h-7 my-auto" />
+          <Briefcase className="text-accent w-7 h-7 my-auto" />
         </div>
         <div className="bg-white rounded-lg shadow-sm p-3 px-5 flex justify-between">
           <div className="text-accent-dark">
@@ -128,16 +131,17 @@ export default function IndustryDashboard() {
             </h1>
             <h3 className=" text-md">Total Penghargaan</h3>
           </div>
-          <BadgeCheck className="text-accent w-7 h-7 my-auto" />
+          <Award className="text-accent w-7 h-7 my-auto" />
         </div>
       </div>
 
       <div className="bg-white rounded-lg shadow-sm p-3 px-5 flex flex-col justify-between">
         <div className="flex  mb-4   justify-between">
           <div className="flex flex-col ">
-            <h3 className="font-bold text-lg">Rating Perusahaan </h3>
+            <h3 className="font-bold text-lg">Penilaian Perusahaan </h3>
             <p className="text-sm text-gray-600">
-              Rating didapat dari siswa yang melakukan magang di perusahaan ini
+              Penilaian didapat dari siswa yang melakukan magang di perusahaan
+              ini
             </p>
           </div>
           <Link href="/dashboard/feedback">
@@ -154,8 +158,8 @@ export default function IndustryDashboard() {
           </div>
           <div className="w-1/2 ">
             <PieChartCompenent
-              legend="Persentase Rating"
-              tooltip="Persentasi Rating"
+              legend="Persentase Penilaian"
+              tooltip="Persentase Penilaian"
               dataList={mapRatingToData(ratingSummary, ratingColors)}
             />
           </div>
@@ -190,7 +194,7 @@ export default function IndustryDashboard() {
             />
             <input
               type="text"
-              placeholder="Cari Siswa..."
+              placeholder="Cari tugas yang mendekati tenggat waktu..."
               // value={inputSearch}
               // onChange={(e) => setInputSearch(e.target.value)}
               className="w-full pl-10 pr-4 py-3 text-white placeholder-teal-200 rounded-2xl focus:outline-none focus:ring-2 focus:ring-teal-400"
@@ -211,13 +215,13 @@ export default function IndustryDashboard() {
                     Nama
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Role
+                    Bidang
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Task
+                    Tugas
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Deadline
+                    Tenggat Waktu
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     Status
@@ -303,9 +307,8 @@ export default function IndustryDashboard() {
           </div>
 
           {internshipApplications.length === 0 && (
-            <div className="p-8 text-center text-gray-500">
-              <FileText size={48} className="mx-auto mb-4 text-gray-300" />
-              <p>Tidak ada task deadline yang ditemukan</p>
+            <div className="text-center py-12 col-span-2 ">
+              <NotFoundComponent text="Anda belum memiliki tugas." />
             </div>
           )}
         </div>

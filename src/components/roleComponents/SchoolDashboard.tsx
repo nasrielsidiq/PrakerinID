@@ -160,9 +160,9 @@ export default function SchoolDashboard() {
       <div className="bg-white rounded-lg shadow-sm p-3 px-5 flex flex-col justify-between">
         <div className="flex  mb-4   justify-between">
           <div className="flex flex-col ">
-            <h3 className="font-bold text-lg">Rating Sekolah </h3>
+            <h3 className="font-bold text-lg">Penilaian Sekolah </h3>
             <p className="text-sm text-gray-600">
-              Rating didapat dari siswa dan perusahaan yang terdaftar sebagai
+              Penilaian didapat dari siswa dan perusahaan yang terdaftar sebagai
               pengguna Prakerin
             </p>
           </div>
@@ -180,8 +180,8 @@ export default function SchoolDashboard() {
           </div>
           <div className="w-1/2 ">
             <PieChartCompenent
-              legend="Persentase Rating"
-              tooltip="Persentasi Rating"
+              legend="Persentase Penilaian"
+              tooltip="Persentase Penilaian"
               dataList={mapRatingToData(ratingSummary, ratingColors)}
             />
           </div>
@@ -228,14 +228,14 @@ export default function SchoolDashboard() {
           <div className="w-1/2 ">
             <PieChartCompenent
               legend="Distribusi Total Perusahaan dan Lowongan"
-              tooltip="Persentasi Rating"
+              tooltip="Persentase Rating"
               dataList={mapRatingToData(ratingSummary, ratingColors)}
             />
           </div>
           <div className="w-1/2 ">
             <PieChartCompenent
-              legend="Distribusi Lowongan Aktif & Close"
-              tooltip="Persentasi Rating"
+              legend="Distribusi Lowongan Aktif & Tidak Aktif"
+              tooltip="Persentase Rating"
               dataList={mapRatingToData(ratingSummary, ratingColors)}
             />
           </div>

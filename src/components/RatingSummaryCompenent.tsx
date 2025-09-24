@@ -38,7 +38,7 @@ export default function RatingSummaryCompenent({ data }: RatingSummaryProps) {
       {/* Bagian persentase bar */}
       <div className="flex-1 w-full">
         <h3 className="text-sm font-medium text-gray-600 mb-3">
-          Persentase Rating
+          Persentase Penilaian
         </h3>
         <div className="space-y-2">
           {[5, 4, 3, 2, 1].map((star) => {

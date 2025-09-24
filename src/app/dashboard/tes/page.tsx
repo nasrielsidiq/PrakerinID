@@ -13,7 +13,7 @@ import { API, ENDPOINTS } from "../../../../utils/config";
 import Cookies from "js-cookie";
 import useDebounce from "@/hooks/useDebounce";
 import Link from "next/link";
-import NotFoundCompoenent from "@/components/NotFoundCompoenent";
+import NotFoundComponent from "@/components/NotFoundComponent";
 
 interface Task {
   id: number;
@@ -130,7 +130,7 @@ const TasklistPage: React.FC = () => {
           <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
           <input
             type="text"
-            placeholder="Cari Tes..."
+            placeholder="Cari tes..."
             value={inputSearch}
             onChange={(e) => setInputSearch(e.target.value)}
             className="w-full bg-accent text-white placeholder-teal-200 pl-10 pr-4 py-3 rounded-t-2xl focus:outline-none focus:ring-2 focus:ring-teal-300"
@@ -140,14 +140,16 @@ const TasklistPage: React.FC = () => {
           <table className="w-full">
             <thead className="bg-gray-50 border-b">
               <tr>
-                <th className="text-left p-3 font-medium text-gray-600">No</th>
-                <th className="text-left p-3 font-medium text-gray-600">
+                <th className="text-left p-3 font-medium text-gray-600 uppercase">
+                  No
+                </th>
+                <th className="text-left p-3 font-medium text-gray-600 uppercase">
                   Judul Tes
                 </th>
-                <th className="text-left p-3 font-medium text-gray-600">
-                  Link Tes
+                <th className="text-left p-3 font-medium text-gray-600 uppercase">
+                  Tautan Tes
                 </th>
-                <th className="text-left p-3 font-medium text-gray-600">
+                <th className="text-left p-3 font-medium text-gray-600 uppercase">
                   Aksi
                 </th>
               </tr>
@@ -175,7 +177,7 @@ const TasklistPage: React.FC = () => {
         {/* Empty State (if no tasks) */}
         {tasks.length === 0 && (
           <div className="text-center py-12 col-span-2 ">
-            <NotFoundCompoenent text="Anda belum memiliki tes." />
+            <NotFoundComponent text="Anda belum memiliki tes." />
           </div>
         )}
       </div>

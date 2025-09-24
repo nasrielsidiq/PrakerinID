@@ -1,7 +1,7 @@
 import { XCircle } from "lucide-react";
 import React from "react";
 
-const NotFoundCompoenent = ({ text }: { text: string }) => {
+const NotFoundComponent = ({ text }: { text: string }) => {
   return (
     <>
       <XCircle className="w-12 h-12 text-red-500/50 mx-auto mb-4" />
@@ -10,4 +10,4 @@ const NotFoundCompoenent = ({ text }: { text: string }) => {
   );
 };
 
-export default NotFoundCompoenent;
+export default NotFoundComponent;

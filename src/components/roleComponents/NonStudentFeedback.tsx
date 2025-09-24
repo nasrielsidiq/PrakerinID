@@ -7,6 +7,7 @@ import Cookies from "js-cookie";
 import RatingSummaryCompenent from "../RatingSummaryCompenent";
 import { RatingSummary } from "@/models/feedback";
 import { mapRatingToData } from "@/utils/mapRatingToData";
+import NotFoundComponent from "../NotFoundComponent";
 
 const NonStudentFeedback = ({ authorization }: { authorization: string }) => {
   const [ratingSummary, setRatingSummary] = useState<RatingSummary>({
@@ -44,12 +45,12 @@ const NonStudentFeedback = ({ authorization }: { authorization: string }) => {
         <div className="flex  mb-4   justify-between">
           <div className="flex flex-col ">
             <h3 className="font-bold text-lg">
-              Rating {authorization === "company" ? "Perusahaan" : "Sekolah"}{" "}
+              Penilaian {authorization === "company" ? "Perusahaan" : "Sekolah"}
             </h3>
             <p className="text-sm text-gray-600">
               {authorization === "company"
-                ? "Rating didapat dari siswa yang melakukan magang di perusahaan ini"
-                : "Rating didapat dari siswa dan perusahaan yang terdaftar sebagai pengguna Prakerin"}
+                ? "Penilaian didapat dari siswa yang melakukan magang di perusahaan ini"
+                : "Penilaian didapat dari siswa dan perusahaan yang terdaftar sebagai pengguna Prakerin"}
             </p>
           </div>
         </div>
@@ -60,7 +61,7 @@ const NonStudentFeedback = ({ authorization }: { authorization: string }) => {
           </div>
           <div className="w-1/2 ">
             <PieChartCompenent
-              legend="Presentasi Rating"
+              legend="Presentase Penilaian"
               dataList={mapRatingToData(ratingSummary, ratingColors)}
             />
           </div>
@@ -76,7 +77,7 @@ const NonStudentFeedback = ({ authorization }: { authorization: string }) => {
             />
             <input
               type="text"
-              placeholder="Cari Feedback..."
+              placeholder="Cari ulasan..."
               // value={inputSearch}
               // onChange={(e) => setInputSearch(e.target.value)}
               className="w-full pl-10 pr-4 py-3 text-white placeholder-teal-200 rounded-2xl focus:outline-none focus:ring-2 focus:ring-teal-400"
@@ -100,10 +101,10 @@ const NonStudentFeedback = ({ authorization }: { authorization: string }) => {
                     Tanggal
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Feedback
+                    Ulasan
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Rating
+                    Penilaian
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     Aksi
@@ -186,9 +187,8 @@ const NonStudentFeedback = ({ authorization }: { authorization: string }) => {
           </div>
 
           {/* {internshipApplications.length === 0 && ( */}
-          <div className="p-8 text-center text-gray-500">
-            <FileText size={48} className="mx-auto mb-4 text-gray-300" />
-            <p>Tidak ada task deadline yang ditemukan</p>
+          <div className="text-center py-12 col-span-2 ">
+            <NotFoundComponent text="Tidak ada ulasan yang ditemukan." />
           </div>
           {/* )} */}
         </div>

@@ -14,6 +14,9 @@ import { API, ENDPOINTS } from "../../../../../../utils/config";
 import Cookies from "js-cookie";
 import { AxiosError } from "axios";
 import { alertConfirm, alertError, alertSuccess } from "@/libs/alert";
+import NotFoundComponent from "@/components/NotFoundComponent";
+import { Page } from "@/models/pagination";
+import PaginationComponent from "@/components/PaginationComponent";
 
 interface Student {
   id: string;
@@ -26,15 +29,21 @@ interface Student {
 const PermohonanSiswaPage: React.FC = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const router = useRouter();
+  const [pages, setPages] = useState<Page>({
+    activePage: 1,
+    pages: 1,
+  });
+  const [isLoading, setIsLoading] = useState<boolean>(false);
 
   const [data, setData] = useState<Student[]>([]);
 
   const fetchData = async () => {
     try {
+      setIsLoading(true);
       const response = await API.get(`${ENDPOINTS.USERS}`, {
         params: {
           is_verified: false,
-          page: 1,
+          page: pages.activePage,
           limit: 10,
           role: "student",
           search: searchQuery,
@@ -44,8 +53,14 @@ const PermohonanSiswaPage: React.FC = () => {
         },
       });
       setData(response.data.data);
+      setPages({
+        ...pages,
+        pages: response.data.last_page,
+      });
     } catch (error) {
       console.error(error);
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -113,6 +128,13 @@ const PermohonanSiswaPage: React.FC = () => {
     fetchData();
   }, []);
 
+  const handleChangePage = (selectedPage: number) => {
+    setPages((prev) => ({
+      ...prev,
+      activePage: selectedPage,
+    }));
+  };
+
   return (
     <main className="p-6">
       {/* Page Header */}
@@ -151,22 +173,26 @@ const PermohonanSiswaPage: React.FC = () => {
           <table className="w-full">
             <thead className="bg-gray-50 border-b">
               <tr>
-                <th className="text-left p-3 font-medium text-gray-600">No</th>
-                <th className="text-left p-3 font-medium text-gray-600">
+                <th className="text-left p-3 font-medium text-gray-600 uppercase">
+                  No
+                </th>
+                <th className="text-left p-3 font-medium text-gray-600 uppercase">
                   Nama Siswa
                 </th>
-                <th className="text-left p-3 font-medium text-gray-600">
+                <th className="text-left p-3 font-medium text-gray-600 uppercase">
                   Email
                 </th>
-                <th className="text-left p-3 font-medium text-gray-600">
+                <th className="text-left p-3 font-medium text-gray-600 uppercase">
                   Aksi
                 </th>
               </tr>
             </thead>
             <tbody>
-              {data.map((item, i) => (
+              {data.map((item, index) => (
                 <tr key={item.id} className="border-b hover:bg-gray-50">
-                  <td className="p-4 text-gray-800">{i + 1}</td>
+                  <td className="p-4 text-gray-800">
+                    {index + 1 + (pages.activePage - 1) * 10}
+                  </td>
                   <td className="p-4 text-gray-800">{item.student.name}</td>
                   <td className="p-4 text-gray-600">{item.email}</td>
                   <td className="p-4 grid grid-cols-2 gap-2 w-48 ">
@@ -191,14 +217,17 @@ const PermohonanSiswaPage: React.FC = () => {
 
         {/* Empty State (if no data) */}
         {data.length === 0 && (
-          <div className="text-center py-12">
-            <CheckSquare className="w-12 h-12 text-gray-300 mx-auto mb-4" />
-            <p className="text-gray-500">
-              Tidak ada siswa yang sedang mendaftar ditemukan
-            </p>
+          <div className="text-center py-12 col-span-2 ">
+            <NotFoundComponent text="Tidak ada permohonan siswa mendaftar yang ditemukan." />
           </div>
         )}
       </div>
+      <PaginationComponent
+        activePage={pages.activePage}
+        totalPages={pages.pages}
+        onPageChange={handleChangePage}
+        loading={isLoading}
+      />
     </main>
   );
 };

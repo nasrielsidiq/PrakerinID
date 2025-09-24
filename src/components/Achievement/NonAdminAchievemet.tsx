@@ -1,5 +1,4 @@
-import PenghargaanPage from "@/app/UI/page";
-import { BadgeCheck } from "lucide-react";
+import { Award, BadgeCheck } from "lucide-react";
 import Image from "next/image";
 interface Award {
   id: number;
@@ -59,15 +58,15 @@ const NonAdminAchievemet: React.FC = () => {
     <main className="p-6">
       <h1 className="text-accent-dark text-sm mb-5">Penghargaan</h1>
       <div className="flex items-center mb-8  space-x-2 font-extrabold text-accent">
-        <BadgeCheck className="w-5 h-5" />
+        <Award className="w-5 h-5" />
         <h2 className="text-2xl mt-2">Penghargaan</h2>
       </div>
       <div className="bg-white p-3 rounded-2xl flex justify-between lg:w-2/9 mb-8">
         <div>
           <h1 className="text-gray-700 text-2xl font-bold">4</h1>
-          <span className="text text-gray-300">Total Penghargaan</span>
+          <span className="text text-gray-500">Total Penghargaan</span>
         </div>
-        <BadgeCheck className="w-8 h-8 text-accent my-auto" />
+        <Award className="w-8 h-8 text-accent my-auto" />
       </div>
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
         {awards.map((award) => (
