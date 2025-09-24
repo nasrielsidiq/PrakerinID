@@ -75,7 +75,10 @@ export default function PieChartComponent({
         <ResponsiveContainer width="100%" height="100%">
           <PieChart>
             <Pie
-              data={dataList}
+              data={dataList.map((data) => ({
+                name: data.name,
+                value: data.value,
+              }))}
               cx="50%"
               cy="50%"
               labelLine={false}
