@@ -1,81 +1,50 @@
 "use client";
 import dynamic from "next/dynamic";
-import { Briefcase, BriefcaseBusiness, HelpCircle } from "lucide-react";
+import { HelpCircle } from "lucide-react";
 import Link from "next/link";
 import { useEffect, useState } from "react";
-import { EditorProps } from "@/components/Editor";
 import { API, ENDPOINTS } from "../../../../../utils/config";
-import { getDurationUnit } from "@/utils/getDurationUnit";
 import Cookies from "js-cookie";
 import { alertConfirm, alertError, alertSuccess } from "@/libs/alert";
 import { AxiosError } from "axios";
 import { useRouter } from "next/navigation";
-import Select from "react-select";
 
-const Editor = dynamic<EditorProps & { error?: string }>(
-  () => import("@/components/Editor"),
-  {
-    ssr: false,
-  }
-);
-
-interface Duration {
-  id: string;
-  duration_value: number;
-  duration_unit: string;
-}
-
-interface Field {
-  id: string;
-  name: string;
-}
-
-interface CreateJobOpening {
+interface FormData {
   title: string;
   type: type;
-  location: location;
-  grade: grade;
-  is_paid: string | boolean;
-  quota: number;
-  is_available: string | boolean;
-  field_id: string;
-  duration_id: string;
-  description: any;
+  link: string;
+  description: string;
 }
 
-type type = "part_time" | "full_time" | "";
-type location = "onsite" | "remote" | "hybrid" | "field" | "";
-type grade = "all" | "smk" | "mahasiswa" | "";
+interface Error {
+  title?: string;
+  type?: string;
+  link?: string;
+  description?: string;
+}
+
+type type = "theory" | "practice" | "other" | "";
 
 const tambahLowonganPage: React.FC = () => {
   const route = useRouter();
-  const [durations, setDurations] = useState<Duration[]>([]);
-  const [fields, setFields] = useState<Field[]>([]);
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
 
-  const [formData, setFormData] = useState<CreateJobOpening>({
+  const [formData, setFormData] = useState<FormData>({
     title: "",
     type: "",
-    location: "",
-    grade: "",
-    is_paid: "",
-    quota: 1,
-    is_available: "true",
-    field_id: "",
-    duration_id: "",
+    link: "https://",
     description: "",
   });
+
+  const [errors, setErrors] = useState<Error>({});
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     console.log("Form submitted", formData);
     try {
       setIsSubmitting(true);
-      formData.is_available = Boolean(formData.is_available);
-      formData.is_paid =
-        formData.is_paid !== "" ? Boolean(formData.is_paid) : formData.is_paid;
 
-      await API.post(ENDPOINTS.JOB_OPENINGS, formData, {
+      await API.post(ENDPOINTS.TESTS, formData, {
         headers: {
           Authorization: `Bearer ${Cookies.get("userToken")}`,
         },
@@ -83,51 +52,21 @@ const tambahLowonganPage: React.FC = () => {
 
       await alertSuccess("Lowongan berhasil ditambahkan!");
 
-      route.replace("/dashboard/lowongan");
+      route.replace("/dashboard/tes");
     } catch (error: AxiosError | unknown) {
-      await alertError("Gagal menambahkan lowongan!");
-      console.error("Error submitting form:", error);
+      if (error instanceof AxiosError) {
+        const responseError = error.response?.data.errors;
+        if (typeof responseError === "string") {
+          await alertError(responseError);
+        } else {
+          setErrors(responseError);
+        }
+      }
+      console.error(error);
     } finally {
       setIsSubmitting(false);
     }
   };
-  const handleEditorChange = (data: any) => {
-    setFormData((prev) => ({
-      ...prev,
-      description: data,
-    }));
-  };
-
-  const fetchDurations = async () => {
-    try {
-      const response = await API.get(ENDPOINTS.DURATIONS);
-      console.log("Durations fetched:", response.data.data);
-      setDurations(response.data.data);
-    } catch (error) {
-      console.error("Error fetching durations:", error);
-    }
-  };
-
-  const fetchFields = async () => {
-    try {
-      const response = await API.get(ENDPOINTS.FIELDS);
-      console.log("Fields fetched:", response.data.data);
-      setFields(response.data.data);
-    } catch (error) {
-      console.error("Error fetching fields:", error);
-    }
-  };
-
-  const handleChangeQuota = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (Number(e.target.value) < 1 || Number(e.target.value) > 50) {
-      return;
-    }
-    setFormData({ ...formData, quota: Number(e.target.value) });
-  };
-
-  useEffect(() => {
-    Promise.all([fetchDurations(), fetchFields()]);
-  }, []);
 
   return (
     <main className="p-6">
@@ -170,13 +109,41 @@ const tambahLowonganPage: React.FC = () => {
             </label>
             <input
               type="text"
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-accent focus:border-transparent"
+              className={`w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-accent focus:border-transparent ${
+                errors.title ? "border-red-500" : "border-gray-300"
+              }`}
               placeholder="Masukkan judul tes"
               value={formData.title}
               onChange={(e) =>
                 setFormData({ ...formData, title: e.target.value })
               }
             />
+            {errors.title && (
+              <p className="mt-1 text-sm text-red-500">{errors.title}</p>
+            )}
+          </div>
+
+          <div className="lg:col-span-2">
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Tipe Tes
+            </label>
+            <select
+              value={formData.type}
+              onChange={(e) =>
+                setFormData({ ...formData, type: e.target.value as type })
+              }
+              className={`w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-accent focus:border-transparent ${
+                errors.type ? "border-red-500" : "border-gray-300"
+              }`}
+            >
+              <option value="">Pilih jenis magang</option>
+              <option value="theory">Tes teori</option>
+              <option value="practice">Tes praktik</option>
+              <option value="other">Tes lainnya</option>
+            </select>
+            {errors.type && (
+              <p className="mt-1 text-sm text-red-500">{errors.type}</p>
+            )}
           </div>
 
           {/* Link tes */}
@@ -186,13 +153,18 @@ const tambahLowonganPage: React.FC = () => {
             </label>
             <input
               type="text"
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-accent focus:border-transparent"
+              className={`w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-accent focus:border-transparent ${
+                errors.link ? "border-red-500" : "border-gray-300"
+              }`}
               placeholder="Masukkan link tes"
-              value={formData.title}
+              value={formData.link}
               onChange={(e) =>
-                setFormData({ ...formData, title: e.target.value })
+                setFormData({ ...formData, link: e.target.value })
               }
             />
+            {errors.link && (
+              <p className="mt-1 text-sm text-red-500">{errors.link}</p>
+            )}
           </div>
 
           {/* Deskripsi Tes */}
@@ -200,21 +172,32 @@ const tambahLowonganPage: React.FC = () => {
             <label className="block text-sm font-medium text-gray-700 mb-2">
               Deskripsi
             </label>
-            <Editor onChange={handleEditorChange} />
+            {errors.description && (
+              <p className="mt-1 text-sm text-red-500">{errors.description}</p>
+            )}
+            <textarea
+              onChange={(e) =>
+                setFormData({ ...formData, description: e.target.value })
+              }
+              value={formData.description}
+              className={`resize-none w-full h-40 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-accent focus:border-transparent ${
+                errors.description ? "border-red-500" : "border-gray-300"
+              }`}
+            ></textarea>
           </div>
         </div>
 
         {/* Action Buttons */}
         <div className="flex flex-col sm:flex-row gap-3 mt-8 justify-end">
           <Link
-            href="/dashboard/lowongan"
+            href="/dashboard/tes"
             onClick={async (e) => {
               e.preventDefault();
               const isConfirm = await alertConfirm(
                 "Apakah anda yakin ingin membatalkan!"
               );
               if (isConfirm) {
-                route.push("/dashboard/lowongan");
+                route.push("/dashboard/tes");
               }
             }}
             className="px-6 py-2 border border-gray-300 text-gray-700 rounded-md hover:bg-gray-50 transition-colors cursor-pointer"

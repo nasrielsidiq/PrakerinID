@@ -6,6 +6,9 @@ import {
   HelpCircle,
   Info,
   Search,
+  Pencil,
+  Trash,
+  X,
 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
@@ -14,38 +17,53 @@ import Cookies from "js-cookie";
 import useDebounce from "@/hooks/useDebounce";
 import Link from "next/link";
 import NotFoundComponent from "@/components/NotFoundComponent";
-
-interface Task {
-  id: number;
-  title: string;
-  due_date: string;
-  status: "in_progress" | "pending" | "completed" | "cancelled";
-}
+import { alertConfirm, alertError, alertSuccess } from "@/libs/alert";
+import { AxiosError } from "axios";
 
 interface Tes {
   id: string;
   title: string;
   link: string;
+  description: string;
+  type: Type;
+}
+interface FormError {
+  title?: string;
+  link?: string;
+  description?: string;
+  type?: string;
 }
 
-type ActiveTab = "Semua" | "Praktik" | "Teori";
+type ActiveTab = "Semua" | "Praktik" | "Teori" | "Lainnya";
+type Type = "theory" | "practice" | "";
 
-const TasklistPage: React.FC = () => {
+const TestListPage: React.FC = () => {
   const router = useRouter();
-  const tabs = ["Semua", "Praktik", "Teori"];
+  const tabs = ["Semua", "Praktik", "Teori", "Lainnya"];
 
   const [activeTab, setActiveTab] = useState<ActiveTab>("Semua");
   const [inputSearch, setInputSearch] = useState("");
-  const [tasks, setTasks] = useState<Task[]>([]);
+  const [tests, setTests] = useState<Tes[]>([]);
+  const [formData, setFormData] = useState<Tes>({
+    id: "",
+    title: "",
+    link: "",
+    description: "",
+    type: "",
+  });
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [formError, setFormError] = useState<FormError>({});
 
   const debouncedQuery = useDebounce(inputSearch, 1000);
 
-  const fetchTasks = async () => {
+  const fetchTests = async () => {
     try {
-      let filteredStatus = "all";
+      let filteredStatus: undefined | string = "all";
       switch (activeTab) {
         case "Semua":
-          filteredStatus = "all";
+          filteredStatus = undefined;
           break;
         case "Praktik":
           filteredStatus = "practice";
@@ -53,11 +71,14 @@ const TasklistPage: React.FC = () => {
         case "Teori":
           filteredStatus = "theory";
           break;
+        case "Lainnya":
+          filteredStatus = "other";
+          break;
       }
 
-      const response = await API.get(ENDPOINTS.TASKS, {
+      const response = await API.get(ENDPOINTS.TESTS, {
         params: {
-          status: filteredStatus,
+          type: filteredStatus,
           search: inputSearch,
         },
         headers: {
@@ -65,21 +86,94 @@ const TasklistPage: React.FC = () => {
         },
       });
 
-      console.log("Tasks fetched successfully:", response.data.data);
-      setTasks(response.data.data);
+      console.log("Tests fetched successfully:", response.data.data);
+      setTests(response.data.data);
     } catch (error) {
-      console.error("Error fetching tasks:", error);
+      console.error("Error fetching Tests:", error);
+    }
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsSubmitting(true);
+    setFormError({});
+    try {
+      await API.patch(`${ENDPOINTS.TESTS}/${editingId}`, formData, {
+        headers: {
+          Authorization: `Bearer ${Cookies.get("userToken")}`,
+        },
+      });
+
+      await fetchTests();
+      setFormData({
+        id: "",
+        title: "",
+        link: "",
+        description: "",
+        type: "",
+      });
+
+      setIsModalOpen(false);
+      setEditingId(null);
+      await alertSuccess("Provinsi berhasil diubah!");
+    } catch (error) {
+      if (error instanceof AxiosError) {
+        const responseError = error.response?.data.formError;
+        if (typeof responseError === "string") {
+          await alertError(responseError);
+        } else {
+          setFormError(responseError);
+        }
+      }
+      console.error(error);
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const handleDelete = async (id: string, name: string) => {
+    const confirm = await alertConfirm(
+      `Apakah anda yakin ingin menghapus Tes "${name}"?`
+    );
+    if (!confirm) return;
+
+    try {
+      await API.delete(`${ENDPOINTS.TESTS}/${id}`, {
+        headers: {
+          Authorization: `Bearer ${Cookies.get("userToken")}`,
+        },
+      });
+
+      await fetchTests();
+      await alertSuccess(`Tes ${name} berhasil dihapus!`);
+    } catch (error: AxiosError | unknown) {
+      if (error instanceof AxiosError) {
+        const responseError = error.response?.data.formError;
+        await alertError(responseError);
+      }
+      console.error(error);
+    }
+  };
+
+  const getType = (type: string) => {
+    switch (type) {
+      case "practice":
+        return "Praktik";
+      case "theory":
+        return "teori";
+      case "other":
+        return "Lainnya";
     }
   };
 
   useEffect(() => {
     if (inputSearch.trim() !== "") {
       if (!debouncedQuery) {
-        setTasks([]);
+        setTests([]);
         return;
       }
     }
-    fetchTasks();
+    fetchTests();
   }, [activeTab, debouncedQuery]);
 
   return (
@@ -150,22 +244,47 @@ const TasklistPage: React.FC = () => {
                   Tautan Tes
                 </th>
                 <th className="text-left p-3 font-medium text-gray-600 uppercase">
+                  Deskripsi
+                </th>
+                <th className="text-left p-3 font-medium text-gray-600 uppercase">
+                  Tipe
+                </th>
+                <th className="text-left p-3 font-medium text-gray-600 uppercase">
                   Aksi
                 </th>
               </tr>
             </thead>
             <tbody>
-              {tasks &&
-                tasks.map((task, index) => (
-                  <tr key={task.id} className="border-b hover:bg-gray-50">
+              {tests &&
+                tests.map((test, index) => (
+                  <tr key={test.id} className="border-b hover:bg-gray-50">
                     <td className="p-4 text-gray-800">{index + 1}</td>
-                    <td className="p-4 text-gray-800">{task.title}</td>
+                    <td className="p-4 text-gray-800">{test.title}</td>
+                    <td className="p-4">{test.link}</td>
+                    <td className="p-4">{test.description}</td>
+                    <td className="p-4">{getType(test.type)}</td>
                     <td className="p-4">
                       <button
-                        onClick={() => router.push(`tasklist/${task.id}`)}
+                        onClick={() => {
+                          setEditingId(test.id);
+                          setFormData({
+                            id: test.id,
+                            title: test.title,
+                            link: test.link,
+                            description: test.description,
+                            type: test.type,
+                          });
+                          setIsModalOpen(true);
+                        }}
                         className="p-2 text-blue-600 hover:bg-blue-50 rounded-full transition-colors cursor-pointer"
                       >
-                        <Info className="w-4 h-4" />
+                        <Pencil className="w-4 h-4" />
+                      </button>
+                      <button
+                        onClick={() => handleDelete(test.id, test.title)}
+                        className="p-2 text-red-600 hover:bg-blue-50 rounded-full transition-colors cursor-pointer"
+                      >
+                        <Trash className="w-4 h-4" />
                       </button>
                     </td>
                   </tr>
@@ -173,9 +292,140 @@ const TasklistPage: React.FC = () => {
             </tbody>
           </table>
         </div>
+        {isModalOpen && (
+          <div className="fixed inset-0 flex items-center justify-center h-screen bg-black/25 z-50">
+            <div className="bg-white text-black p-6 rounded-lg flex flex-col gap-2 min-w-sm lg:min-w-xl">
+              <div className=" rounded-lg justify-between flex">
+                <h3 className="text-lg font-semibold">
+                  {editingId ? "Ubah" : "Tambah"} Tes
+                </h3>
+                <X
+                  onClick={() => {
+                    if (editingId) {
+                      setEditingId(null);
+                      setFormData({
+                        id: "",
+                        title: "",
+                        link: "",
+                        description: "",
+                        type: "",
+                      });
+                    }
+                    setIsModalOpen(false);
+                  }}
+                  className="w-8 h-8 cursor-pointer text-red-500 hover:text-red-600"
+                />
+              </div>
+              <form className="flex flex-col gap-6" onSubmit={handleSubmit}>
+                <div className="">
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Judul Tes
+                  </label>
+                  <input
+                    type="text"
+                    className={`w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-accent focus:border-transparent ${
+                      formError.title ? "border-red-500" : "border-gray-300"
+                    }`}
+                    placeholder="Masukkan judul tes"
+                    value={formData.title}
+                    onChange={(e) =>
+                      setFormData({ ...formData, title: e.target.value })
+                    }
+                  />
+                  {formError.title && (
+                    <p className="mt-1 text-sm text-red-500">
+                      {formError.title}
+                    </p>
+                  )}
+                </div>
+
+                <div className="">
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Tipe Tes
+                  </label>
+                  <select
+                    value={formData.type}
+                    onChange={(e) =>
+                      setFormData({ ...formData, type: e.target.value as Type })
+                    }
+                    className={`w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-accent focus:border-transparent ${
+                      formError.type ? "border-red-500" : "border-gray-300"
+                    }`}
+                  >
+                    <option value="">Pilih jenis magang</option>
+                    <option value="theory">Tes Teori</option>
+                    <option value="practice">Tes Praktik</option>
+                    <option value="other">Tes Lainnya</option>
+                  </select>
+                  {formError.type && (
+                    <p className="mt-1 text-sm text-red-500">
+                      {formError.type}
+                    </p>
+                  )}
+                </div>
+
+                {/* Link tes */}
+                <div className="">
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Link Tes
+                  </label>
+                  <input
+                    type="text"
+                    className={`w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-accent focus:border-transparent ${
+                      formError.link ? "border-red-500" : "border-gray-300"
+                    }`}
+                    placeholder="Masukkan link tes"
+                    value={formData.link}
+                    onChange={(e) =>
+                      setFormData({ ...formData, link: e.target.value })
+                    }
+                  />
+                  {formError.link && (
+                    <p className="mt-1 text-sm text-red-500">
+                      {formError.link}
+                    </p>
+                  )}
+                </div>
+
+                {/* Deskripsi Tes */}
+                <div className="">
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Deskripsi
+                  </label>
+                  {formError.description && (
+                    <p className="mt-1 text-sm text-red-500">
+                      {formError.description}
+                    </p>
+                  )}
+                  <textarea
+                    onChange={(e) =>
+                      setFormData({ ...formData, description: e.target.value })
+                    }
+                    value={formData.description}
+                    className={`resize-none w-full h-40 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-accent focus:border-transparent ${
+                      formError.description
+                        ? "border-red-500"
+                        : "border-gray-300"
+                    }`}
+                  ></textarea>
+                </div>
+
+                <div className="flex justify-end ">
+                  <button
+                    type="submit"
+                    disabled={isSubmitting}
+                    className="bg-accent text-white px-4 py-2 rounded-lg transition disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer hover:bg-accent-hover"
+                  >
+                    {isSubmitting ? "Sedang menyimpan..." : "Simpan"}
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+        )}
 
         {/* Empty State (if no tasks) */}
-        {tasks.length === 0 && (
+        {tests.length === 0 && (
           <div className="text-center py-12 col-span-2 ">
             <NotFoundComponent text="Anda belum memiliki tes." />
           </div>
@@ -184,4 +434,4 @@ const TasklistPage: React.FC = () => {
     </main>
   );
 };
-export default TasklistPage;
+export default TestListPage;

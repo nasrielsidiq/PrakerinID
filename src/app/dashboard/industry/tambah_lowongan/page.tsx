@@ -30,6 +30,11 @@ interface Field {
   name: string;
 }
 
+interface Test {
+  id: string;
+  name: string;
+}
+
 interface CreateJobOpening {
   title: string;
   type: type;
@@ -41,6 +46,7 @@ interface CreateJobOpening {
   field_id: string;
   duration_id: string;
   description: any;
+  test: string[];
 }
 
 type type = "part_time" | "full_time" | "";
@@ -52,6 +58,32 @@ const tambahLowonganPage: React.FC = () => {
   const [durations, setDurations] = useState<Duration[]>([]);
   const [fields, setFields] = useState<Field[]>([]);
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
+  const [test, setTest] = useState<Test[]>([
+    {
+      id: "kasdonwqel",
+      name: "Test Teori 1",
+    },
+    {
+      id: "tititititi",
+      name: "Test Teori 2",
+    },
+    {
+      id: "uwuuwuwuwuwuwu",
+      name: "Test Praktik 1",
+    },
+    {
+      id: "wiwiwiwiwiwi",
+      name: "Test Teori 3",
+    },
+    {
+      id: "xixixixix",
+      name: "Test Praktik 2",
+    },
+    {
+      id: "pupupopoupoufufufafa",
+      name: "Test Praktik 3",
+    },
+  ]);
 
   const [formData, setFormData] = useState<CreateJobOpening>({
     title: "",
@@ -64,6 +96,7 @@ const tambahLowonganPage: React.FC = () => {
     field_id: "",
     duration_id: "",
     description: "",
+    test: [],
   });
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -127,6 +160,28 @@ const tambahLowonganPage: React.FC = () => {
   useEffect(() => {
     Promise.all([fetchDurations(), fetchFields()]);
   }, []);
+
+  const handleAddTest = () => {
+    setFormData((prev) => ({
+      ...prev,
+      test: [...prev.test, ""], // tambah satu select kosong
+    }));
+  };
+
+  const handleRemoveTest = (index: number) => {
+    setFormData((prev) => ({
+      ...prev,
+      test: prev.test.filter((_, i) => i !== index),
+    }));
+  };
+
+  const handleTestChange = (index: number, value: string) => {
+    setFormData((prev) => {
+      const newTests = [...prev.test];
+      newTests[index] = value;
+      return { ...prev, test: newTests };
+    });
+  };
 
   return (
     <main className="p-6">
@@ -217,7 +272,6 @@ const tambahLowonganPage: React.FC = () => {
               <option value="onsite">Kerja di kantor (Onsite/WFO)</option>
               <option value="remote">Kerja jarak jauh (Remote/WFH)</option>
               <option value="hybrid">Hibrida (Hybrid)</option>
-              <option value="field">Kerja lapangan (Field Work)</option>
             </select>
           </div>
 
@@ -331,11 +385,48 @@ const tambahLowonganPage: React.FC = () => {
             </select>
           </div>
 
+          <div className="col-span-2">
+            <span className="py-5">Testing</span>
+            <div className="flex flex-col space-y-3 py-5">
+              {formData.test.map((selectedTest, index) => (
+                <div className="flex" key={index}>
+                  <select
+                    value={selectedTest}
+                    onChange={(e) => handleTestChange(index, e.target.value)}
+                    className="w-5/6 me-3 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-accent focus:border-transparent"
+                  >
+                    <option value="">Pilih Test</option>
+                    {test.map((item) => (
+                      <option key={item.id} value={item.id}>
+                        {item.name}
+                      </option>
+                    ))}
+                  </select>
+                  <button
+                    type="button"
+                    className="p-1 px-3 bg-red-400 rounded text-white"
+                    onClick={() => handleRemoveTest(index)}
+                  >
+                    Hapus Test
+                  </button>
+                </div>
+              ))}
+            </div>
+            <button
+              type="button"
+              className="p-2 bg-green-400 my-3 rounded text-white"
+              onClick={handleAddTest}
+            >
+              Tambah Test
+            </button>
+          </div>
+
           {/* Deskripsi */}
           <div className="lg:col-span-2">
             <label className="block text-sm font-medium text-gray-700 mb-2">
               Deskripsi
             </label>
+
             <Editor onChange={handleEditorChange} />
           </div>
         </div>

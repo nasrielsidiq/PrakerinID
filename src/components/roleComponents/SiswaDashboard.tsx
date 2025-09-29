@@ -4,6 +4,9 @@ import { API, ENDPOINTS } from "../../../utils/config";
 import Cookies from "js-cookie";
 import { AxiosError } from "axios";
 import { alertError } from "@/libs/alert";
+import LoaderData from "@/components/loader"
+
+
 
 interface JobApplication {
   id: string;
@@ -58,6 +61,8 @@ export default function SiswaDashboard() {
     },
   });
 
+  const [loading, setLoading] = useState<boolean>(false);
+
   const jobApplications: JobApplication[] = [
     {
       id: "1",
@@ -95,6 +100,10 @@ export default function SiswaDashboard() {
     });
 
   const fetchData = async () => {
+    if (loading) {
+      return
+    }
+    setLoading(true)
     try {
       const profile = API.get(`${ENDPOINTS.USERS}/profile`, {
         headers: {
@@ -132,6 +141,8 @@ export default function SiswaDashboard() {
         await alertError(responseError);
       }
       console.error(error);
+    } finally {
+      setLoading(false)
     }
   };
 
@@ -182,7 +193,7 @@ export default function SiswaDashboard() {
       </div>
 
       {/* Internship Applications Grid */}
-      {internshipApplication.length !== 0 ? (
+      {loading !== true && internshipApplication ? (
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           {/* {internshipApplication.map((application) => (
             <div
@@ -250,7 +261,7 @@ export default function SiswaDashboard() {
           {/* </div>
           ))} */}
 
-          {jobApplications.map((application) => (
+          { jobApplications.map((application) => (
             <div
               key={application.id}
               className="bg-white rounded-lg shadow-sm p-6"
@@ -314,6 +325,9 @@ export default function SiswaDashboard() {
           ))}
         </div>
       ) : (
+        <LoaderData />
+      )}
+      {internshipApplication.length === 0 && (
         <p className="text-gray-500 p-6 text-center ">
           Kamu belum melamar magang di perusahaan manapun.
         </p>

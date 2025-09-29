@@ -4,14 +4,48 @@ import Link from "next/link";
 import { use, useEffect, useState } from "react";
 import { API, ENDPOINTS } from "../../../../utils/config";
 import DescriptionRenderer from "@/components/RenderBlocks";
-import dayjs from "dayjs";
+// import dayjs from "dayjs";
+import { getDurationUnit } from "@/utils/getDurationUnit";
+import { getTypeJobOpening } from "@/utils/getTypeJobOpening";
+
+interface Lowongan {
+  title: string;
+  type: string;
+
+  company: {
+    name: string;
+  };
+  duration: {
+    duration_value: number;
+    duration_unit: string;
+  };
+  province: {
+    name: string;
+  };
+  city_regency: {
+    name: string;
+  };
+  is_paid: boolean,
+  // type: string;
+  // close: string;
+  description: any;
+}
 
 const DetailLowonganPage = ({
   params,
 }: {
   params: Promise<{ id: string }>;
 }) => {
-  const [data, setData] = useState<any>(); // Replace 'any' with your actual data type
+  const [data, setData] = useState<Lowongan>({
+    title: "",
+    type: "",
+    company: { name: "" },
+    duration: { duration_value: 0, duration_unit: "" },
+    province: { name: "" },
+    city_regency: { name: "" },
+    description: null,
+    is_paid: false,
+  }); // Replace 'any' with your actual data type
   const { id } = use(params);
 
   const fetchData = async () => {
@@ -66,8 +100,8 @@ const DetailLowonganPage = ({
                   <div className="flex items-center gap-1 text-gray-500 mt-1">
                     <MapPin className="w-4 h-4" />
                     <span className="text-sm">
-                      {data && data.company.kota},{" "}
-                      {data && data.company.provinsi}
+                      {data && data.city_regency.name},{" "}
+                      {data && data.province.name}
                     </span>
                   </div>
                 </div>
@@ -75,11 +109,14 @@ const DetailLowonganPage = ({
 
               {/* Action Buttons */}
               <div className="flex flex-col sm:flex-row gap-3 lg:flex-shrink-0">
-                <button className="flex items-center justify-center gap-2 bg-orange-500 hover:bg-orange-600 text-white px-4 py-2 rounded-lg font-medium transition-colors">
+                <Link
+                  href={"#"}
+                  className="flex items-center justify-center gap-2 bg-orange-500 hover:bg-orange-600 text-white px-4 py-2 rounded-lg font-medium transition-colors"
+                >
                   <MessageCircle className="w-4 h-4" />
                   <span>Chat Perusahaan</span>
                   <Lock className="w-4 h-4" />
-                </button>
+                </Link>
 
                 <button className="flex items-center justify-center gap-2 text-gray-600 hover:text-blue-600 px-4 py-2 border border-gray-300 hover:border-blue-300 rounded-lg font-medium transition-colors">
                   <Bookmark className="w-4 h-4" />
@@ -87,7 +124,7 @@ const DetailLowonganPage = ({
                 </button>
 
                 <Link
-                  href={"titit/apply"}
+                  href={"#"}
                   className="bg-teal-600 hover:bg-teal-700 text-white px-6 py-2 rounded-lg font-medium transition-colors"
                 >
                   Lamar Sekarang
@@ -101,16 +138,13 @@ const DetailLowonganPage = ({
             <div className="flex py-3 space-x-2 text-sm ">
               <MapPin className="text-accent" />
               <div className="my-auto">
-                <span>{data && data.type} | </span>
+                <span>{getTypeJobOpening(data.type)} | </span>
                 <span>
-                  {data &&
-                    dayjs(data.end_date).diff(
-                      dayjs(data.start_date),
-                      "month"
-                    )}{" "}
-                  Bulan |{" "}
+                  {data && data.duration?.duration_value}{" "}
+                  {getDurationUnit(data && data.duration?.duration_unit)}
+                  {" | "}
                 </span>
-                <span>Paid Internship</span>
+                <span>{data && data?.is_paid ? "Paid" : "Unpaid"} Internship</span>
               </div>
             </div>
 
@@ -118,7 +152,7 @@ const DetailLowonganPage = ({
               <Clock4 className="text-accent" />
               <div className="my-auto">
                 <span>Pendaftaran ditutup: </span>
-                <span>{data && data.close}</span>
+                {/* <span>{data && data.close}</span> */}
               </div>
             </div>
 

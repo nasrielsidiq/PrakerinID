@@ -21,7 +21,7 @@ import { AxiosError } from "axios";
 import { Province } from "@/models/province";
 import { CityRegency } from "@/models/cityRegency";
 import { Sector } from "@/models/sector";
-import LoaderData from "@/components/loader"
+import LoaderData from "@/components/loader";
 
 const Editor = dynamic<EditorProps>(() => import("@/components/Editor"), {
   ssr: false,
@@ -64,6 +64,8 @@ interface StudentForm {
   portofolio_link: string;
   skill: string;
   sosial_media_link: string;
+  gender: string;
+  major_id: string;
 }
 
 interface DescriptionForm {
@@ -102,9 +104,9 @@ export default function ProfilePage() {
     name: "",
     date_of_birth: "",
     // school: "",
-    // gender: "",
+    gender: "",
     address: "",
-    // major: "",
+    major_id: "",
     class: "",
     portofolio_link: "",
     skill: "",
@@ -123,7 +125,7 @@ export default function ProfilePage() {
 
   const fetchProfile = async () => {
     if (loading) return;
-    setLoading(true)
+    setLoading(true);
     try {
       const response = await API.get(`${ENDPOINTS.USERS}/profile`, {
         headers: {
@@ -166,6 +168,8 @@ export default function ProfilePage() {
               skill: response.data.data.student?.skill || "",
               sosial_media_link:
                 response.data.data.student?.sosial_media_link || "",
+              gender: response.data.data.student?.gender || "",
+              major_id: response.data.data.student?.major_id || "",
             });
             break;
         }
@@ -173,7 +177,7 @@ export default function ProfilePage() {
     } catch (error) {
       console.error("Error fetching profile:", error);
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
   };
 
@@ -278,8 +282,8 @@ export default function ProfilePage() {
   };
 
   const fetchData = async () => {
-    if (loading) return
-    setLoading(true)
+    if (loading) return;
+    setLoading(true);
     try {
       const provinces = API.get(`${ENDPOINTS.PROVINCES}`);
       const cityRegencies = API.get(`${ENDPOINTS.CITY_REGENCIES}`);
@@ -291,8 +295,8 @@ export default function ProfilePage() {
       setSectors(response[2].data.data);
     } catch (error) {
       console.error(error);
-    } finally{
-      setLoading(false)
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -309,10 +313,7 @@ export default function ProfilePage() {
   return (
     // Konten utama dimulai di sini
     <main className="space-y-8 p-6">
-
-      {loading === true && (
-        <LoaderData />
-      )}
+      {loading === true && <LoaderData />}
       {/* Judul Halaman untuk Tampilan Mobile */}
       <h1 className="text-2xl font-semibold text-gray-900 md:hidden">
         Profile
@@ -857,12 +858,11 @@ export default function ProfilePage() {
                     htmlFor="birth"
                     className="block text-sm font-medium text-gray-700 mb-1"
                   >
-                    Tempat, Tanggal Lahir
+                    Tanggal Lahir
                   </label>
                   <input
                     id="birth"
-                    type="text"
-                    placeholder="Contoh: Bandung, 1 Januari 2000"
+                    type="date"
                     className="w-full border-gray-300 rounded-md shadow-sm focus:ring-cyan-500 focus:border-cyan-500 sm:text-sm p-2"
                   />
                 </div>
@@ -874,6 +874,7 @@ export default function ProfilePage() {
                     Asal Sekolah
                   </label>
                   <input
+                    disabled={true}
                     id="school"
                     type="text"
                     defaultValue="SMKN NEGERI 1 CIPAGALO"
@@ -887,12 +888,18 @@ export default function ProfilePage() {
                   >
                     Jenis Kelamin
                   </label>
-                  <input
+                  <select
                     id="gender"
-                    type="text"
-                    defaultValue="Tidak terdefinisi"
+                    value={studentForm?.gender}
+                    onChange={(e) =>
+                      setStudentForm({ ...studentForm, gender: e.target.value })
+                    }
                     className="w-full border-gray-300 rounded-md shadow-sm focus:ring-cyan-500 focus:border-cyan-500 sm:text-sm p-2"
-                  />
+                  >
+                    <option value="">Pilih Jenis Kelamin</option>
+                    <option value="male">Laki-laki</option>
+                    <option value="female">Perempuan</option>
+                  </select>
                 </div>
                 <div>
                   <label
@@ -922,12 +929,19 @@ export default function ProfilePage() {
                   >
                     Jurusan
                   </label>
-                  <input
+                  <select
                     id="major"
-                    type="text"
-                    defaultValue="RPL"
+                    value={studentForm?.major_id}
+                    onChange={(e) =>
+                      setStudentForm({
+                        ...studentForm,
+                        major_id: e.target.value,
+                      })
+                    }
                     className="w-full border-gray-300 rounded-md shadow-sm focus:ring-cyan-500 focus:border-cyan-500 sm:text-sm p-2"
-                  />
+                  >
+                    <option value="">Pilih Jurusan</option>
+                  </select>
                 </div>
                 <div>
                   <label
@@ -936,12 +950,20 @@ export default function ProfilePage() {
                   >
                     Kelas
                   </label>
-                  <input
+                  <select
                     id="class"
-                    type="text"
-                    defaultValue="XI"
+                    value={studentForm?.class}
+                    onChange={(e) =>
+                      setStudentForm({ ...studentForm, class: e.target.value })
+                    }
                     className="w-full border-gray-300 rounded-md shadow-sm focus:ring-cyan-500 focus:border-cyan-500 sm:text-sm p-2"
-                  />
+                  >
+                    <option value="">Pilih Kelas</option>
+                    <option value="10">X</option>
+                    <option value="11">XI</option>
+                    <option value="12">XII</option>
+                    <option value="college">Kuliah</option>
+                  </select>
                 </div>
                 <div>
                   <label

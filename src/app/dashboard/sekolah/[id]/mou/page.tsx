@@ -284,14 +284,14 @@ const BuatKerjaSamaPage = ({ params }: { params: Promise<{ id: string }> }) => {
                       onClick={openFilePicker}
                       className="bg-accent text-white px-2 py-1 rounded-lg border text-sm shadow-sm"
                     >
-                      Replace
+                      Ubah
                     </button>
                     <button
                       type="button"
                       onClick={handleCancel}
                       className="bg-red-500 text-white px-2 py-1 rounded-lg text-sm shadow-sm"
                     >
-                      Remove
+                      Hapus
                     </button>
                     <div className="flex-1" />
                   </div>

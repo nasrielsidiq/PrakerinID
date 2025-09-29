@@ -28,6 +28,7 @@ const CreatePage: React.FC = () => {
   });
   const [errors, setErrors] = useState<FormErrors>({});
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+  const [isMobile, setIsMobile] = useState<boolean>(false);
 
   // refs
   const fileInputRef = useRef<HTMLInputElement | null>(null);
@@ -40,6 +41,20 @@ const CreatePage: React.FC = () => {
         URL.revokeObjectURL(currentPreviewRef.current);
         currentPreviewRef.current = null;
       }
+    };
+  }, []);
+
+  useEffect(() => {
+    // Deteksi mobile device
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth <= 768);
+    };
+
+    checkMobile();
+    window.addEventListener("resize", checkMobile);
+
+    return () => {
+      window.removeEventListener("resize", checkMobile);
     };
   }, []);
 
@@ -144,7 +159,7 @@ const CreatePage: React.FC = () => {
         <div className="flex space-x-5">
           <div>
             <h1 className="text-xl text-gray-800 font-extrabold">Tambah CV</h1>
-            <span className="text-sm text-gray-300">
+            <span className="text-sm text-gray-600">
               Silahkan isi semua informasi yang dibutuhkan
             </span>
           </div>
@@ -170,7 +185,7 @@ const CreatePage: React.FC = () => {
 
         <div className="lg:col-span-1 ">
           <label className="block text-sm font-medium text-gray-700 mb-2">
-            Upload CV
+            Unggah CV
           </label>
 
           {/* hidden native file input */}
@@ -182,7 +197,7 @@ const CreatePage: React.FC = () => {
             className="hidden"
           />
 
-          {/* upload / preview area */}
+          {/* unggah / preview area */}
           <div
             // only clickable to open picker if there is no preview
             onClick={() => {
@@ -201,30 +216,48 @@ const CreatePage: React.FC = () => {
                     onClick={openFilePicker}
                     className="bg-accent text-white px-2 py-1 rounded-lg border text-sm shadow-sm"
                   >
-                    Replace
+                    Ubah
                   </button>
                   <button
                     type="button"
                     onClick={handleCancel}
                     className="bg-red-500 text-white px-2 py-1 rounded-lg text-sm shadow-sm"
                   >
-                    Remove
+                    Hapus
                   </button>
                   <div className="flex-1" />
                 </div>
 
-                {/* PDF preview */}
-                <embed
-                  src={previewUrl}
-                  type="application/pdf"
-                  width="100%"
-                  height="600px"
-                  className="w-full"
-                />
+                {/* PDF preview - berbeda untuk mobile dan desktop */}
+                {isMobile ? (
+                  <div className="p-4 text-center bg-gray-50">
+                    <FileText className="w-16 h-16 mx-auto text-accent mb-2" />
+                    <p className="text-sm text-gray-600 mb-2">
+                      File PDF berhasil dipilih: <br />
+                      <span className="font-medium">{formData.file?.name}</span>
+                    </p>
+                    <a
+                      href={previewUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-block bg-accent text-white px-4 py-2 rounded-lg text-sm hover:bg-accent-hover"
+                    >
+                      Buka PDF
+                    </a>
+                  </div>
+                ) : (
+                  <embed
+                    src={previewUrl}
+                    type="application/pdf"
+                    width="100%"
+                    height="600px"
+                    className="w-full"
+                  />
+                )}
               </div>
             ) : (
               <p className="text-sm text-gray-500">
-                Klik di sini untuk upload PDF
+                Klik di sini untuk unggah PDF
               </p>
             )}
           </div>

@@ -33,7 +33,8 @@ import {
   Map,
   ClipboardCheck,
   Stamp,
-  Medal, // TAMBAHKAN: LogOut
+  Medal,
+  LayoutDashboard, // TAMBAHKAN: LogOut
 } from "lucide-react";
 import Link from "next/link";
 import Cookies from "js-cookie";
@@ -55,6 +56,7 @@ interface Profile {
   name: string;
   email: string;
   role: "Siswa" | "Perusahaan" | "Sekolah" | "Super Admin" | "";
+  username: string;
 }
 
 export default function DashboardLayout({
@@ -69,6 +71,7 @@ export default function DashboardLayout({
   const [isDropdownOpen, setDropdownOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
   const [profile, setProfile] = useState<Profile>({
+    username: "",
     name: "",
     email: "",
     role: "",
@@ -255,38 +258,47 @@ export default function DashboardLayout({
             icon: Database,
             label: "Master Data",
             children: [
-              { icon: Map, label: "Provinsi", href: "/dashboard/provinsi" },
+              {
+                icon: Map,
+                label: "Provinsi",
+                href: "/dashboard/master-data/provinsi",
+              },
               {
                 icon: Building2,
                 label: "Kota/Kabupaten",
-                href: "/dashboard/kota-kabupaten",
+                href: "/dashboard/master-data/kota-kabupaten",
               },
               {
                 icon: Factory,
                 label: "Sektor Perusahaan",
-                href: "/dashboard/sektor",
+                href: "/dashboard/master-data/sektor",
               },
               {
                 icon: IdCard,
-                label: "Posisi Magang",
-                href: "/dashboard/posisi",
+                label: "Posisi Magang(Deprecated)",
+                href: "/dashboard/master-data/posisi",
               },
               {
                 icon: CalendarClock,
                 label: "Durasi Magang",
-                href: "/dashboard/durasi",
+                href: "/dashboard/master-data/durasi",
               },
               {
                 icon: GraduationCap,
                 label: "Jurusan Siswa",
-                href: "/dashboard/jurusan",
+                href: "/dashboard/master-data/jurusan",
               },
               {
                 icon: BriefcaseBusiness,
                 label: "Bidang Magang",
-                href: "/dashboard/bidang",
+                href: "/dashboard/master-data/bidang",
               },
             ],
+          },
+          {
+            icon: LayoutDashboard,
+            label: "Isi Halaman",
+            href: "/dashboard/isi-halaman",
           },
           {
             icon: Building,
@@ -294,9 +306,9 @@ export default function DashboardLayout({
             href: "/dashboard/perusahaan",
           },
           {
-            icon: Briefcase,
-            label: "Lowongan",
-            href: "/dashboard/lowongan",
+            icon: BookOpen,
+            label: "Sekolah",
+            href: "/dashboard/sekolah",
           },
 
           {
@@ -463,7 +475,9 @@ export default function DashboardLayout({
                 >
                   <div className="text-right hidden sm:block">
                     <span className="text-sm font-bold block">
-                      {profile.name}
+                      {profile.role === "Super Admin"
+                        ? profile.username
+                        : profile.name}
                     </span>
                     <span className="text-xs text-gray-200 block">
                       {profile.role}
@@ -487,7 +501,11 @@ export default function DashboardLayout({
                 {isDropdownOpen && (
                   <div className="absolute right-0 mt-2 w-56 bg-white rounded-md shadow-lg py-1 z-50 text-gray-800">
                     <div className="px-4 py-2">
-                      <p className="text-sm font-semibold">{profile.name}</p>
+                      <p className="text-sm font-semibold">
+                        {profile.role === "Super Admin"
+                          ? profile.username
+                          : profile.name}
+                      </p>
                       <p className="text-xs text-gray-500">{profile.email}</p>
                     </div>
                     <Link

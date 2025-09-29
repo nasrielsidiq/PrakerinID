@@ -10,31 +10,28 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { API, ENDPOINTS } from "../../utils/config";
+import Loading from "./loading";
 
-export default function LandingPage() {
-  const [inputSearch, setInputSearch] = useState<string>("");
+export default function LandingPage({ data }: { data: any }) {
   const router = useRouter();
+
+  const [inputSearch, setInputSearch] = useState<string>("");
+
   const handleSearch = () => {
     if (inputSearch.trim() !== "") {
       router.push(`/lowongan?search=${encodeURIComponent(inputSearch)}`);
     }
   };
+
   return (
     <>
       <section id="beranda" className="container mx-auto px-4 py-16">
         <div className="grid md:grid-cols-2 gap-12 items-center">
           <div className="space-y-6  animate-slide-in-left">
-            <div className=" md:max-w-90 flex items-center text-sm text-prakerin font-medium border-1 border-gray-200 rounded-full">
-              <i className="bg-gray-400 rounded-full p-1 px-2 text-white not-italic text-xs me-2">
-                Kemajuan Prakerin.ID
-              </i>
-              Lihat perkembangan kami
-              <img src="icons/ArrowNarrowRight.svg" alt="" className="ms-2" />
-            </div>
             <h1 className="text-4xl md:text-5xl font-extrabold bg-gradient-to-r from-accent-light via-accent to-accent-dark bg-clip-text text-transparent leading-tight">
-              Raih Pengalaman Nyata,
-              <span className="text-prakerin">Bangun Karier Impianmu!</span>
+              {data?.["title-landing-1"] ?? "-"}
             </h1>
             <p className="text-gray-600 text-lg">
               Temukan peluang magang dari berbagai perusahaan terkemuka. Daftar,
@@ -96,11 +93,10 @@ export default function LandingPage() {
         <div className="container mx-auto">
           <div className="text-center mb-8 md:mb-12">
             <h2 className="text-2xl md:text-4xl font-bold mb-4">
-              Kenapa Harus Magang Melalui Prakerin?
+              {data?.["title-landing-2"] ?? "-"}
             </h2>
             <p className="text-base md:text-lg opacity-90">
-              Prakerin hadir sebagai solusi terpercaya untuk menjembatani
-              talenta muda dengan perusahaan berkualitas.
+              {data?.["subtitle-landing-2"] ?? "-"}
             </p>
           </div>
 
@@ -112,11 +108,10 @@ export default function LandingPage() {
                 </div>
                 <div>
                   <h3 className="text-lg md:text-xl font-bold mb-2">
-                    Magang Terverifikasi
+                    {data?.["title-content-landing-2-1"] ?? "-"}
                   </h3>
                   <p className="opacity-90 text-sm md:text-base">
-                    Semua lowongan magang di Prakerin sudah melalui proses
-                    verifikasi.
+                    {data?.["desc-content-landing-2-1"] ?? "-"}
                   </p>
                 </div>
               </div>
@@ -127,11 +122,10 @@ export default function LandingPage() {
                 </div>
                 <div>
                   <h3 className="text-lg md:text-xl font-bold mb-2">
-                    Pendampingan Profesional
+                    {data?.["title-content-landing-2-2"] ?? "-"}
                   </h3>
                   <p className="opacity-90 text-sm md:text-base">
-                    Prakerin mendampingi setiap langkahmu agar pengalaman magang
-                    berjalan lancar.
+                    {data?.["desc-content-landing-2-2"] ?? "-"}
                   </p>
                 </div>
               </div>
@@ -142,11 +136,10 @@ export default function LandingPage() {
                 </div>
                 <div>
                   <h3 className="text-lg md:text-xl font-bold mb-2">
-                    Bangun Portofolio Nyata
+                    {data?.["title-content-landing-2-3"] ?? "-"}
                   </h3>
                   <p className="opacity-90 text-sm md:text-base">
-                    Dapatkan pengalaman kerja yang aktual industri dan perkuat
-                    rekam jejak profesional.
+                    {data?.["desc-content-landing-2-3"] ?? "-"}
                   </p>
                 </div>
               </div>
@@ -160,19 +153,6 @@ export default function LandingPage() {
                       <video>
                         <source />
                       </video>
-                      <svg
-                        className="w-6 h-6 md:w-8 md:h-8 text-white"
-                        fill="none"
-                        stroke="currentColor"
-                        viewBox="0 0 24 24"
-                      >
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth={2}
-                          d="M14.828 14.828a4 4 0 01-5.656 0M9 10h1m4 0h1m-6 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-                        />
-                      </svg>
                     </div>
                     <p className="text-gray-600 text-xs md:text-base">
                       Video Preview
@@ -199,14 +179,15 @@ export default function LandingPage() {
         <div className="container mx-auto px-4">
           <div className="mb-12">
             <h2 className="text-3xl md:text-4xl font-bold text-accent mb-4">
-              Mitra
+              {data?.["title-landing-3"] ?? "-"}
             </h2>
             <p className="text-gray-600 mb-5">
-              Wujudkan magang di perusahaan impian anda!
+              {data?.["subtitle-landing-3"] ?? "-"}
             </p>
             <div className="w-[170px] h-0 border-2 border-accent"></div>
           </div>
 
+          {/* Ini Card */}
           <div className="grid md:grid-cols-3 gap-8">
             <div className="text-center transition-all duration-300 transform hover:scale-105 hover-lift bg-gray-50 border border-gray-100 shadow-2xl rounded-2xl p-8 animate-fade-in-up">
               <div className="w-50 h-50 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
@@ -243,13 +224,14 @@ export default function LandingPage() {
         <div className="container mx-auto px-4">
           <div className="mb-12">
             <h2 className="text-3xl md:text-4xl font-bold text-accent mb-4">
-              Feedback Siswa/Mahasiswa
+              {data?.["title-landing-4"] ?? "-"}
             </h2>
             <p className="text-gray-600 mb-5">
-              Apa kata mereka yang sudah magang melalui Prakerin?
+              {data?.["subtitle-landing-4"] ?? "-"}
             </p>
             <div className="w-[170px] h-0 border-2 border-accent"></div>
           </div>
+          {/* Testimoni */}
           <div className="flex space-x-8 overflow-x-auto scrollbar-hide p-5">
             <div className="bg-white md:min-w-80 space-y-5 rounded-2xl shadow-lg p-8 flex flex-col items-center text-center animate-fade-in-up">
               {/* <img src="/avatar1.png" alt="Avatar Siswa" className="w-16 h-16 rounded-full mb-4" /> */}
@@ -349,10 +331,10 @@ export default function LandingPage() {
         <div className="container flex flex-col md:flex-row items-center justify-between mx-auto md:px-20 px-4 gap-6">
           <div className="text-center md:text-left">
             <h2 className="text-3xl md:text-4xl font-bold mb-4">
-              Let&apos;s Grow Together!
+              {data?.["title-landing-5"] ?? "-"}
             </h2>
             <p className="text-lg opacity-90">
-              Mulai wujudkan impianmu! Prakerin siap mendukung langkah kariermu.
+              {data?.["subtitle-landing-5"] ?? "-"}
             </p>
           </div>
           <Link
@@ -368,11 +350,10 @@ export default function LandingPage() {
         <div className="container mx-auto px-4">
           <div className="mb-12">
             <h2 className="text-3xl md:text-4xl font-bold text-accent mb-4">
-              Sering di tanyakan
+              {data?.["title-landing-6"] ?? "-"}
             </h2>
             <p className="text-gray-600 mb-5">
-              Punya ide, pertanyaan, atau sekadar ingin menyapa seputar magang?
-              Berikut adalah pertanyaan yang sering diajukan:
+              {data?.["subtitle-landing-7"] ?? "-"}
             </p>
             <div className="w-[170px] h-0 border-2 border-accent"></div>
           </div>

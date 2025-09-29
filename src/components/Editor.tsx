@@ -8,12 +8,14 @@ import List from "@editorjs/list";
 export interface EditorProps {
   onChange: (data: any) => void;
   initialData?: any;
+  className?: string; // Tambahkan ini
 }
 
 export default function Editor({
   onChange,
   initialData,
   error,
+  className, // Tambahkan ini
 }: EditorProps & { error?: string }) {
   const editorRef = useRef<EditorJS | null>(null);
   const [hasInitialized, setHasInitialized] = useState(false);
@@ -70,9 +72,9 @@ export default function Editor({
     <div className="w-full">
       <div
         id="editorjs"
-        className={`w-full border  rounded-lg py-4 px-16 min-h-[200px] focus-within:ring-2 focus-within:ring-cyan-500 focus-within:border-cyan-500 text-black ${
+        className={`w-full border rounded-lg py-4 px-16 min-h-[200px] focus-within:ring-2 focus-within:ring-cyan-500 focus-within:border-cyan-500 text-black ${
           error ? "border-red-500" : "border-gray-300"
-        }`}
+        } ${className || ""}`} // Gabungkan className
       />
     </div>
   );

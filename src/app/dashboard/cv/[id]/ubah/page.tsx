@@ -6,7 +6,6 @@ import Cookies from "js-cookie";
 import { alertConfirm, alertError, alertSuccess } from "@/libs/alert";
 import Link from "next/link";
 import { AxiosError } from "axios";
-import { tree } from "next/dist/build/templates/app-page";
 import { useRouter } from "next/navigation";
 
 interface FormData {
@@ -30,6 +29,7 @@ const UbahCvPage = ({ params }: { params: Promise<{ id: string }> }) => {
   });
   const [errors, setErrors] = useState<FormErrors>({});
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+  const [isMobile, setIsMobile] = useState<boolean>(false);
 
   // refs
   const fileInputRef = useRef<HTMLInputElement | null>(null);
@@ -43,6 +43,14 @@ const UbahCvPage = ({ params }: { params: Promise<{ id: string }> }) => {
         currentPreviewRef.current = null;
       }
     };
+  }, []);
+
+  // Detect mobile screen size to decide how to preview PDF
+  useEffect(() => {
+    const checkMobile = () => setIsMobile(window.innerWidth <= 768);
+    checkMobile();
+    window.addEventListener("resize", checkMobile);
+    return () => window.removeEventListener("resize", checkMobile);
   }, []);
 
   const handleFileChange = (e: ChangeEvent<HTMLInputElement>) => {
@@ -142,8 +150,9 @@ const UbahCvPage = ({ params }: { params: Promise<{ id: string }> }) => {
         type: "application/pdf",
       });
       const fileUrl = URL.createObjectURL(fileBlob);
-
-      setPreviewUrl(fileUrl); // ini nanti dipakai di <embed>
+      // simpan untuk cleanup dan set sebagai preview
+      currentPreviewRef.current = fileUrl;
+      setPreviewUrl(fileUrl); // digunakan untuk preview/link
     } catch (error) {
       console.error(error);
     }
@@ -179,7 +188,7 @@ const UbahCvPage = ({ params }: { params: Promise<{ id: string }> }) => {
         <div className="flex space-x-5">
           <div>
             <h1 className="text-xl text-gray-800 font-extrabold">Ubah CV</h1>
-            <span className="text-sm text-gray-300">
+            <span className="text-sm text-gray-600">
               Silahkan isi semua informasi yang dibutuhkan
             </span>
           </div>
@@ -236,26 +245,44 @@ const UbahCvPage = ({ params }: { params: Promise<{ id: string }> }) => {
                     onClick={openFilePicker}
                     className="bg-accent text-white px-2 py-1 rounded-lg border text-sm shadow-sm"
                   >
-                    Replace
+                    Ubah
                   </button>
                   <button
                     type="button"
                     onClick={handleCancel}
                     className="bg-red-500 text-white px-2 py-1 rounded-lg text-sm shadow-sm"
                   >
-                    Remove
+                    Hapus
                   </button>
                   <div className="flex-1" />
                 </div>
 
-                {/* PDF preview */}
-                <embed
-                  src={previewUrl}
-                  type="application/pdf"
-                  width="100%"
-                  height="600px"
-                  className="w-full"
-                />
+                {/* PDF preview - responsive: link on mobile, embed on desktop */}
+                {isMobile ? (
+                  <div className="p-4 text-center bg-gray-50">
+                    <FileText className="w-16 h-16 mx-auto text-accent mb-2" />
+                    <p className="text-sm text-gray-600 mb-2">
+                      File PDF berhasil dipilih: <br />
+                      <span className="font-medium">{formData.file?.name}</span>
+                    </p>
+                    <a
+                      href={previewUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-block bg-accent text-white px-4 py-2 rounded-lg text-sm hover:bg-accent-hover"
+                    >
+                      Buka PDF
+                    </a>
+                  </div>
+                ) : (
+                  <embed
+                    src={previewUrl}
+                    type="application/pdf"
+                    width="100%"
+                    height="600px"
+                    className="w-full"
+                  />
+                )}
               </div>
             ) : (
               <p className="text-sm text-gray-500">
