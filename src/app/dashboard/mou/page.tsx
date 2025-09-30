@@ -16,6 +16,12 @@ import useDebounce from "@/hooks/useDebounce";
 import { API, ENDPOINTS } from "../../../../utils/config";
 import Link from "next/link";
 import NotFoundComponent from "@/components/NotFoundComponent";
+import TabsComponent from "@/components/TabsCompenent";
+import { AxiosError } from "axios";
+import { alertError } from "@/libs/alert";
+import Loader from "@/components/loader";
+import PaginationComponent from "@/components/PaginationComponent";
+import { Pages } from "@/models/pagination";
 
 interface KerjaSama {
   id: string;
@@ -34,6 +40,7 @@ interface KerjaSama {
 }
 
 type TypeStatus = "pending" | "accepted" | "rejected" | "";
+type ActiveTab = "Semua" | "Diterima" | "Tertunda" | "Ditolak";
 
 const lamaranPage: React.FC = () => {
   const router = useRouter();
@@ -41,22 +48,57 @@ const lamaranPage: React.FC = () => {
   const [inputSearch, setInputSearch] = useState("");
   const debouncedQuery = useDebounce(inputSearch, 1000);
   const [data, setData] = useState<KerjaSama[]>([]);
+  const tabs: ActiveTab[] = ["Semua", "Diterima", "Tertunda", "Ditolak"];
+  const [activeTab, setActiveTab] = useState<ActiveTab>("Semua");
+  const [isLoading, setIsLoading] = useState(false);
+  const [pages, setPages] = useState<Pages>({ activePages: 1, pages: 1 });
+  const [isReload, setIsReload] = useState(false);
 
   const fetchData = async () => {
+    if (isLoading) return;
+    setIsLoading(true);
+    let type: string | undefined = undefined;
+    switch (activeTab) {
+      case "Semua":
+        type = undefined;
+        break;
+      case "Diterima":
+        type = "accepted";
+        break;
+      case "Tertunda":
+        type = "pending";
+        break;
+      case "Ditolak":
+        type = "rejected";
+        break;
+    }
+
     try {
       const response = await API.get(ENDPOINTS.MOUS, {
         params: {
           search: inputSearch,
+          type: type,
+          limit: 10,
+          page: pages.activePages,
         },
         headers: {
           Authorization: `Bearer ${Cookies.get("userToken")}`,
         },
       });
-
-      console.log("Imunisasi", response);
+      console.log(response.data);
       setData(response.data.data);
-    } catch (error) {
+      setPages({
+        activePages: response.data.current_page,
+        pages: response.data.last_page,
+      });
+    } catch (error: AxiosError | unknown) {
+      if (error instanceof AxiosError) {
+        const responseError = error.response?.data.errors;
+        await alertError(responseError);
+      }
       console.error(error);
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -85,20 +127,6 @@ const lamaranPage: React.FC = () => {
         return "";
     }
   };
-
-  useEffect(() => {
-    setAuthorization(Cookies.get("authorization"));
-  });
-
-  useEffect(() => {
-    if (inputSearch.trim() !== "") {
-      if (!debouncedQuery) {
-        setData([]);
-        return;
-      }
-    }
-    fetchData();
-  }, [debouncedQuery]);
 
   const handleDownload = async (mouId: string) => {
     console.log("Downloading CV with ID:", mouId);
@@ -155,12 +183,48 @@ const lamaranPage: React.FC = () => {
     }
   };
 
+  const handleChangePage = (selectedPage: number) => {
+    setPages((prev) => ({
+      ...prev,
+      activePages: selectedPage,
+    }));
+  };
+
+  useEffect(() => {
+    setAuthorization(Cookies.get("authorization"));
+  });
+
+  useEffect(() => {
+    if (inputSearch.trim() !== "") {
+      if (!debouncedQuery) {
+        setData([]);
+        return;
+      }
+    }
+    setPages((prev) => ({ ...prev, activePages: 1 }));
+    setIsReload(!isReload);
+  }, [debouncedQuery, activeTab]);
+
+  useEffect(() => {
+    fetchData();
+  }, [pages.activePages, isReload]);
+
   return (
     <main className="p-6">
       <h1 className="text-accent-dark text-sm mb-5">Kerja Sama</h1>
       <div className="flex items-center mb-8  space-x-2 font-extrabold text-accent">
         <Handshake className="w-5 h-5" />
         <h2 className="text-2xl mt-2">Kerja Sama</h2>
+      </div>
+
+      <div className="flex gap-2 mb-6">
+        <div className="flex space-x-1 bg-gray-100 p-1 rounded-lg w-fit mb-6 gap-2">
+          <TabsComponent
+            data={tabs}
+            activeTab={activeTab}
+            setActiveTab={setActiveTab}
+          />
+        </div>
       </div>
 
       <div className="rounded-t-2xl bg-accent">
@@ -214,59 +278,67 @@ const lamaranPage: React.FC = () => {
               </tr>
             </thead>
             <tbody className="bg-white divide-y divide-gray-200">
-              {data.map((item, index) => (
-                <tr key={item.id} className="hover:bg-gray-50">
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                    {index + 1}
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                    {authorization === "company"
-                      ? item.school?.name
-                      : item.company?.name}
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                    {item.start_date ?? "-"}
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                    {item.end_date ?? "-"}
-                  </td>
-                  <td
-                    className={`px-6 py-4 whitespace-nowrap text-sm ${changeStatusColor(
-                      item.status
-                    )}`}
-                  >
-                    {changeStatus(item.status)}
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-white">
-                    <button
-                      type="button"
-                      className="bg-green-500 rounded-full py-1 px-2 cursor-pointer hover:bg-green-600"
-                      onClick={() => handleDownload(item.id)}
+              {data && !isLoading ? (
+                data.map((item, index) => (
+                  <tr key={item.id} className="hover:bg-gray-50">
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                      {index + 1 + (pages.activePages - 1) * 10}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                      {authorization === "company"
+                        ? item.school?.name
+                        : item.company?.name}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                      {item.start_date ?? "-"}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                      {item.end_date ?? "-"}
+                    </td>
+                    <td
+                      className={`px-6 py-4 whitespace-nowrap text-sm ${changeStatusColor(
+                        item.status
+                      )}`}
                     >
-                      Unduh
-                    </button>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-white ">
-                    <button
-                      type="button"
-                      className="bg-accent rounded-full py-1 px-2 cursor-pointer hover:bg-accent-hover"
-                      onClick={() => handlePreview(item.id)}
-                    >
-                      Lihat
-                    </button>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                    <div className="flex space-x-2">
-                      <Link
-                        href={`/dashboard/mou/${item.id}`}
-                        className="text-blue-600 hover:text-blue-800 cursor-pointer"
+                      {changeStatus(item.status)}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-white">
+                      <button
+                        type="button"
+                        className="bg-green-500 rounded-full py-1 px-2 cursor-pointer hover:bg-green-600"
+                        onClick={() => handleDownload(item.id)}
                       >
-                        <CircleAlert size={16} />
-                      </Link>
-                    </div>
+                        Unduh
+                      </button>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-white ">
+                      <button
+                        type="button"
+                        className="bg-accent rounded-full py-1 px-2 cursor-pointer hover:bg-accent-hover"
+                        onClick={() => handlePreview(item.id)}
+                      >
+                        Lihat
+                      </button>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                      <div className="flex space-x-2">
+                        <Link
+                          href={`/dashboard/mou/${item.id}`}
+                          className="text-blue-600 hover:text-blue-800 cursor-pointer"
+                        >
+                          <CircleAlert size={16} />
+                        </Link>
+                      </div>
+                    </td>
+                  </tr>
+                ))
+              ) : (
+                <tr>
+                  <td colSpan={8} className="p-4 text-center text-gray-500">
+                    <Loader />
                   </td>
                 </tr>
-              ))}
+              )}
             </tbody>
           </table>
         </div>
@@ -307,12 +379,18 @@ const lamaranPage: React.FC = () => {
           ))}
         </div>
 
-        {data.length === 0 && (
+        {data.length === 0 && !isLoading && (
           <div className="text-center py-12 col-span-2 ">
             <NotFoundComponent text="Anda belum memiliki kerja sama." />
           </div>
         )}
       </div>
+      <PaginationComponent
+        activePage={pages.activePages}
+        loading={isLoading}
+        onPageChange={handleChangePage}
+        totalPages={pages.pages}
+      />
     </main>
   );
 };

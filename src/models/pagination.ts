@@ -1,4 +1,4 @@
-export interface Page {
-    activePage: number,
-    pages: number
+export interface Pages {
+  activePages: number;
+  pages: number;
 }

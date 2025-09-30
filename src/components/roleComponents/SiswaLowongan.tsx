@@ -18,7 +18,7 @@ import { timeAgo } from "@/utils/timeAgo";
 import useDebounce from "@/hooks/useDebounce";
 import Image from "next/image";
 import PaginationComponent from "@/components/PaginationComponent";
-import { Page } from "@/models/pagination";
+import { Pages } from "@/models/pagination";
 import LoaderData from "../loader";
 import NotFoundComponent from "../NotFoundComponent";
 
@@ -73,11 +73,6 @@ interface Filter {
   duration_id: string;
 }
 
-// interface Page {
-//   activePage: number;
-//   page: number;
-// }
-
 export default function SiswaLowongan() {
   const [showFilter, setShowFilter] = useState<boolean>(true);
   const [filterData, setFilterData] = useState<Filter>({
@@ -100,8 +95,8 @@ export default function SiswaLowongan() {
   const [durations, setDurations] = useState<Duration[]>([]);
   const [inputSearch, setInputSearch] = useState<string>("");
   const debouncedQuery = useDebounce(inputSearch, 1000);
-  const [page, setPage] = useState<Page>({
-    activePage: 1,
+  const [page, setPage] = useState<Pages>({
+    activePages: 1,
     pages: 1,
   });
   const [loading, setLoading] = useState<boolean>(false);
@@ -124,7 +119,7 @@ export default function SiswaLowongan() {
     }
   };
 
-  const fetchJobOpenings = async (selectedPage = page.activePage) => {
+  const fetchJobOpenings = async (selectedPage = page.activePages) => {
     if (loading) return;
     setLoading(true);
     try {
@@ -150,7 +145,7 @@ export default function SiswaLowongan() {
         console.log(response.data.data);
         setJobOpenings(response.data.data);
         setPage({
-          activePage: selectedPage,
+          activePages: selectedPage,
           pages: response.data.last_page,
         });
       }
@@ -257,7 +252,7 @@ export default function SiswaLowongan() {
     }
 
     fetchJobOpenings();
-  }, [debouncedQuery, filterData, showFilter, page.activePage]);
+  }, [debouncedQuery, filterData, showFilter, page.activePages]);
 
   const handleReset = () => {
     setFilterData({
@@ -523,7 +518,7 @@ export default function SiswaLowongan() {
 
       <div className="px-2 sm:px-6">
         <PaginationComponent
-          activePage={page.activePage}
+          activePage={page.activePages}
           totalPages={page.pages}
           onPageChange={handlePageChange}
           loading={loading}

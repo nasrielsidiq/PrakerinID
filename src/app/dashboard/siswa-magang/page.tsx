@@ -12,7 +12,7 @@ import Image from "next/image";
 import { timeAgo } from "@/utils/timeAgo";
 import NotFoundComponent from "@/components/NotFoundComponent";
 import PaginationComponent from "@/components/PaginationComponent";
-import { Page } from "@/models/pagination";
+import { Pages } from "@/models/pagination";
 
 interface Lowongan {
   title: string;
@@ -61,8 +61,8 @@ interface StudentIntership {
 
 const SiswMagangPage: React.FC = () => {
   const [isLoading, setIsLoading] = useState<boolean>(false);
-  const [page, setPage] = useState<Page>({
-    activePage: 1,
+  const [page, setPage] = useState<Pages>({
+    activePages: 1,
     pages: 1,
   });
   const [data, setData] = useState<StudentIntership[]>([]);
@@ -73,7 +73,7 @@ const SiswMagangPage: React.FC = () => {
       setIsLoading(true);
       const response = await API.get(ENDPOINTS.USERS, {
         params: {
-          page: page.activePage,
+          page: page.activePages,
           limit: 10,
           role: "student",
         },
@@ -100,7 +100,7 @@ const SiswMagangPage: React.FC = () => {
 
   useEffect(() => {
     fetchData();
-  }, [page.activePage]);
+  }, [page.activePages]);
 
   return (
     <main className=" p-6">
@@ -152,7 +152,7 @@ const SiswMagangPage: React.FC = () => {
             ))}
             <div className="lg:col-span-2">
               <PaginationComponent
-                activePage={page.activePage}
+                activePage={page.activePages}
                 loading={isLoading}
                 onPageChange={handlePageChange}
                 totalPages={page.pages}

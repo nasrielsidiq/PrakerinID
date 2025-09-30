@@ -19,6 +19,10 @@ import Link from "next/link";
 import NotFoundComponent from "@/components/NotFoundComponent";
 import { alertConfirm, alertError, alertSuccess } from "@/libs/alert";
 import { AxiosError } from "axios";
+import TabsComponent from "@/components/TabsCompenent";
+import LoaderData from "@/components/loader";
+import PaginationComponent from "@/components/PaginationComponent";
+import { Pages } from "@/models/pagination";
 
 interface Tes {
   id: string;
@@ -38,8 +42,7 @@ type ActiveTab = "Semua" | "Praktik" | "Teori" | "Lainnya";
 type Type = "theory" | "practice" | "";
 
 const TestListPage: React.FC = () => {
-  const router = useRouter();
-  const tabs = ["Semua", "Praktik", "Teori", "Lainnya"];
+  const tabs: ActiveTab[] = ["Semua", "Praktik", "Teori", "Lainnya"];
 
   const [activeTab, setActiveTab] = useState<ActiveTab>("Semua");
   const [inputSearch, setInputSearch] = useState("");
@@ -58,7 +61,18 @@ const TestListPage: React.FC = () => {
 
   const debouncedQuery = useDebounce(inputSearch, 1000);
 
+  const [isLoading, setIsLoading] = useState<boolean>(false);
+  const [isReload, setIsReload] = useState<boolean>(false);
+
+  const [pages, setPages] = useState<Pages>({
+    activePages: 1,
+    pages: 1,
+  });
+
   const fetchTests = async () => {
+    if (isLoading) return;
+    setIsLoading(true);
+
     try {
       let filteredStatus: undefined | string = "all";
       switch (activeTab) {
@@ -80,16 +94,27 @@ const TestListPage: React.FC = () => {
         params: {
           type: filteredStatus,
           search: inputSearch,
+          limit: 10,
+          page: pages.activePages,
         },
         headers: {
           Authorization: `Bearer ${Cookies.get("userToken")}`,
         },
       });
 
-      console.log("Tests fetched successfully:", response.data.data);
       setTests(response.data.data);
-    } catch (error) {
-      console.error("Error fetching Tests:", error);
+      setPages({
+        activePages: response.data.current_page,
+        pages: response.data.last_page,
+      });
+    } catch (error: AxiosError | unknown) {
+      if (error instanceof AxiosError) {
+        const responseError = error.response?.data.errors;
+        await alertError(responseError);
+      }
+      console.error(error);
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -97,6 +122,7 @@ const TestListPage: React.FC = () => {
     e.preventDefault();
     setIsSubmitting(true);
     setFormError({});
+
     try {
       await API.patch(`${ENDPOINTS.TESTS}/${editingId}`, formData, {
         headers: {
@@ -115,10 +141,10 @@ const TestListPage: React.FC = () => {
 
       setIsModalOpen(false);
       setEditingId(null);
-      await alertSuccess("Provinsi berhasil diubah!");
-    } catch (error) {
+      await alertSuccess("Tes berhasil diubah!");
+    } catch (error: AxiosError | unknown) {
       if (error instanceof AxiosError) {
-        const responseError = error.response?.data.formError;
+        const responseError = error.response?.data.errors;
         if (typeof responseError === "string") {
           await alertError(responseError);
         } else {
@@ -143,8 +169,11 @@ const TestListPage: React.FC = () => {
           Authorization: `Bearer ${Cookies.get("userToken")}`,
         },
       });
-
-      await fetchTests();
+      if (tests.length == 1) {
+        setPages({ ...pages, activePages: pages.activePages - 1 });
+      } else {
+        await fetchTests();
+      }
       await alertSuccess(`Tes ${name} berhasil dihapus!`);
     } catch (error: AxiosError | unknown) {
       if (error instanceof AxiosError) {
@@ -160,10 +189,17 @@ const TestListPage: React.FC = () => {
       case "practice":
         return "Praktik";
       case "theory":
-        return "teori";
+        return "Teori";
       case "other":
         return "Lainnya";
     }
+  };
+
+  const handleChangePage = (selectedPage: number) => {
+    setPages((prev) => ({
+      ...prev,
+      activePages: selectedPage,
+    }));
   };
 
   useEffect(() => {
@@ -173,8 +209,14 @@ const TestListPage: React.FC = () => {
         return;
       }
     }
-    fetchTests();
+
+    setPages((prev) => ({ ...prev, activePages: 1 }));
+    setIsReload(!isReload);
   }, [activeTab, debouncedQuery]);
+
+  useEffect(() => {
+    fetchTests();
+  }, [pages.activePages, isReload]);
 
   return (
     <main className="p-6">
@@ -190,19 +232,13 @@ const TestListPage: React.FC = () => {
 
         {/* Tabs */}
         <div className="flex gap-2 mb-6">
-          {tabs.map((tab) => (
-            <button
-              key={tab}
-              onClick={() => setActiveTab(tab as ActiveTab)}
-              className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors shadow-sm ${
-                activeTab === tab
-                  ? "bg-accent text-white shadow-sm"
-                  : "bg-gray-100 text-gray-600 hover:text-gray-800"
-              }`}
-            >
-              {tab}
-            </button>
-          ))}
+          <div className="flex space-x-1 bg-gray-100 p-1 rounded-lg w-fit mb-6 gap-2">
+            <TabsComponent
+              data={tabs}
+              activeTab={activeTab}
+              setActiveTab={setActiveTab}
+            />
+          </div>
         </div>
         {Cookies.get("authorization") === "company" && (
           <div className="flex justify-end mb-6">
@@ -227,7 +263,7 @@ const TestListPage: React.FC = () => {
             placeholder="Cari tes..."
             value={inputSearch}
             onChange={(e) => setInputSearch(e.target.value)}
-            className="w-full bg-accent text-white placeholder-teal-200 pl-10 pr-4 py-3 rounded-t-2xl focus:outline-none focus:ring-2 focus:ring-teal-300"
+            className="w-full bg-accent text-white  pl-10 pr-4 py-3 rounded-t-2xl focus:outline-none focus:ring-2 focus:ring-teal-200"
           />
         </div>
         <div className="overflow-x-auto">
@@ -255,10 +291,12 @@ const TestListPage: React.FC = () => {
               </tr>
             </thead>
             <tbody>
-              {tests &&
+              {tests && !isLoading ? (
                 tests.map((test, index) => (
                   <tr key={test.id} className="border-b hover:bg-gray-50">
-                    <td className="p-4 text-gray-800">{index + 1}</td>
+                    <td className="p-4 text-gray-800">
+                      {index + 1 + (pages.activePages - 1) * 10}
+                    </td>
                     <td className="p-4 text-gray-800">{test.title}</td>
                     <td className="p-4">{test.link}</td>
                     <td className="p-4">{test.description}</td>
@@ -288,10 +326,18 @@ const TestListPage: React.FC = () => {
                       </button>
                     </td>
                   </tr>
-                ))}
+                ))
+              ) : (
+                <tr>
+                  <td colSpan={6} className="p-4 text-center text-gray-500">
+                    <LoaderData />
+                  </td>
+                </tr>
+              )}
             </tbody>
           </table>
         </div>
+
         {isModalOpen && (
           <div className="fixed inset-0 flex items-center justify-center h-screen bg-black/25 z-50">
             <div className="bg-white text-black p-6 rounded-lg flex flex-col gap-2 min-w-sm lg:min-w-xl">
@@ -425,12 +471,19 @@ const TestListPage: React.FC = () => {
         )}
 
         {/* Empty State (if no tasks) */}
-        {tests.length === 0 && (
+        {tests.length === 0 && !isLoading && (
           <div className="text-center py-12 col-span-2 ">
             <NotFoundComponent text="Anda belum memiliki tes." />
           </div>
         )}
       </div>
+
+      <PaginationComponent
+        activePage={pages.activePages}
+        loading={isLoading}
+        onPageChange={handleChangePage}
+        totalPages={pages.pages}
+      />
     </main>
   );
 };

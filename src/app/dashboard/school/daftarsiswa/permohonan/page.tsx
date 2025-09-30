@@ -15,7 +15,7 @@ import Cookies from "js-cookie";
 import { AxiosError } from "axios";
 import { alertConfirm, alertError, alertSuccess } from "@/libs/alert";
 import NotFoundComponent from "@/components/NotFoundComponent";
-import { Page } from "@/models/pagination";
+import { Pages } from "@/models/pagination";
 import PaginationComponent from "@/components/PaginationComponent";
 
 interface Student {
@@ -29,8 +29,8 @@ interface Student {
 const PermohonanSiswaPage: React.FC = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const router = useRouter();
-  const [pages, setPages] = useState<Page>({
-    activePage: 1,
+  const [pages, setPages] = useState<Pages>({
+    activePages: 1,
     pages: 1,
   });
   const [isLoading, setIsLoading] = useState<boolean>(false);
@@ -43,7 +43,7 @@ const PermohonanSiswaPage: React.FC = () => {
       const response = await API.get(`${ENDPOINTS.USERS}`, {
         params: {
           is_verified: false,
-          page: pages.activePage,
+          page: pages.activePages,
           limit: 10,
           role: "student",
           search: searchQuery,
@@ -131,7 +131,7 @@ const PermohonanSiswaPage: React.FC = () => {
   const handleChangePage = (selectedPage: number) => {
     setPages((prev) => ({
       ...prev,
-      activePage: selectedPage,
+      activePages: selectedPage,
     }));
   };
 
@@ -191,7 +191,7 @@ const PermohonanSiswaPage: React.FC = () => {
               {data.map((item, index) => (
                 <tr key={item.id} className="border-b hover:bg-gray-50">
                   <td className="p-4 text-gray-800">
-                    {index + 1 + (pages.activePage - 1) * 10}
+                    {index + 1 + (pages.activePages - 1) * 10}
                   </td>
                   <td className="p-4 text-gray-800">{item.student.name}</td>
                   <td className="p-4 text-gray-600">{item.email}</td>
@@ -223,7 +223,7 @@ const PermohonanSiswaPage: React.FC = () => {
         )}
       </div>
       <PaginationComponent
-        activePage={pages.activePage}
+        activePage={pages.activePages}
         totalPages={pages.pages}
         onPageChange={handleChangePage}
         loading={isLoading}

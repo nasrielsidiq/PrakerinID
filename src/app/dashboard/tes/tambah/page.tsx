@@ -2,7 +2,7 @@
 import dynamic from "next/dynamic";
 import { HelpCircle } from "lucide-react";
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { API, ENDPOINTS } from "../../../../../utils/config";
 import Cookies from "js-cookie";
 import { alertConfirm, alertError, alertSuccess } from "@/libs/alert";
@@ -32,7 +32,7 @@ const tambahLowonganPage: React.FC = () => {
   const [formData, setFormData] = useState<FormData>({
     title: "",
     type: "",
-    link: "https://",
+    link: "",
     description: "",
   });
 
@@ -40,7 +40,6 @@ const tambahLowonganPage: React.FC = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    console.log("Form submitted", formData);
     try {
       setIsSubmitting(true);
 
@@ -50,7 +49,7 @@ const tambahLowonganPage: React.FC = () => {
         },
       });
 
-      await alertSuccess("Lowongan berhasil ditambahkan!");
+      await alertSuccess("Tes berhasil ditambahkan!");
 
       route.replace("/dashboard/tes");
     } catch (error: AxiosError | unknown) {
@@ -136,7 +135,7 @@ const tambahLowonganPage: React.FC = () => {
                 errors.type ? "border-red-500" : "border-gray-300"
               }`}
             >
-              <option value="">Pilih jenis magang</option>
+              <option value="">Pilih jenis tes</option>
               <option value="theory">Tes teori</option>
               <option value="practice">Tes praktik</option>
               <option value="other">Tes lainnya</option>
@@ -156,7 +155,7 @@ const tambahLowonganPage: React.FC = () => {
               className={`w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-accent focus:border-transparent ${
                 errors.link ? "border-red-500" : "border-gray-300"
               }`}
-              placeholder="Masukkan link tes"
+              placeholder="https://makerindo.co.id"
               value={formData.link}
               onChange={(e) =>
                 setFormData({ ...formData, link: e.target.value })
@@ -172,18 +171,19 @@ const tambahLowonganPage: React.FC = () => {
             <label className="block text-sm font-medium text-gray-700 mb-2">
               Deskripsi
             </label>
-            {errors.description && (
-              <p className="mt-1 text-sm text-red-500">{errors.description}</p>
-            )}
             <textarea
               onChange={(e) =>
                 setFormData({ ...formData, description: e.target.value })
               }
+              placeholder="Masukkan deskripsi tentang tes"
               value={formData.description}
               className={`resize-none w-full h-40 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-accent focus:border-transparent ${
                 errors.description ? "border-red-500" : "border-gray-300"
               }`}
             ></textarea>
+            {errors.description && (
+              <p className="mt-1 text-sm text-red-500">{errors.description}</p>
+            )}
           </div>
         </div>
 

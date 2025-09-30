@@ -16,7 +16,7 @@ import useDebounce from "@/hooks/useDebounce";
 import { alertConfirm, alertError, alertSuccess } from "@/libs/alert";
 import NotFoundComponent from "@/components/NotFoundComponent";
 import PaginationComponent from "@/components/PaginationComponent";
-import { Page } from "@/models/pagination";
+import { Pages } from "@/models/pagination";
 
 interface Student {
   id: number;
@@ -38,8 +38,8 @@ const DaftarSiswaPage: React.FC = () => {
   const [students, setStudents] = useState<Student[]>([]);
   const tabs = ["Semua", "Belum Magang", "Sedang Magang", "Selesai Magang"];
   const fileRef = useRef<HTMLInputElement | null>(null);
-  const [pages, setPages] = useState<Page>({
-    activePage: 1,
+  const [pages, setPages] = useState<Pages>({
+    activePages: 1,
     pages: 1,
   });
 
@@ -91,7 +91,7 @@ const DaftarSiswaPage: React.FC = () => {
       const response = await API.get(`${ENDPOINTS.USERS}`, {
         params: {
           is_verified: true,
-          page: pages.activePage,
+          page: pages.activePages,
           limit: 10,
           role: "student",
           status: status,
@@ -122,7 +122,7 @@ const DaftarSiswaPage: React.FC = () => {
     }
 
     fetchStudents();
-  }, [debouncedQuery, activeTab, pages.activePage]);
+  }, [debouncedQuery, activeTab, pages.activePages]);
 
   const handleDownload = async () => {
     try {
@@ -302,7 +302,7 @@ const DaftarSiswaPage: React.FC = () => {
                 students.map((task, index) => (
                   <tr key={index} className="border-b hover:bg-gray-50">
                     <td className="p-4 text-gray-800">
-                      {index + 1 + (pages.activePage - 1) * 10}
+                      {index + 1 + (pages.activePages - 1) * 10}
                     </td>
                     <td className="p-4 text-gray-800">{task.student.name}</td>
                     <td className="p-4 text-gray-800">
@@ -334,7 +334,7 @@ const DaftarSiswaPage: React.FC = () => {
         )}
       </div>
       <PaginationComponent
-        activePage={pages.activePage}
+        activePage={pages.activePages}
         totalPages={pages.pages}
         onPageChange={handleChangePage}
         loading={isLoading}

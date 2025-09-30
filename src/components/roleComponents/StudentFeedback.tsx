@@ -11,8 +11,8 @@ import React, { useEffect, useState } from "react";
 import { API, ENDPOINTS } from "../../../utils/config";
 import Cookies from "js-cookie";
 import PaginationComponent from "../PaginationComponent"; // sesuaikan path jika perlu
-import { Page } from "@/models/pagination";
-import LoaderData from "@/components/loader"
+import { Pages } from "@/models/pagination";
+import LoaderData from "@/components/loader";
 interface Perusahaan {
   user?: {
     photo_profile: File | null;
@@ -25,8 +25,8 @@ interface Perusahaan {
 const StudentFeedback = () => {
   const [close, setClose] = useState<boolean>(true);
   const [perusahaan, setPerushaan] = useState<Perusahaan[]>([]);
-  const [page, setPage] = useState<Page>({
-    activePage: 1,
+  const [page, setPage] = useState<Pages>({
+    activePages: 1,
     pages: 1,
   });
   const [feedback, setFeedback] = useState("");
@@ -34,7 +34,7 @@ const StudentFeedback = () => {
   const [rating, setRating] = useState<number>(0); // rating 1-5
   const [loading, setLoading] = useState(false);
 
-  const fetchCompany = async (selectedPage = page.activePage) => {
+  const fetchCompany = async (selectedPage = page.activePages) => {
     if (loading) return; // kalau lagi loading, abaikan click berikutnya
     setLoading(true);
 
@@ -62,7 +62,7 @@ const StudentFeedback = () => {
         }));
         setPerushaan(data);
         setPage({
-          activePage: selectedPage,
+          activePages: selectedPage,
           pages: response.data.last_page, // pastikan ini adalah total halaman
         });
       }
@@ -87,13 +87,13 @@ const StudentFeedback = () => {
   };
 
   useEffect(() => {
-    fetchCompany(page.activePage);
-  }, [page.activePage]);
+    fetchCompany(page.activePages);
+  }, [page.activePages]);
 
   const handlePageChange = (selectedPage: number) => {
     setPage((prev) => ({
       ...prev,
-      activePage: selectedPage,
+      activePages: selectedPage,
     }));
     // fetchCompany(selectedPage); // Tidak perlu, sudah di useEffect
   };
@@ -185,34 +185,40 @@ const StudentFeedback = () => {
     <>
       <div className=" w-full h-full relative">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-5 text-black">
-          {perusahaan && loading !== true ? perusahaan.map((data, index) => (
-            <div
-              className="bg-white flex flex-col md:flex-row space-x-5 p-5 px-10 md:px-5 rounded-2xl justify-between items-end md:items-center"
-              key={index}
-            >
-              <div className="flex w-full md:w-auto">
-                <img src="/Makerindo_PS.png" alt="Icon" className="w-15 h-15" />
-                <div className="ms-3 ">
-                  <h5 className="text-accent font-bold">{data.name}</h5>
-                  <span className="flex">
-                    <MapPin /> {data.kota}, {data.provinsi}
-                  </span>
-                </div>
-              </div>
-              <button
-                onClick={() => handleModal(index)}
-                className="bg-vip/30 text-vip flex justify-between items-center p-1 px-2 space-x-2 rounded-full"
+          {perusahaan && loading !== true ? (
+            perusahaan.map((data, index) => (
+              <div
+                className="bg-white flex flex-col md:flex-row space-x-5 p-5 px-10 md:px-5 rounded-2xl justify-between items-end md:items-center"
+                key={index}
               >
-                <span>Feedback</span>
-                <CircleArrowRight className="w-4 h-4" />
-              </button>
-            </div>
-          )): (
+                <div className="flex w-full md:w-auto">
+                  <img
+                    src="/Makerindo_PS.png"
+                    alt="Icon"
+                    className="w-15 h-15"
+                  />
+                  <div className="ms-3 ">
+                    <h5 className="text-accent font-bold">{data.name}</h5>
+                    <span className="flex">
+                      <MapPin /> {data.kota}, {data.provinsi}
+                    </span>
+                  </div>
+                </div>
+                <button
+                  onClick={() => handleModal(index)}
+                  className="bg-vip/30 text-vip flex justify-between items-center p-1 px-2 space-x-2 rounded-full"
+                >
+                  <span>Feedback</span>
+                  <CircleArrowRight className="w-4 h-4" />
+                </button>
+              </div>
+            ))
+          ) : (
             <LoaderData />
           )}
         </div>
         <PaginationComponent
-          activePage={page.activePage}
+          activePage={page.activePages}
           totalPages={page.pages}
           onPageChange={handlePageChange}
           loading={loading}

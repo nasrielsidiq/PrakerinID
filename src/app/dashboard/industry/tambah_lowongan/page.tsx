@@ -1,6 +1,6 @@
 "use client";
 import dynamic from "next/dynamic";
-import { Briefcase, BriefcaseBusiness } from "lucide-react";
+import { Briefcase, BriefcaseBusiness, CirclePlus, Trash } from "lucide-react";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { EditorProps } from "@/components/Editor";
@@ -32,7 +32,7 @@ interface Field {
 
 interface Test {
   id: string;
-  name: string;
+  title: string;
 }
 
 interface CreateJobOpening {
@@ -46,7 +46,9 @@ interface CreateJobOpening {
   field_id: string;
   duration_id: string;
   description: any;
-  test: string[];
+  tests: string[];
+  start_date: Date ;
+  close_date: Date;
 }
 
 type type = "part_time" | "full_time" | "";
@@ -58,32 +60,7 @@ const tambahLowonganPage: React.FC = () => {
   const [durations, setDurations] = useState<Duration[]>([]);
   const [fields, setFields] = useState<Field[]>([]);
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
-  const [test, setTest] = useState<Test[]>([
-    {
-      id: "kasdonwqel",
-      name: "Test Teori 1",
-    },
-    {
-      id: "tititititi",
-      name: "Test Teori 2",
-    },
-    {
-      id: "uwuuwuwuwuwuwu",
-      name: "Test Praktik 1",
-    },
-    {
-      id: "wiwiwiwiwiwi",
-      name: "Test Teori 3",
-    },
-    {
-      id: "xixixixix",
-      name: "Test Praktik 2",
-    },
-    {
-      id: "pupupopoupoufufufafa",
-      name: "Test Praktik 3",
-    },
-  ]);
+  const [tests, setTests] = useState<Test[]>([]);
 
   const [formData, setFormData] = useState<CreateJobOpening>({
     title: "",
@@ -96,7 +73,9 @@ const tambahLowonganPage: React.FC = () => {
     field_id: "",
     duration_id: "",
     description: "",
-    test: [],
+    tests: [],
+    start_date: new Date(),
+    close_date: new Date(),
   });
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -130,23 +109,25 @@ const tambahLowonganPage: React.FC = () => {
     }));
   };
 
-  const fetchDurations = async () => {
+  const fetchData = async () => {
     try {
-      const response = await API.get(ENDPOINTS.DURATIONS);
-      console.log("Durations fetched:", response.data.data);
-      setDurations(response.data.data);
+      const durations = API.get(ENDPOINTS.DURATIONS);
+
+      const fields = API.get(ENDPOINTS.FIELDS);
+
+      const tests = API.get(ENDPOINTS.TESTS, {
+        headers: {
+          Authorization: `Bearer ${Cookies.get("userToken")}`,
+        },
+      });
+
+      const response = await Promise.all([durations, fields, tests]);
+
+      setDurations(response[0].data.data);
+      setFields(response[1].data.data);
+      setTests(response[2].data.data);
     } catch (error) {
       console.error("Error fetching durations:", error);
-    }
-  };
-
-  const fetchFields = async () => {
-    try {
-      const response = await API.get(ENDPOINTS.FIELDS);
-      console.log("Fields fetched:", response.data.data);
-      setFields(response.data.data);
-    } catch (error) {
-      console.error("Error fetching fields:", error);
     }
   };
 
@@ -157,29 +138,57 @@ const tambahLowonganPage: React.FC = () => {
     setFormData({ ...formData, quota: Number(e.target.value) });
   };
 
+  const handleChangeStartDate = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const selectedDate = new Date(e.target.value);
+    const today = new Date();
+    // Set jam ke 00:00:00 agar hanya membandingkan tanggal
+    today.setHours(0, 0, 0, 0);
+    selectedDate.setHours(0, 0, 0, 0);
+
+    if (selectedDate < today) {
+      // alertError("Tanggal mulai tidak boleh kurang dari hari ini!");
+      return;
+    }
+    setFormData({ ...formData, start_date: selectedDate });
+  };
+
+  const handleChangeCloseDate = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const selectedDate = new Date(e.target.value);
+    const today = new Date();
+    // Set jam ke 00:00:00 agar hanya membandingkan tanggal
+    today.setHours(0, 0, 0, 0);
+    selectedDate.setHours(0, 0, 0, 0);
+
+    if (selectedDate < today) {
+      // alertError("Tanggal mulai tidak boleh kurang dari hari ini!");
+      return;
+    }
+    setFormData({ ...formData, close_date: selectedDate });
+  };
+
   useEffect(() => {
-    Promise.all([fetchDurations(), fetchFields()]);
+    fetchData();
   }, []);
 
   const handleAddTest = () => {
     setFormData((prev) => ({
       ...prev,
-      test: [...prev.test, ""], // tambah satu select kosong
+      tests: [...prev.tests, ""], // tambah satu select kosong
     }));
   };
 
   const handleRemoveTest = (index: number) => {
     setFormData((prev) => ({
       ...prev,
-      test: prev.test.filter((_, i) => i !== index),
+      tests: prev.tests.filter((_, i) => i !== index),
     }));
   };
 
   const handleTestChange = (index: number, value: string) => {
     setFormData((prev) => {
-      const newTests = [...prev.test];
+      const newTests = [...prev.tests];
       newTests[index] = value;
-      return { ...prev, test: newTests };
+      return { ...prev, tests: newTests };
     });
   };
 
@@ -385,39 +394,76 @@ const tambahLowonganPage: React.FC = () => {
             </select>
           </div>
 
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Waktu Mulai
+            </label>
+            <input
+              type="date"
+              value={
+                formData.start_date
+                  ? new Date(formData.start_date).toISOString().split("T")[0]
+                  : ""
+              }
+              onChange={handleChangeStartDate}
+              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-accent focus:border-transparent"
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Batas Akhir Mendaftar
+            </label>
+            <input
+              type="date"
+              value={
+                formData.close_date
+                  ? new Date(formData.close_date).toISOString().split("T")[0]
+                  : ""
+              }
+              onChange={handleChangeCloseDate}
+              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-accent focus:border-transparent"
+            />
+          </div>
+
           <div className="col-span-2">
-            <span className="py-5">Testing</span>
+            <span className="py-5">Pilih Tes</span>
             <div className="flex flex-col space-y-3 py-5">
-              {formData.test.map((selectedTest, index) => (
+              {formData.tests.map((selectedTest, index) => (
                 <div className="flex" key={index}>
                   <select
                     value={selectedTest}
                     onChange={(e) => handleTestChange(index, e.target.value)}
                     className="w-5/6 me-3 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-accent focus:border-transparent"
                   >
-                    <option value="">Pilih Test</option>
-                    {test.map((item) => (
+                    <option value="">Pilih tes</option>
+                    {tests.map((item) => (
                       <option key={item.id} value={item.id}>
-                        {item.name}
+                        {item.title}
                       </option>
                     ))}
                   </select>
                   <button
                     type="button"
-                    className="p-1 px-3 bg-red-400 rounded text-white"
+                    className="p-1 px-3 bg-red-500 rounded text-white hove:bg-red-600 cursor-pointer flex items-center gap-2"
                     onClick={() => handleRemoveTest(index)}
                   >
-                    Hapus Test
+                    <span>
+                      <Trash className="text-white" />
+                    </span>
+                    <span>Hapus Tes</span>
                   </button>
                 </div>
               ))}
             </div>
             <button
               type="button"
-              className="p-2 bg-green-400 my-3 rounded text-white"
+              className="p-2 bg-green-500 my-3 rounded text-white hover:bg-green-600 cursor-pointer flex items-center gap-2"
               onClick={handleAddTest}
             >
-              Tambah Test
+              <span>
+                <CirclePlus className="text-white" />
+              </span>
+              <span>Tambah Tes</span>
             </button>
           </div>
 

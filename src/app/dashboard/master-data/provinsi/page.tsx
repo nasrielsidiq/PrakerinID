@@ -85,7 +85,6 @@ const ProvinsiPage: React.FC = () => {
           Authorization: `Bearer ${Cookies.get("userToken")}`,
         },
       });
-      console.log(response.data.data);
       setProvinces(response.data.data);
       setPages({
         activePages: response.data.current_page,
@@ -216,6 +215,7 @@ const ProvinsiPage: React.FC = () => {
   useEffect(() => {
     fetchData();
   }, [pages.activePages, isReload]);
+  
   return (
     <main className="p-6 ">
       {/* Page Header */}
