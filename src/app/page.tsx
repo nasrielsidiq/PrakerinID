@@ -6,7 +6,7 @@ import ContactPage from "@/components/Contact";
 import FooterPage from "@/components/Footer";
 import ServiceButton from "@/components/Service";
 import { API, ENDPOINTS } from "../../utils/config";
-import Loading from "./loading";
+import Loader from "@/components/loader";
 
 export default function HomePage() {
   const [activeSection, setActiveSection] = useState("home");
@@ -43,7 +43,12 @@ export default function HomePage() {
     fetchData();
   }, []);
 
-  if (loading) return <Loading />;
+  if (loading)
+    return (
+      <div className="flex justify-center items-center h-screen">
+        <Loader width={64} height={64} />
+      </div>
+    );
 
   return (
     <>

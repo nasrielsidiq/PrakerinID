@@ -17,6 +17,8 @@ import { alertConfirm, alertError, alertSuccess } from "@/libs/alert";
 import NotFoundComponent from "@/components/NotFoundComponent";
 import { Pages } from "@/models/pagination";
 import PaginationComponent from "@/components/PaginationComponent";
+import useDebounce from "@/hooks/useDebounce";
+import Loader from "@/components/loader";
 
 interface Student {
   id: string;
@@ -28,18 +30,23 @@ interface Student {
 
 const PermohonanSiswaPage: React.FC = () => {
   const [searchQuery, setSearchQuery] = useState("");
+  const debouncedQuery = useDebounce(searchQuery, 1000);
+
   const router = useRouter();
   const [pages, setPages] = useState<Pages>({
     activePages: 1,
     pages: 1,
   });
   const [isLoading, setIsLoading] = useState<boolean>(false);
+  const [isReload, setIsReload] = useState<boolean>(false);
 
   const [data, setData] = useState<Student[]>([]);
 
   const fetchData = async () => {
+    if (isLoading) return;
+    setIsLoading(true);
+
     try {
-      setIsLoading(true);
       const response = await API.get(`${ENDPOINTS.USERS}`, {
         params: {
           is_verified: false,
@@ -54,7 +61,7 @@ const PermohonanSiswaPage: React.FC = () => {
       });
       setData(response.data.data);
       setPages({
-        ...pages,
+        activePages: response.data.current_page,
         pages: response.data.last_page,
       });
     } catch (error) {
@@ -124,16 +131,28 @@ const PermohonanSiswaPage: React.FC = () => {
     }
   };
 
-  useEffect(() => {
-    fetchData();
-  }, []);
-
   const handleChangePage = (selectedPage: number) => {
     setPages((prev) => ({
       ...prev,
       activePages: selectedPage,
     }));
   };
+
+  useEffect(() => {
+    if (searchQuery.trim() !== "") {
+      if (!debouncedQuery) {
+        setData([]);
+        return;
+      }
+    }
+
+    setPages((prev) => ({ ...prev, activePages: 1 }));
+    setIsReload(!isReload);
+  }, [debouncedQuery]);
+
+  useEffect(() => {
+    fetchData();
+  }, [pages.activePages, isReload]);
 
   return (
     <main className="p-6">
@@ -188,35 +207,43 @@ const PermohonanSiswaPage: React.FC = () => {
               </tr>
             </thead>
             <tbody>
-              {data.map((item, index) => (
-                <tr key={item.id} className="border-b hover:bg-gray-50">
-                  <td className="p-4 text-gray-800">
-                    {index + 1 + (pages.activePages - 1) * 10}
-                  </td>
-                  <td className="p-4 text-gray-800">{item.student.name}</td>
-                  <td className="p-4 text-gray-600">{item.email}</td>
-                  <td className="p-4 grid grid-cols-2 gap-2 w-48 ">
-                    <button
-                      onClick={() => handleAccept(item.id)}
-                      className="p-2 text-white hover:bg-green-600   bg-green-500 rounded-full transition-colors"
-                    >
-                      Terima
-                    </button>
-                    <button
-                      onClick={() => handleReject(item.id)}
-                      className="p-2 text-white hover:bg-red-600 bg-red-500 rounded-full transition-colors"
-                    >
-                      Tolak
-                    </button>
+              {data && !isLoading ? (
+                data.map((item, index) => (
+                  <tr key={item.id} className="border-b hover:bg-gray-50">
+                    <td className="p-4 text-gray-800">
+                      {index + 1 + (pages.activePages - 1) * 10}
+                    </td>
+                    <td className="p-4 text-gray-800">{item.student.name}</td>
+                    <td className="p-4 text-gray-600">{item.email}</td>
+                    <td className="p-4 grid grid-cols-2 gap-2 w-48 ">
+                      <button
+                        onClick={() => handleAccept(item.id)}
+                        className="p-2 text-white hover:bg-green-600 bg-green-500 rounded-full transition-colors cursor-pointer"
+                      >
+                        Terima
+                      </button>
+                      <button
+                        onClick={() => handleReject(item.id)}
+                        className="p-2 text-white hover:bg-red-600 bg-red-500 rounded-full transition-colors cursor-pointer"
+                      >
+                        Tolak
+                      </button>
+                    </td>
+                  </tr>
+                ))
+              ) : (
+                <tr>
+                  <td colSpan={4} className="text-center p-6 text-gray-500">
+                    <Loader />
                   </td>
                 </tr>
-              ))}
+              )}
             </tbody>
           </table>
         </div>
 
         {/* Empty State (if no data) */}
-        {data.length === 0 && (
+        {data.length === 0 && !isLoading && (
           <div className="text-center py-12 col-span-2 ">
             <NotFoundComponent text="Tidak ada permohonan siswa mendaftar yang ditemukan." />
           </div>

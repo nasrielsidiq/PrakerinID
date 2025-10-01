@@ -13,6 +13,10 @@ import Cookies from "js-cookie";
 import useDebounce from "@/hooks/useDebounce";
 import Link from "next/link";
 import NotFoundComponent from "@/components/NotFoundComponent";
+import TabsComponent from "@/components/TabsCompenent";
+import Loader from "@/components/loader";
+import PaginationComponent from "@/components/PaginationComponent";
+import { Pages } from "@/models/pagination";
 
 interface Task {
   id: number;
@@ -28,8 +32,21 @@ const TasklistPage: React.FC = () => {
   const [inputSearch, setInputSearch] = useState("");
   const debouncedQuery = useDebounce(inputSearch, 1000);
   const [tasks, setTasks] = useState<Task[]>([]);
-  const tabs = ["Semua", "Belum", "Sedang", "Selesai", "Dibatalkan"];
+  const tabs: ActiveTab[] = [
+    "Semua",
+    "Belum",
+    "Sedang",
+    "Selesai",
+    "Dibatalkan",
+  ];
+  const [isLoading, setIsLoading] = useState<boolean>(false);
   const router = useRouter();
+  const [isReload, setIsReload] = useState<boolean>(false);
+
+  const [pages, setPages] = useState<Pages>({
+    activePages: 1,
+    pages: 1,
+  });
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -66,6 +83,8 @@ const TasklistPage: React.FC = () => {
   };
 
   const fetchTasks = async () => {
+    if (isLoading) return;
+    setIsLoading(true);
     try {
       let filteredStatus = "all";
       switch (activeTab) {
@@ -90,19 +109,32 @@ const TasklistPage: React.FC = () => {
         params: {
           status: filteredStatus,
           search: inputSearch,
+          page: pages.activePages,
+          limit: 10,
         },
         headers: {
           Authorization: `Bearer ${Cookies.get("userToken")}`,
         },
       });
 
-      if (response.status === 200) {
-        console.log("Tasks fetched successfully:", response.data.data);
-        setTasks(response.data.data);
-      }
+      console.log("Tasks fetched successfully:", response.data.data);
+      setTasks(response.data.data);
+      setPages({
+        activePages: response.data.current_page,
+        pages: response.data.last_page,
+      });
     } catch (error) {
       console.error("Error fetching tasks:", error);
+    } finally {
+      setIsLoading(false);
     }
+  };
+
+  const handleChangePage = (selectedPage: number) => {
+    setPages((prev) => ({
+      ...prev,
+      activePages: selectedPage,
+    }));
   };
 
   useEffect(() => {
@@ -112,8 +144,14 @@ const TasklistPage: React.FC = () => {
         return;
       }
     }
-    fetchTasks();
+
+    setPages((prev) => ({ ...prev, activePages: 1 }));
+    setIsReload(!isReload);
   }, [activeTab, debouncedQuery]);
+
+  useEffect(() => {
+    fetchTasks();
+  }, [pages.activePages, isReload]);
 
   return (
     <main className="p-6">
@@ -129,19 +167,11 @@ const TasklistPage: React.FC = () => {
 
         {/* Tabs */}
         <div className="flex gap-2 mb-6">
-          {tabs.map((tab) => (
-            <button
-              key={tab}
-              onClick={() => setActiveTab(tab as ActiveTab)}
-              className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors shadow-sm ${
-                activeTab === tab
-                  ? "bg-accent text-white shadow-sm"
-                  : "bg-gray-100 text-gray-600 hover:text-gray-800"
-              }`}
-            >
-              {tab}
-            </button>
-          ))}
+          <TabsComponent
+            data={tabs}
+            activeTab={activeTab}
+            setActiveTab={setActiveTab}
+          />
         </div>
         {Cookies.get("authorization") === "company" && (
           <div className="flex justify-end mb-6">
@@ -191,43 +221,60 @@ const TasklistPage: React.FC = () => {
               </tr>
             </thead>
             <tbody>
-              {tasks.map((task, index) => (
-                <tr key={task.id} className="border-b hover:bg-gray-50">
-                  <td className="p-4 text-gray-800">{index + 1}</td>
-                  <td className="p-4 text-gray-800">{task.title}</td>
-                  <td className="p-4 text-gray-600">
-                    {getDeadline(task.due_date)}
-                  </td>
-                  <td className="p-4">
-                    <span
-                      className={`px-3 py-1 rounded-full text-sm font-medium ${getStatusColor(
-                        task.status
-                      )}`}
-                    >
-                      {getStatus(task.status)}
-                    </span>
-                  </td>
-                  <td className="p-4 flex items-center">
-                    <Link
-                      href={`/dashboard/tasklist/${task.id}`}
-                      className="w-fit h-fit text-blue-600 hover:text-blue-600/75 rounded-full transition-colors cursor-pointer"
-                    >
-                      <Info className="w-4 h-4 " />
-                    </Link>
+              {tasks && !isLoading ? (
+                tasks.map((task, index) => (
+                  <tr key={task.id} className="border-b hover:bg-gray-50">
+                    <td className="p-4 text-gray-800">
+                      {index + 1 + (pages.activePages - 1) * 10}
+                    </td>
+                    <td className="p-4 text-gray-800">{task.title}</td>
+                    <td className="p-4 text-gray-600">
+                      {getDeadline(task.due_date)}
+                    </td>
+                    <td className="p-4">
+                      <span
+                        className={`px-3 py-1 rounded-full text-sm font-medium ${getStatusColor(
+                          task.status
+                        )}`}
+                      >
+                        {getStatus(task.status)}
+                      </span>
+                    </td>
+                    <td className="p-4 flex items-center">
+                      <Link
+                        href={`/dashboard/tasklist/${task.id}`}
+                        className="w-fit h-fit text-blue-600 hover:text-blue-600/75 rounded-full transition-colors cursor-pointer"
+                      >
+                        <Info className="w-4 h-4 " />
+                      </Link>
+                    </td>
+                  </tr>
+                ))
+              ) : (
+                <tr>
+                  <td colSpan={5} className="text-center p-4 text-gray-600">
+                    <Loader />
                   </td>
                 </tr>
-              ))}
+              )}
             </tbody>
           </table>
         </div>
 
         {/* Empty State (if no tasks) */}
-        {tasks.length === 0 && (
+        {tasks.length === 0 && !isLoading && (
           <div className="text-center py-12 col-span-2 ">
             <NotFoundComponent text="Anda belum memiliki tugas." />
           </div>
         )}
       </div>
+
+      <PaginationComponent
+        activePage={pages.activePages}
+        totalPages={pages.pages}
+        onPageChange={handleChangePage}
+        loading={isLoading}
+      />
     </main>
   );
 };

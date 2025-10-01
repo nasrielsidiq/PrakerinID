@@ -20,7 +20,7 @@ import NotFoundComponent from "@/components/NotFoundComponent";
 import { alertConfirm, alertError, alertSuccess } from "@/libs/alert";
 import { AxiosError } from "axios";
 import TabsComponent from "@/components/TabsCompenent";
-import LoaderData from "@/components/loader";
+import Loader from "@/components/loader";
 import PaginationComponent from "@/components/PaginationComponent";
 import { Pages } from "@/models/pagination";
 
@@ -330,7 +330,7 @@ const TestListPage: React.FC = () => {
               ) : (
                 <tr>
                   <td colSpan={6} className="p-4 text-center text-gray-500">
-                    <LoaderData />
+                    <Loader />
                   </td>
                 </tr>
               )}

@@ -17,6 +17,7 @@ import { alertConfirm, alertError, alertSuccess } from "@/libs/alert";
 import NotFoundComponent from "@/components/NotFoundComponent";
 import PaginationComponent from "@/components/PaginationComponent";
 import { Pages } from "@/models/pagination";
+import Loader from "@/components/loader";
 
 interface Student {
   id: number;
@@ -42,6 +43,7 @@ const DaftarSiswaPage: React.FC = () => {
     activePages: 1,
     pages: 1,
   });
+  const [isReload, setIsReload] = useState<boolean>(false);
 
   const getStatusColor = (status: string): string => {
     switch (status) {
@@ -70,9 +72,10 @@ const DaftarSiswaPage: React.FC = () => {
   };
 
   const fetchStudents = async () => {
-    try {
-      setIsLoading(true);
+    if (isLoading) return;
+    setIsLoading(true);
 
+    try {
       let status: string | undefined;
       switch (activeTab) {
         case "Sedang Magang":
@@ -101,9 +104,10 @@ const DaftarSiswaPage: React.FC = () => {
           Authorization: `Bearer ${Cookies.get("userToken")}`,
         },
       });
+      console.log(response.data.data);
       setStudents(response.data.data);
       setPages({
-        ...pages,
+        activePages: response.data.current_page,
         pages: response.data.last_page,
       });
     } catch (error) {
@@ -112,17 +116,6 @@ const DaftarSiswaPage: React.FC = () => {
       setIsLoading(false);
     }
   };
-
-  useEffect(() => {
-    if (searchTerm.trim() !== "") {
-      if (!debouncedQuery) {
-        setStudents([]);
-        return;
-      }
-    }
-
-    fetchStudents();
-  }, [debouncedQuery, activeTab, pages.activePages]);
 
   const handleDownload = async () => {
     try {
@@ -194,11 +187,28 @@ const DaftarSiswaPage: React.FC = () => {
   };
 
   const handleChangePage = (selectedPage: number) => {
+    console.log(selectedPage);
     setPages((prev) => ({
       ...prev,
-      activePage: selectedPage,
+      activePages: selectedPage,
     }));
   };
+
+  useEffect(() => {
+    if (searchTerm.trim() !== "") {
+      if (!debouncedQuery) {
+        setStudents([]);
+        return;
+      }
+    }
+
+    setPages((prev) => ({ ...prev, activePages: 1 }));
+    setIsReload(!isReload);
+  }, [activeTab, debouncedQuery]);
+
+  useEffect(() => {
+    fetchStudents();
+  }, [pages.activePages, isReload]);
 
   return (
     <main className="p-6">
@@ -298,7 +308,7 @@ const DaftarSiswaPage: React.FC = () => {
               </tr>
             </thead>
             <tbody>
-              {students &&
+              {students && !isLoading ? (
                 students.map((task, index) => (
                   <tr key={index} className="border-b hover:bg-gray-50">
                     <td className="p-4 text-gray-800">
@@ -321,13 +331,20 @@ const DaftarSiswaPage: React.FC = () => {
                       </span>
                     </td>
                   </tr>
-                ))}
+                ))
+              ) : (
+                <tr>
+                  <td colSpan={5} className="p-4">
+                    <Loader />
+                  </td>
+                </tr>
+              )}
             </tbody>
           </table>
         </div>
 
         {/* Empty State (if no tasks) */}
-        {students.length === 0 && (
+        {students.length === 0 && !isLoading && (
           <div className="text-center py-12 col-span-2 ">
             <NotFoundComponent text="Tidak ada siswa yang ditemukan." />
           </div>

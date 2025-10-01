@@ -507,7 +507,9 @@ export default function SiswaLowongan() {
             </Link>
           ))
         ) : (
-          <LoaderData />
+          <div className="lg:col-span-2">
+            <LoaderData />
+          </div>
         )}
       </div>
       {!loading && jobOpenings.length === 0 && (

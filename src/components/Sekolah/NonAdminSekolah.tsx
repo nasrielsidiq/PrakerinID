@@ -138,7 +138,7 @@ const NonAdminSekolah: React.FC = () => {
               onChange={(e) => setInputSearch(e.target.value)}
               value={inputSearch}
               placeholder="Cari sekolah..."
-            className="text-gray-600 w-full px-4 py-3 pl-12 rounded-2xl shadow-md focus:outline-none focus:ring-2 focus:ring-accent focus:border-transparent transition-all duration-300"
+              className="text-gray-600 w-full px-4 py-3 pl-12 rounded-2xl shadow-md focus:outline-none focus:ring-2 focus:ring-accent focus:border-transparent transition-all duration-300"
             />
             <svg
               className="absolute left-4 top-3.5 w-5 h-5 text-gray-400"

@@ -98,6 +98,17 @@ const tambahSiswaPage: React.FC = () => {
       });
 
       await alertSuccess("Siswa berhasil didaftarkan!", 1500);
+      profileImage && setProfileImage(null);
+      setFormData({
+        username: "",
+        name: "",
+        school_id: "",
+        email: "",
+        password: "",
+        password_confirmation: "",
+        recaptcha_token: "",
+        role: "student",
+      });
     } catch (error: AxiosError | unknown) {
       if (error instanceof AxiosError) {
         const responseError = error.response?.data.errors;
@@ -338,7 +349,7 @@ const tambahSiswaPage: React.FC = () => {
               <button
                 type="button"
                 onClick={() => router.back()}
-                className="px-6 py-3 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors font-medium"
+                className="px-6 py-3 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors font-medium cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
                 disabled={isSubmitting}
               >
                 Kembali
@@ -347,7 +358,7 @@ const tambahSiswaPage: React.FC = () => {
                 type="button"
                 onClick={handleSubmit}
                 disabled={isSubmitting}
-                className="px-6 py-3 bg-accent text-white rounded-lg hover:bg-accent-hover transition-colors font-medium flex items-center space-x-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                className="px-6 py-3 bg-accent text-white rounded-lg hover:bg-accent-hover transition-colors font-medium flex items-center space-x-2 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 <span>{isSubmitting ? "Mendaftar..." : "Daftar"}</span>
                 {!isSubmitting && (

@@ -3,6 +3,7 @@ import { CircleArrowRight, MapPin, MessageSquareText } from "lucide-react";
 import { useEffect, useState } from "react";
 import { API, ENDPOINTS } from "../../../../utils/config";
 import Cookies from "js-cookie";
+import UnderConstruction from "@/components/UnderConstruction";
 
 interface Perusahaan {
   image?: File | null;
@@ -69,6 +70,8 @@ const SertifikatPage: React.FC = () => {
   useEffect(() => {
     fetchCertificates();
   }, []);
+
+  return <UnderConstruction />;
 
   return (
     <main className="p-6 min-h-screen">

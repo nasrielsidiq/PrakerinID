@@ -3,6 +3,8 @@
 import {
   BookOpen,
   Building,
+  Eye,
+  EyeOff,
   KeyRound,
   StickyNote,
   Target,
@@ -10,7 +12,7 @@ import {
   User,
   UserSquare,
 } from "lucide-react";
-import { ChangeEvent, useEffect, useState } from "react";
+import { ChangeEvent, use, useEffect, useState } from "react";
 import { API, ENDPOINTS } from "../../../../utils/config";
 import Cookies from "js-cookie";
 import { EditorProps } from "@/components/Editor";
@@ -21,7 +23,7 @@ import { AxiosError } from "axios";
 import { Province } from "@/models/province";
 import { CityRegency } from "@/models/cityRegency";
 import { Sector } from "@/models/sector";
-import LoaderData from "@/components/loader";
+import Loader from "@/components/loader";
 
 const Editor = dynamic<EditorProps>(() => import("@/components/Editor"), {
   ssr: false,
@@ -54,6 +56,7 @@ interface SchoolForm {
   phone_number: string;
   website: string;
   city_regency_id: string;
+  province_id: string;
 }
 
 interface StudentForm {
@@ -70,6 +73,10 @@ interface StudentForm {
 
 interface DescriptionForm {
   description: any;
+}
+
+interface FormErrors {
+  [key: string]: string;
 }
 
 export default function ProfilePage() {
@@ -99,6 +106,7 @@ export default function ProfilePage() {
     phone_number: "",
     website: "",
     city_regency_id: "",
+    province_id: "",
   });
   const [studentForm, setStudentForm] = useState<StudentForm>({
     name: "",
@@ -121,11 +129,16 @@ export default function ProfilePage() {
   const [isSubmittingDesc, setIsSubmittingDesc] = useState<boolean>(false);
   const [profileImage, setProfileImage] = useState<string | null>(null);
 
-  const [loading, setLoading] = useState<boolean>(false);
+  const [isLoading, setIsLoading] = useState<boolean>(false);
+
+  const [formErrors, setFormErrors] = useState<FormErrors>({});
+
+  const [showPassword, setShowPassword] = useState<boolean>(false);
+  const [showConfirmPassword, setShowConfirmPassword] =
+    useState<boolean>(false);
+  const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
 
   const fetchProfile = async () => {
-    if (loading) return;
-    setLoading(true);
     try {
       const response = await API.get(`${ENDPOINTS.USERS}/profile`, {
         headers: {
@@ -175,14 +188,14 @@ export default function ProfilePage() {
         }
       }
     } catch (error) {
-      console.error("Error fetching profile:", error);
-    } finally {
-      setLoading(false);
+      throw error;
     }
   };
 
   const handleSubmit = async (e: React.FormEvent, form: string) => {
     e.preventDefault();
+    setIsSubmitting(true);
+
     try {
       let request = {};
       let text = "";
@@ -228,20 +241,20 @@ export default function ProfilePage() {
 
       fetchProfile();
       console.log("Response", response.data.data);
-      await alertSuccess(text);
+      alertSuccess(text);
     } catch (error: AxiosError | unknown) {
       if (error instanceof AxiosError) {
         const responseError = error.response?.data.errors;
         if (typeof responseError === "string") {
           await alertError(responseError);
         } else {
-          await alertError(responseError);
-          // setErrors(responseError);
+          setFormErrors(responseError);
         }
       }
       console.error(error);
     } finally {
       setIsSubmittingDesc(false);
+      setIsSubmitting(false);
     }
   };
 
@@ -282,8 +295,8 @@ export default function ProfilePage() {
   };
 
   const fetchData = async () => {
-    if (loading) return;
-    setLoading(true);
+    if (isLoading) return;
+    setIsLoading(true);
     try {
       const provinces = API.get(`${ENDPOINTS.PROVINCES}`);
       const cityRegencies = API.get(`${ENDPOINTS.CITY_REGENCIES}`);
@@ -293,27 +306,58 @@ export default function ProfilePage() {
       setProvinces(response[0].data.data);
       setCityRegencies(response[1].data.data);
       setSectors(response[2].data.data);
-    } catch (error) {
+      await fetchProfile();
+    } catch (error: AxiosError | unknown) {
+      if (error instanceof AxiosError) {
+        const responseError = error.response?.data.errors;
+        await alertError(responseError);
+      }
       console.error(error);
     } finally {
-      setLoading(false);
+      setIsLoading(false);
+    }
+  };
+
+  const fetchCityRegencies = async () => {
+    let provinceId = "";
+
+    if (authorization === "company") {
+      provinceId = companyForm.province_id;
+    }
+    if (authorization === "school") {
+      provinceId = schoolForm.province_id;
+    }
+
+    try {
+      const response = await API.get(
+        `${ENDPOINTS.CITY_REGENCIES}?province_id=${provinceId}`
+      );
+      setCityRegencies(response.data.data);
+    } catch (error) {
+      console.error(error);
     }
   };
 
   useEffect(() => {
-    fetchProfile();
     fetchData();
     setAuthorization(Cookies.get("authorization") as string);
   }, []);
 
   useEffect(() => {
-    console.log("description", descriptionForm);
-  }, [descriptionForm]);
+    fetchCityRegencies();
+  }, [companyForm.province_id, schoolForm.province_id]);
+
+  if (isLoading) {
+    return (
+      <div className="flex justify-center items-center h-screen">
+        <Loader width={64} height={64} />;
+      </div>
+    );
+  }
 
   return (
     // Konten utama dimulai di sini
     <main className="space-y-8 p-6">
-      {loading === true && <LoaderData />}
       {/* Judul Halaman untuk Tampilan Mobile */}
       <h1 className="text-2xl font-semibold text-gray-900 md:hidden">
         Profile
@@ -330,7 +374,13 @@ export default function ProfilePage() {
               <h3 className="text-lg font-semibold text-gray-800">Foto</h3>
             </div>
             <div className="flex flex-col items-center">
-              <div className="w-48 h-48 border-2 border-dashed rounded-lg flex flex-col items-center justify-center bg-gray-50 mb-4 relative cursor-pointer">
+              <div
+                className={`w-48 h-48 border-2 border-dashed rounded-lg flex flex-col items-center justify-center bg-gray-50 mb-4 relative cursor-pointer ${
+                  formErrors.photo_profile
+                    ? "border-red-500"
+                    : "border-gray-500"
+                }`}
+              >
                 {profileImage ? (
                   <img
                     src={profileImage}
@@ -344,6 +394,7 @@ export default function ProfilePage() {
                     width={100}
                     height={100}
                     className="w-full h-full object-cover rounded-lg"
+                    priority
                   />
                 ) : (
                   <>
@@ -362,6 +413,12 @@ export default function ProfilePage() {
                   className="absolute inset-0 opacity-0 cursor-pointer"
                 />
               </div>
+
+              {formErrors.photo_profile && (
+                <p className="mt-1 text-sm text-red-500">
+                  {formErrors.photo_profile}
+                </p>
+              )}
 
               <p className="text-center text-xs text-gray-500">
                 Rekomendasi: Gunakan foto dengan ukuran 200x200 pixel untuk
@@ -382,6 +439,7 @@ export default function ProfilePage() {
               className="space-y-6"
               onSubmit={(e) => handleSubmit(e, "user")}
             >
+              {/* Username */}
               <div>
                 <label
                   htmlFor="username"
@@ -392,13 +450,23 @@ export default function ProfilePage() {
                 <input
                   id="username"
                   type="text"
+                  placeholder="johndoe"
                   value={userForm.username}
                   onChange={(e) =>
                     setUserForm({ ...userForm, username: e.target.value })
                   }
-                  className="w-full border-gray-300 rounded-md shadow-sm focus:ring-cyan-500 focus:border-cyan-500 sm:text-sm p-2"
+                  className={`w-full border  rounded-md shadow-sm sm:text-sm p-2 focus:ring-2 focus:ring-accent focus:border-transparent focus:outline-none transition-colors ${
+                    formErrors.username ? "border-red-500" : "border-gray-300"
+                  }`}
                 />
+                {formErrors.username && (
+                  <p className="mt-1 text-sm text-red-500">
+                    {formErrors.username}
+                  </p>
+                )}
               </div>
+
+              {/* Email */}
               <div>
                 <label
                   htmlFor="email"
@@ -408,15 +476,24 @@ export default function ProfilePage() {
                 </label>
                 <input
                   id="email"
-                  type="email"
+                  type="text"
                   value={userForm.email}
                   onChange={(e) =>
                     setUserForm({ ...userForm, email: e.target.value })
                   }
-                  className="w-full border-gray-300 rounded-md shadow-sm focus:ring-cyan-500 focus:border-cyan-500 sm:text-sm p-2"
+                  className={`w-full border  rounded-md shadow-sm sm:text-sm p-2 focus:ring-2 focus:ring-accent focus:border-transparent focus:outline-none transition-colors ${
+                    formErrors.email ? "border-red-500" : "border-gray-300"
+                  }`}
                 />
+                {formErrors.email && (
+                  <p className="mt-1 text-sm text-red-500">
+                    {formErrors.email}
+                  </p>
+                )}
               </div>
+
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                {/* Password */}
                 <div>
                   <label
                     htmlFor="password"
@@ -424,17 +501,41 @@ export default function ProfilePage() {
                   >
                     Password
                   </label>
-                  <input
-                    id="password"
-                    type="password"
-                    placeholder="••••••••"
-                    value={userForm.password}
-                    onChange={(e) =>
-                      setUserForm({ ...userForm, password: e.target.value })
-                    }
-                    className="w-full border-gray-300 rounded-md shadow-sm focus:ring-cyan-500 focus:border-cyan-500 sm:text-sm p-2"
-                  />
+                  <div className="relative">
+                    <input
+                      id="password"
+                      type={showPassword ? "text" : "password"}
+                      placeholder="••••••••"
+                      value={userForm.password}
+                      onChange={(e) =>
+                        setUserForm({ ...userForm, password: e.target.value })
+                      }
+                      className={`w-full border  rounded-md shadow-sm sm:text-sm p-2 focus:ring-2 focus:ring-accent focus:border-transparent focus:outline-none transition-colors ${
+                        formErrors.password
+                          ? "border-red-500"
+                          : "border-gray-300"
+                      }`}
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowPassword(!showPassword)}
+                      className="absolute inset-y-0 right-0 flex items-center px-3 cursor-pointer"
+                    >
+                      {showPassword ? (
+                        <Eye className="w-5 h-5 text-accent" />
+                      ) : (
+                        <EyeOff className="w-5 h-5 text-accent" />
+                      )}
+                    </button>
+                  </div>
+                  {formErrors.password && (
+                    <p className="mt-1 text-sm text-red-500">
+                      {formErrors.password}
+                    </p>
+                  )}
                 </div>
+
+                {/* Konfirmasi Password */}
                 <div>
                   <label
                     htmlFor="confirmPassword"
@@ -442,27 +543,54 @@ export default function ProfilePage() {
                   >
                     Konfirmasi Password
                   </label>
-                  <input
-                    id="confirmPassword"
-                    type="password"
-                    placeholder="••••••••"
-                    value={userForm.confirmPassword}
-                    onChange={(e) =>
-                      setUserForm({
-                        ...userForm,
-                        confirmPassword: e.target.value,
-                      })
-                    }
-                    className="w-full border-gray-300 rounded-md shadow-sm focus:ring-cyan-500 focus:border-cyan-500 sm:text-sm p-2"
-                  />
+                  <div className="relative">
+                    <input
+                      id="confirmPassword"
+                      type={showConfirmPassword ? "text" : "password"}
+                      placeholder="••••••••"
+                      value={userForm.confirmPassword}
+                      onChange={(e) =>
+                        setUserForm({
+                          ...userForm,
+                          confirmPassword: e.target.value,
+                        })
+                      }
+                      className={`w-full border  rounded-md shadow-sm sm:text-sm p-2 focus:ring-2 focus:ring-accent focus:border-transparent focus:outline-none transition-colors ${
+                        formErrors.confirmPassword
+                          ? "border-red-500"
+                          : "border-gray-300"
+                      }`}
+                    />
+                    <button
+                      type="button"
+                      onClick={() =>
+                        setShowConfirmPassword(!showConfirmPassword)
+                      }
+                      className="absolute inset-y-0 right-0 flex items-center px-3 cursor-pointer"
+                    >
+                      {showConfirmPassword ? (
+                        <Eye className="w-5 h-5 text-accent" />
+                      ) : (
+                        <EyeOff className="w-5 h-5 text-accent" />
+                      )}
+                    </button>
+                    {formErrors.confirmPassword && (
+                      <p className="mt-1 text-sm text-red-500">
+                        {formErrors.confirmPassword}
+                      </p>
+                    )}
+                  </div>
                 </div>
               </div>
+
+              {/* Simpan */}
               <div className="flex justify-end">
                 <button
                   type="submit"
-                  className="bg-cyan-600 hover:bg-cyan-700 text-white font-semibold py-2 px-4 rounded-lg shadow-md transition-colors duration-300"
+                  disabled={isSubmitting}
+                  className="bg-accent hover:bg-accent-hover text-white font-semibold py-2 px-4 rounded-lg shadow-md transition-colors duration-300 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                  Simpan
+                  {isSubmitting ? "Sedang menyimpan..." : "Simpan"}
                 </button>
               </div>
             </form>
@@ -483,6 +611,7 @@ export default function ProfilePage() {
               onSubmit={(e) => handleSubmit(e, "company")}
             >
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                {/* Nama Perusahaan */}
                 <div>
                   <label
                     htmlFor="company-name"
@@ -493,13 +622,60 @@ export default function ProfilePage() {
                   <input
                     id="company-name"
                     type="text"
+                    placeholder="PT. Makerindo Indonesia"
                     value={companyForm.name}
                     onChange={(e) =>
                       setCompanyForm({ ...companyForm, name: e.target.value })
                     }
-                    className="w-full border-gray-300 rounded-md shadow-sm focus:ring-cyan-500 focus:border-cyan-500 sm:text-sm p-2"
+                    className={`w-full border  rounded-md shadow-sm sm:text-sm p-2 focus:ring-2 focus:ring-accent focus:border-transparent focus:outline-none transition-colors ${
+                      formErrors.username ? "border-red-500" : "border-gray-300"
+                    }`}
                   />
+                  {formErrors.name && (
+                    <p className="mt-1 text-sm text-red-500">
+                      {formErrors.name}
+                    </p>
+                  )}
                 </div>
+
+                {/* Provinsi */}
+                <div>
+                  <label
+                    htmlFor="company-province"
+                    className="block text-sm font-medium text-gray-700 mb-1"
+                  >
+                    Provinsi
+                  </label>
+                  <select
+                    id="company-province"
+                    value={companyForm.province_id || ""}
+                    onChange={(e) => {
+                      setCompanyForm({
+                        ...companyForm,
+                        province_id: e.target.value,
+                      });
+                    }}
+                    className={`w-full border  rounded-md shadow-sm sm:text-sm p-2 focus:ring-2 focus:ring-accent focus:border-transparent focus:outline-none transition-colors ${
+                      formErrors.province_id
+                        ? "border-red-500"
+                        : "border-gray-300"
+                    }`}
+                  >
+                    <option value="">Pilih Provinsi</option>
+                    {provinces.map((province) => (
+                      <option key={province.id} value={province.id}>
+                        {province.name}
+                      </option>
+                    ))}
+                  </select>
+                  {formErrors.province_id && (
+                    <p className="mt-1 text-sm text-red-500">
+                      {formErrors.province_id}
+                    </p>
+                  )}
+                </div>
+
+                {/* Kota Kabupaten */}
                 <div>
                   <label
                     htmlFor="company-city-regency"
@@ -508,15 +684,23 @@ export default function ProfilePage() {
                     Kota/Kabupaten
                   </label>
                   <select
+                    disabled={
+                      companyForm.province_id === null ||
+                      companyForm.province_id === ""
+                    }
                     id="company-city-regency"
-                    value={companyForm.city_regency_id}
+                    value={companyForm.city_regency_id || ""}
                     onChange={(e) => {
                       setCompanyForm({
                         ...companyForm,
                         city_regency_id: e.target.value,
                       });
                     }}
-                    className="w-full border-gray-300 rounded-md shadow-sm focus:ring-cyan-500 focus:border-cyan-500 sm:text-sm p-2"
+                    className={`w-full border  rounded-md shadow-sm sm:text-sm p-2 focus:ring-2 focus:ring-accent focus:border-transparent focus:outline-none transition-colors ${
+                      formErrors.city_regency_id
+                        ? "border-red-500"
+                        : "border-gray-300"
+                    }`}
                   >
                     <option value="">Pilih Kota/Kabupaten</option>
                     {cityRegencies.map((cityRegency) => (
@@ -525,7 +709,14 @@ export default function ProfilePage() {
                       </option>
                     ))}
                   </select>
+                  {formErrors.city_regency_id && (
+                    <p className="mt-1 text-sm text-red-500">
+                      {formErrors.city_regency_id}
+                    </p>
+                  )}
                 </div>
+
+                {/* Alamat */}
                 <div>
                   <label
                     htmlFor="company-address"
@@ -536,17 +727,26 @@ export default function ProfilePage() {
                   <input
                     id="company-address"
                     type="text"
-                    placeholder="Bandung"
-                    value={studentForm?.address}
+                    placeholder="Kpg. Hasanuddin No. 336, Bogor 88921"
+                    value={companyForm?.address}
                     onChange={(e) =>
-                      setStudentForm({
-                        ...studentForm,
+                      setCompanyForm({
+                        ...companyForm,
                         address: e.target.value,
                       })
                     }
-                    className="w-full border-gray-300 rounded-md shadow-sm focus:ring-cyan-500 focus:border-cyan-500 sm:text-sm p-2"
+                    className={`w-full border  rounded-md shadow-sm sm:text-sm p-2 focus:ring-2 focus:ring-accent focus:border-transparent focus:outline-none transition-colors ${
+                      formErrors.username ? "border-red-500" : "border-gray-300"
+                    }`}
                   />
+                  {formErrors.address && (
+                    <p className="mt-1 text-sm text-red-500">
+                      {formErrors.address}
+                    </p>
+                  )}
                 </div>
+
+                {/* Sektor */}
                 <div>
                   <label
                     htmlFor="company-sector"
@@ -556,14 +756,18 @@ export default function ProfilePage() {
                   </label>
                   <select
                     id="company-sector"
-                    // value={companyForm.sector_id}
+                    value={companyForm.sector_id || ""}
                     onChange={(e) =>
                       setCompanyForm({
                         ...companyForm,
                         sector_id: e.target.value,
                       })
                     }
-                    className="w-full border-gray-300 rounded-md shadow-sm focus:ring-cyan-500 focus:border-cyan-500 sm:text-sm p-2"
+                    className={`w-full border  rounded-md shadow-sm sm:text-sm p-2 focus:ring-2 focus:ring-accent focus:border-transparent focus:outline-none transition-colors ${
+                      formErrors.sector_id
+                        ? "border-red-500"
+                        : "border-gray-300"
+                    }`}
                   >
                     <option value="">Pilih Sektor</option>
                     {sectors.map((sector) => (
@@ -572,8 +776,14 @@ export default function ProfilePage() {
                       </option>
                     ))}
                   </select>
+                  {formErrors.sector_id && (
+                    <p className="mt-1 text-sm text-red-500">
+                      {formErrors.sector_id}
+                    </p>
+                  )}
                 </div>
 
+                {/* No Telepon */}
                 <div>
                   <label
                     htmlFor="company-phone-number"
@@ -583,18 +793,29 @@ export default function ProfilePage() {
                   </label>
                   <input
                     id="company-phone-number"
-                    type="url"
-                    placeholder="https://linkedin.com/in/username"
-                    value={studentForm?.sosial_media_link}
+                    type="tel"
+                    placeholder="+62 812-3456-7890"
+                    value={companyForm?.phone_number || ""}
                     onChange={(e) =>
-                      setStudentForm({
-                        ...studentForm,
-                        sosial_media_link: e.target.value,
+                      setCompanyForm({
+                        ...companyForm,
+                        phone_number: e.target.value,
                       })
                     }
-                    className="w-full border-gray-300 rounded-md shadow-sm focus:ring-cyan-500 focus:border-cyan-500 sm:text-sm p-2"
+                    className={`w-full border  rounded-md shadow-sm sm:text-sm p-2 focus:ring-2 focus:ring-accent focus:border-transparent focus:outline-none transition-colors ${
+                      formErrors.phone_number
+                        ? "border-red-500"
+                        : "border-gray-300"
+                    }`}
                   />
+                  {formErrors.phone_number && (
+                    <p className="mt-1 text-sm text-red-500">
+                      {formErrors.phone_number}
+                    </p>
+                  )}
                 </div>
+
+                {/* Website Resmi */}
                 <div>
                   <label
                     htmlFor="company-website"
@@ -605,24 +826,33 @@ export default function ProfilePage() {
                   <input
                     id="company-website"
                     type="url"
-                    placeholder="https://linkedin.com/in/username"
-                    value={studentForm?.sosial_media_link}
+                    placeholder="https://makerindo.co.id"
+                    value={companyForm?.website || ""}
                     onChange={(e) =>
-                      setStudentForm({
-                        ...studentForm,
-                        sosial_media_link: e.target.value,
+                      setCompanyForm({
+                        ...companyForm,
+                        website: e.target.value,
                       })
                     }
-                    className="w-full border-gray-300 rounded-md shadow-sm focus:ring-cyan-500 focus:border-cyan-500 sm:text-sm p-2"
+                    className={`w-full border  rounded-md shadow-sm sm:text-sm p-2 focus:ring-2 focus:ring-accent focus:border-transparent focus:outline-none transition-colors ${
+                      formErrors.website ? "border-red-500" : "border-gray-300"
+                    }`}
                   />
+                  {formErrors.website && (
+                    <p className="mt-1 text-sm text-red-500">
+                      {formErrors.website}
+                    </p>
+                  )}
                 </div>
               </div>
+
               <div className="flex justify-end pt-4">
                 <button
                   type="submit"
-                  className="bg-cyan-600 hover:bg-cyan-700 text-white font-semibold py-2 px-4 rounded-lg shadow-md transition-colors duration-300"
+                  disabled={isSubmitting}
+                  className="bg-accent hover:bg-accent-hover text-white font-semibold py-2 px-4 rounded-lg shadow-md transition-colors duration-300 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                  Simpan
+                  {isSubmitting ? "Sedang menyimpan..." : "Simpan"}
                 </button>
               </div>
             </form>
@@ -784,7 +1014,7 @@ export default function ProfilePage() {
                         phone_number: e.target.value,
                       });
                     }}
-                    placeholder="+62-812-3456-7890"
+                    placeholder="+62 812-3456-7890"
                     className="w-full border-gray-300 rounded-md shadow-sm focus:ring-cyan-500 focus:border-cyan-500 sm:text-sm p-2"
                   />
                 </div>
@@ -813,7 +1043,7 @@ export default function ProfilePage() {
               <div className="flex justify-end pt-4">
                 <button
                   type="submit"
-                  className="bg-cyan-600 hover:bg-cyan-700 text-white font-semibold py-2 px-4 rounded-lg shadow-md transition-colors duration-300"
+                  className="bg-cyan-600 hover:bg-cyan-700 text-white font-semibold py-2 px-4 rounded-lg shadow-md transition-colors duration-300 cursor-pointer"
                 >
                   Simpan
                 </button>
@@ -1032,7 +1262,7 @@ export default function ProfilePage() {
               <div className="flex justify-end pt-4">
                 <button
                   type="submit"
-                  className="bg-cyan-600 hover:bg-cyan-700 text-white font-semibold py-2 px-4 rounded-lg shadow-md transition-colors duration-300"
+                  className="bg-cyan-600 hover:bg-cyan-700 text-white font-semibold py-2 px-4 rounded-lg shadow-md transition-colors duration-300 cursor-pointer"
                 >
                   Simpan
                 </button>
@@ -1063,9 +1293,10 @@ export default function ProfilePage() {
               <div className="flex justify-end pt-4">
                 <button
                   type="submit"
-                  className="bg-cyan-600 hover:bg-cyan-700 text-white font-semibold py-2 px-4 rounded-lg shadow-md transition-colors duration-300"
+                  disabled={isSubmitting}
+                  className="bg-accent hover:bg-accent-hover text-white font-semibold py-2 px-4 rounded-lg shadow-md transition-colors duration-300 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                  {isSubmittingDesc ? "Menyimpan..." : "Simpan"}
+                  {isSubmitting ? "Sedang menyimpan..." : "Simpan"}
                 </button>
               </div>
             </form>

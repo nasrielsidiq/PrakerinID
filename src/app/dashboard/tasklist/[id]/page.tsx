@@ -5,7 +5,8 @@ import { use, useEffect, useState } from "react";
 import { API, ENDPOINTS } from "../../../../../utils/config";
 import Cookies from "js-cookie";
 import Link from "next/link";
-import { alertConfirm } from "@/libs/alert";
+import { alertConfirm, alertSuccess } from "@/libs/alert";
+import Loader from "@/components/loader";
 
 interface Task {
   id: string;
@@ -14,6 +15,7 @@ interface Task {
   status: string;
   description: string;
   link: string | null;
+  phone_number: string | null;
 }
 
 const DetailTasklistPage = ({
@@ -30,8 +32,10 @@ const DetailTasklistPage = ({
     status: "",
     description: "",
     link: "",
+    phone_number: null,
   });
   const [authorization, setAuthorization] = useState<string>("");
+  const [isLoading, setIsLoading] = useState<boolean>(false);
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -62,16 +66,38 @@ const DetailTasklistPage = ({
   };
 
   const handleChange = async (e: React.ChangeEvent<HTMLSelectElement>) => {
-    const confirm = await alertConfirm(
-      "Apakah anda yakin mengubah status tugas ini?"
+    const newValue = e.target.value;
+
+    const confirmed = await alertConfirm(
+      "Apakah Anda yakin ingin mengubah status tugas ini?"
     );
 
-    if (!confirm) return;
+    if (!confirmed) {
+      return;
+    }
 
-    // const
+    try {
+      const a =await API.patch(
+        `${ENDPOINTS.TASKS}/${id}`,
+        { status: newValue },
+        {
+          headers: {
+            Authorization: `Bearer ${Cookies.get("userToken")}`,
+          },
+        }
+      );
+
+      console.log(a);
+
+      fetchDetailTask();
+      await alertSuccess("Status tugas berhasil diubah.");
+    } catch (error) {
+      console.error(error);
+    }
   };
 
   const fetchDetailTask = async () => {
+    setIsLoading(true);
     try {
       const response = await API.get(`${ENDPOINTS.TASKS}/${id}`, {
         headers: {
@@ -83,6 +109,8 @@ const DetailTasklistPage = ({
       setTask(response.data.data);
     } catch (error) {
       console.error("Error fetching detail task:", error);
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -112,68 +140,99 @@ const DetailTasklistPage = ({
 
       {/* Description Section */}
       <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-6">
-        <div className="flex flex-col items-end lg:flex-row lg:items-start lg:justify-between gap-4 pb-5 mb-5 border-b-1 border-gray-200">
-          <div className="flex items-start space-x-4">
-            <div className="min-w-0 flex-1 gap-4">
-              <h2 className="text-lg font-semibold text-gray-900 mb-2">
-                {task.title}
-              </h2>
-              <div className="flex items-center space-x-2 text-gray-600 mb-3">
-                <CalendarRangeIcon className="w-4 h-4 flex-shrink-0" />
-                <span className="text-sm">{task.due_date}</span>
-              </div>
-              <span
-                className={` ${getStatusColor(
-                  task.status
-                )} rounded-full p-1 px-3`}
-              >
-                {getStatus(task.status)}
-              </span>
-            </div>
+        {isLoading ? (
+          <div className="flex justify-center items-center h-96">
+            <Loader height={64} width={64} />
           </div>
-          <div className="flex items-center gap-8">
-            <div className="flex gap-4 items-center">
-              <label htmlFor="status" className="font-medium">
-                Pilih Status Tugas
-              </label>
-              <select
-                id="status"
-                onChange={handleChange}
-                className="rounded-xl border px-4 py-2 border-gray-300 focus:border-transparent focus:outline-transparent focus:ring-2 focus:ring-accent text-md transition-colors"
-              >
-                <option value="Belum">Belum</option>
-                <option value="cancelled">Dibatalkan</option>
-                <option value="in_progress">Sedang</option>
-                <option value="completed">Selesai</option>
-              </select>
-            </div>
-
-            {authorization === "student" && (
-              <Link
-                href={`/dashboard/tasklist/${id}/report`}
-                className="bg-accent text-white px-4 py-2 rounded-md text-sm font-medium transition-colors flex items-center space-x-2 whitespace-nowrap"
-              >
-                <span className="">Report</span>
-              </Link>
-            )}
-          </div>
-        </div>
-        <h3 className="text-lg font-semibold text-gray-900 mb-4">Deskripsi</h3>
-        <div className="text-gray-700 text-sm leading-relaxed space-y-3 mb-5">
-          <p>{task.description}</p>
-        </div>
-        {task.link && (
+        ) : (
           <>
-            <h3 className="text-lg font-semibold text-gray-900 mb-4">Link</h3>
-            <div className="text-gray-700 text-sm leading-relaxed space-y-3 mb-5">
-              <Link
-                href={task.link}
-                target="_blank"
-                className="text-blue-500 underline"
-              >
-                {task.link}
-              </Link>
+            <div className="flex flex-col items-end lg:flex-row lg:items-start lg:justify-between gap-4 pb-5 mb-5 border-b-1 border-gray-200">
+              <div className="flex items-start space-x-4">
+                <div className="min-w-0 flex-1 gap-4">
+                  <h2 className="text-lg font-semibold text-gray-900 mb-2">
+                    {task.title}
+                  </h2>
+                  <div className="flex items-center space-x-2 text-gray-600 mb-3">
+                    <CalendarRangeIcon className="w-4 h-4 flex-shrink-0" />
+                    <span className="text-sm">{task.due_date}</span>
+                  </div>
+                  <span
+                    className={` ${getStatusColor(
+                      task.status
+                    )} rounded-full p-1 px-3`}
+                  >
+                    {getStatus(task.status)}
+                  </span>
+                </div>
+              </div>
+              <div className="flex items-center gap-8">
+                {authorization === "company" && (
+                  <div className="flex gap-4 items-center">
+                    <label htmlFor="status" className="font-medium">
+                      Pilih Status Tugas
+                    </label>
+                    <select
+                      id="status"
+                      value={task.status}
+                      onChange={handleChange}
+                      className="rounded-xl border px-4 py-2 border-gray-300 focus:border-transparent focus:outline-transparent focus:ring-2 focus:ring-accent text-md transition-colors"
+                    >
+                      <option value="pending">Belum</option>
+                      <option value="cancelled">Dibatalkan</option>
+                      <option value="in_progress">Sedang</option>
+                      <option value="completed">Selesai</option>
+                    </select>
+                  </div>
+                )}
+
+                {task.phone_number ? (
+                  <Link
+                    href={`https://wa.me/${task.phone_number}`}
+                    target="_blank"
+                    className="bg-accent text-white px-4 py-2 rounded-md text-sm font-medium transition-colors flex items-center space-x-2 whitespace-nowrap"
+                  >
+                    <span className="">Lapor</span>
+                  </Link>
+                ) : (
+                  <button
+                    disabled
+                    className="bg-gray-300 text-gray-600 px-4 py-2 rounded-md text-sm font-medium transition-colors flex items-center space-x-2 whitespace-nowrap"
+                  >
+                    {authorization === "company" ? (
+                      <span className="">
+                        Perusahaan tidak memiliki nomer telepon
+                      </span>
+                    ) : (
+                      <span className="">
+                        Pemagang tidak memiliki nomer telepon
+                      </span>
+                    )}
+                  </button>
+                )}
+              </div>
             </div>
+            <h3 className="text-lg font-semibold text-gray-900 mb-4">
+              Deskripsi
+            </h3>
+            <div className="text-gray-700 text-sm leading-relaxed space-y-3 mb-5">
+              <p>{task.description}</p>
+            </div>
+            {task.link && (
+              <>
+                <h3 className="text-lg font-semibold text-gray-900 mb-4">
+                  Link
+                </h3>
+                <div className="text-gray-700 text-sm leading-relaxed space-y-3 mb-5">
+                  <Link
+                    href={task.link}
+                    target="_blank"
+                    className="text-blue-500 underline"
+                  >
+                    {task.link}
+                  </Link>
+                </div>
+              </>
+            )}
           </>
         )}
       </div>

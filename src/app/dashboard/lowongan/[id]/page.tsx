@@ -27,6 +27,8 @@ interface JobOpening {
   location: string;
   qouta: number;
   type: string;
+  start_date: string;
+  closing_date: string;
   company: {
     name: string;
   };
@@ -47,7 +49,15 @@ interface JobOpening {
   field: {
     name: string;
   };
+  type: {
+    title: string;
+    description: string;
+    type: Type;
+    link: string
+  }
 }
+
+type Type = "practice" | "theory"; 
 
 const DetailLowongan = ({ params }: { params: Promise<{ id: string }> }) => {
   const { id } = use(params);
@@ -60,6 +70,8 @@ const DetailLowongan = ({ params }: { params: Promise<{ id: string }> }) => {
     location: "",
     qouta: 0,
     type: "",
+    start_date: "",
+    closing_date: "",
     company: {
       name: "",
     },
@@ -80,6 +92,7 @@ const DetailLowongan = ({ params }: { params: Promise<{ id: string }> }) => {
       duration_unit: "",
       duration_value: 0,
     },
+    type: []
   });
 
   const fetchJobOpening = async () => {
@@ -353,6 +366,24 @@ const DetailLowongan = ({ params }: { params: Promise<{ id: string }> }) => {
                   </p>
                 </div>
               </div>
+              <div className="flex items-start space-x-3 p-3 rounded-lg border border-gray-100 shadow-sm hover:shadow-md transition">
+                <Calendar className="w-5 h-5 text-accent shrink-0 mt-1" />
+                <div>
+                  <p className="text-gray-500">Waktu Mulai Magang</p>
+                  <p className="font-medium text-gray-900">
+                    {jobOpening.start_date}
+                  </p>
+                </div>
+              </div>
+              <div className="flex items-start space-x-3 p-3 rounded-lg border border-gray-100 shadow-sm hover:shadow-md transition">
+                <Calendar className="w-5 h-5 text-accent shrink-0 mt-1" />
+                <div>
+                  <p className="text-gray-500">Batas Pendaftaran</p>
+                  <p className="font-medium text-gray-900">
+                    {jobOpening.closing_date}
+                  </p>
+                </div>
+              </div>
             </div>
           </div>
 
@@ -362,6 +393,17 @@ const DetailLowongan = ({ params }: { params: Promise<{ id: string }> }) => {
           </h3>
           <div className="text-gray-600">
             <RenderBlocks data={jobOpening.description} />
+          </div>
+          <h3 className="text-lg font-semibold text-gray-900 mb-4">
+            Test
+          </h3>
+          <div className="bg-white py-6 mb-6">
+              {
+                jobOpening.test && jobOpening.test.map((test, index) => (
+                  
+                  <div key={index} className="text-lg fw-medium">{test.title}</div>
+                ))
+              }
           </div>
         </div>
       </div>

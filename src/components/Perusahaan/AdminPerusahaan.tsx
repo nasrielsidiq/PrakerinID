@@ -1,5 +1,5 @@
 "use client";
-import { Check, CirclePlus, Map, Pencil, Search, Trash, X } from "lucide-react";
+import { Check, Mail, Search, Trash } from "lucide-react";
 import { useEffect, useState } from "react";
 import Cookies from "js-cookie";
 import useDebounce from "@/hooks/useDebounce";
@@ -9,6 +9,7 @@ import NotFoundComponent from "@/components/NotFoundComponent";
 import PaginationComponent from "@/components/PaginationComponent";
 import LoaderData from "@/components/loader";
 import { API, ENDPOINTS } from "../../../utils/config";
+import Link from "next/link";
 
 type ActiveTab = "Semua" | "Diterima" | "Belum Diterima";
 
@@ -124,7 +125,7 @@ const AdminPerusahaan: React.FC = () => {
       await API.patch(
         `${ENDPOINTS.USERS}/${id}`,
         {
-          is_accepted: true,
+          is_verified: true,
         },
         {
           headers: {
@@ -218,34 +219,44 @@ const AdminPerusahaan: React.FC = () => {
                     <td className="p-4 text-gray-800">
                       {index + 1 + (pages.activePages - 1) * 10}
                     </td>
-                    <td className="p-4 text-gray-800">{item.company.name}</td>
-                    <td className="p-4 text-gray-800">{item.email}</td>
+                    <td className="p-4 text-gray-800">{item.company?.name}</td>
+                    <td className="p-4 text-gray-800">{item?.email}</td>
                     <td className="p-4">
                       <span
                         className={`px-3 py-1 rounded-full text-sm font-medium ${
-                          item.company.is_verified
+                          item.company?.is_verified
                             ? "bg-green-100 text-green-800"
                             : "bg-red-100 text-red-800"
                         }`}
                       >
-                        {item.company.is_verified
+                        {item.company?.is_verified
                           ? "Diterima"
                           : "Belum Diterima"}
                       </span>
                     </td>
-                    <td className="p-4">
-                      {!item.company.is_verified && (
-                        <button
-                          onClick={() =>
-                            handleAccept(item.id, item.company.name)
-                          }
-                          className="p-2 text-green-600 hover:bg-blue-50 rounded-full transition-colors cursor-pointer"
-                        >
-                          <Check className="w-4 h-4" />
-                        </button>
+                    <td className="p-4 flex gap-2">
+                      {!item.company?.is_verified && (
+                        <>
+                          <button
+                            onClick={() =>
+                              handleAccept(item.id, item.company?.name)
+                            }
+                            className="p-2 text-green-600 hover:bg-blue-50 rounded-full transition-colors cursor-pointer"
+                          >
+                            <Check className="w-4 h-4" />
+                          </button>
+                          <Link
+                            href={`mailto:${item.email}`}
+                            className="p-2 text-accent hover:bg-blue-50 rounded-full transition-colors cursor-pointer"
+                          >
+                            <Mail className="w-4 h-4" />
+                          </Link>
+                        </>
                       )}
                       <button
-                        onClick={() => handleDelete(item.id, item.company.name)}
+                        onClick={() =>
+                          handleDelete(item.id, item.company?.name)
+                        }
                         className="p-2 text-red-600 hover:bg-blue-50 rounded-full transition-colors cursor-pointer"
                       >
                         <Trash className="w-4 h-4" />

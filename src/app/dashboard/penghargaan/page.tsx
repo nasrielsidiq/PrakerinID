@@ -68,6 +68,7 @@ import React, { useEffect, useState } from "react";
 import Cookies from "js-cookie";
 import { AdminAchievement } from "@/components/Achievement/AdminAchievement";
 import NonAdminAchievemet from "@/components/Achievement/NonAdminAchievemet";
+import UnderConstruction from "@/components/UnderConstruction";
 
 const PenghargaanPage = () => {
   const [authorization, setAuthorization] = useState<Role>("");
@@ -84,6 +85,8 @@ const PenghargaanPage = () => {
   useEffect(() => {
     setAuthorization(Cookies.get("authorization") as Role);
   }, []);
+
+  return <UnderConstruction />;
 
   return (
     <>

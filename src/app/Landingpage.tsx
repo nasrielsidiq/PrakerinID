@@ -12,7 +12,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { API, ENDPOINTS } from "../../utils/config";
-import Loading from "./loading";
+import Loading from "./masuk/loading";
 
 export default function LandingPage({ data }: { data: any }) {
   const router = useRouter();
