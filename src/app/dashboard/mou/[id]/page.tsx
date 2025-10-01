@@ -33,6 +33,7 @@ interface KerjaSama {
   message: any;
   user: {
     photo_profile: string;
+    email: string;
   };
   province: {
     name: string;
@@ -74,6 +75,7 @@ const lamaranPage = ({ params }: { params: Promise<{ id: string }> }) => {
     message: "",
     user: {
       photo_profile: "",
+      email: "",
     },
     province: {
       name: "",
@@ -93,7 +95,6 @@ const lamaranPage = ({ params }: { params: Promise<{ id: string }> }) => {
   const [formError, setFormError] = useState<FormError>({});
 
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
-  const [labelModal, setLabelModal] = useState<string>("");
 
   const fetchData = async () => {
     if (isLoading) return;
@@ -129,13 +130,19 @@ const lamaranPage = ({ params }: { params: Promise<{ id: string }> }) => {
     }
   };
 
-  const handleSubmit = async () => {
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    setIsSubmitting(true);
+    setFormError({});
     try {
-      await API.post(`${ENDPOINTS.MOUS}/${id}`, formData, {
+      await API.patch(`${ENDPOINTS.MOUS}/${id}`, formData, {
         headers: {
           Authorization: `Bearer ${Cookies.get("userToken")}`,
         },
       });
+      await fetchData();
+      setIsModalOpen(false);
+      await alertSuccess("Berhasil menolak kerja sama!");
     } catch (error: AxiosError | unknown) {
       console.error(error);
     } finally {
@@ -157,8 +164,8 @@ const lamaranPage = ({ params }: { params: Promise<{ id: string }> }) => {
         },
       });
 
+      await fetchData();
       await alertSuccess("Berhasil menerima kerja sama!");
-      fetchData();
     } catch (error) {
       console.error(error);
     }
@@ -236,19 +243,22 @@ const lamaranPage = ({ params }: { params: Promise<{ id: string }> }) => {
               </div>
               <div className="flex gap-2">
                 <Link
-                  href={`/dashboard/sekolah/${id}/chat`}
+                  href={`https://mail.google.com/mail/?view=cm&fs=1&to=${data.user.email}&su=Halo&body=Isi%20pesan%20di%20sini`}
+                  target="_blank"
+                  rel="noopener noreferrer"
                   className="bg-vip text-white px-4 py-2 rounded-md text-sm font-medium transition-colors flex items-center space-x-2 whitespace-nowrap cursor-pointer"
                 >
-                  <span className="">
+                  <span>
                     Chat{" "}
                     {authorization === "company" ? "Sekolah" : "Perusahaan"}
                   </span>
                   <Lock className="w-4" />
                 </Link>
-                {!(
-                  (authorization === "school" && data.is_school_accepted) ||
-                  (authorization === "company" && data.is_company_accepted)
-                ) && (
+
+                {((authorization === "school" &&
+                  data.is_school_accepted === null) ||
+                  (authorization === "company" &&
+                    data.is_company_accepted === null)) && (
                   <>
                     <button
                       onClick={handleAccept}
@@ -260,7 +270,6 @@ const lamaranPage = ({ params }: { params: Promise<{ id: string }> }) => {
                     <button
                       onClick={() => {
                         setIsModalOpen(true);
-                        setLabelModal("Menolak");
                       }}
                       className="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-md text-sm font-medium transition-colors flex items-center space-x-2 whitespace-nowrap cursor-pointer"
                     >
@@ -394,7 +403,7 @@ const lamaranPage = ({ params }: { params: Promise<{ id: string }> }) => {
         <div className="fixed inset-0 flex items-center justify-center h-screen bg-black/25 z-50">
           <div className="bg-white text-black p-6 rounded-lg flex flex-col gap-2 min-w-sm lg:min-w-xl">
             <div className=" rounded-lg justify-between flex">
-              <h3 className="text-lg font-semibold">{labelModal}</h3>
+              <h3 className="text-lg font-semibold">Menolak</h3>
               <X
                 onClick={() => {
                   setIsModalOpen(false);
@@ -406,7 +415,7 @@ const lamaranPage = ({ params }: { params: Promise<{ id: string }> }) => {
               {/* Deskripsi Tes */}
               <div className="">
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Alasan {labelModal}
+                  Alasan Menolak
                 </label>
                 {formError.reason && (
                   <p className="mt-1 text-sm text-red-500">
@@ -416,6 +425,7 @@ const lamaranPage = ({ params }: { params: Promise<{ id: string }> }) => {
                 <textarea
                   onChange={(e) => setFormData({ reason: e.target.value })}
                   value={formData.reason}
+                  placeholder="Masukkan alasan anda menolak kerja sama ini"
                   className={`resize-none w-full h-40 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-accent focus:border-transparent ${
                     formError.reason ? "border-red-500" : "border-gray-300"
                   }`}

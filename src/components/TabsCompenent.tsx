@@ -19,7 +19,7 @@ const TabsComponent = <T,>({
         <button
           key={getKey ? getKey(tab) : String(tab)}
           onClick={() => setActiveTab(tab)}
-          className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors shadow-sm ${
+          className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors shadow-sm cursor-pointer ${
             activeTab === tab
               ? "bg-accent text-white shadow-sm"
               : "bg-gray-100 text-gray-600 hover:text-gray-800"

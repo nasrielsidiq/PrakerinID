@@ -7,6 +7,8 @@ import useDebounce from "@/hooks/useDebounce";
 import Link from "next/link";
 import NotFoundComponent from "@/components/NotFoundComponent";
 import { API, ENDPOINTS } from "../../../utils/config";
+import Loader from "../loader";
+import TabsComponent from "../TabsCompenent";
 
 interface Perusahaan {
   id: string;
@@ -14,7 +16,7 @@ interface Perusahaan {
   name: string;
   city_regency: string | null;
   province: string | null;
-  mou: false;
+  mou: boolean;
 }
 
 interface CompanyCount {
@@ -28,14 +30,19 @@ const NonAdminSekolah: React.FC = () => {
   const [inputSearch, setInputSearch] = useState<string>("");
   const debouncedQuery = useDebounce(inputSearch, 1000);
   const [perusahaan, setPerushaan] = useState<Perusahaan[]>([]);
-  const tabs = ["Semua", "Sudah Kerja Sama", "Belum Kerja Sama"];
+
+  const tabs: ActiveTab[] = ["Semua", "Sudah Kerja Sama", "Belum Kerja Sama"];
   const [activeTab, setActiveTab] = useState<ActiveTab>("Semua");
+
+  const [isLoading, setIsLoading] = useState<boolean>(false);
   const [companyCount, setCompanyCount] = useState<CompanyCount>({
     school_count: 0,
     mou_count: 0,
   });
 
   const fetchCompany = async () => {
+    if (isLoading) return;
+    setIsLoading(true);
     try {
       const response = await API.get(ENDPOINTS.USERS, {
         params: {
@@ -60,10 +67,13 @@ const NonAdminSekolah: React.FC = () => {
         name: item.name,
         city_regency: item.city_regency.name,
         province: item.province.name,
+        mou: item.mou,
       }));
       setPerushaan(data);
     } catch (error) {
       console.error("Error fetching company:", error);
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -128,7 +138,7 @@ const NonAdminSekolah: React.FC = () => {
               onChange={(e) => setInputSearch(e.target.value)}
               value={inputSearch}
               placeholder="Cari sekolah..."
-              className="text-gray-600 w-full px-4 py-3 pl-12 focus:outline-none focus:ring-2 focus:ring-prakerin focus:border-transparent transition-all duration-300"
+            className="text-gray-600 w-full px-4 py-3 pl-12 rounded-2xl shadow-md focus:outline-none focus:ring-2 focus:ring-accent focus:border-transparent transition-all duration-300"
             />
             <svg
               className="absolute left-4 top-3.5 w-5 h-5 text-gray-400"
@@ -148,23 +158,15 @@ const NonAdminSekolah: React.FC = () => {
       </div>
 
       <div className="flex gap-2 mb-6">
-        {tabs.map((tab) => (
-          <button
-            key={tab}
-            onClick={() => setActiveTab(tab as ActiveTab)}
-            className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors shadow-sm ${
-              activeTab === tab
-                ? "bg-accent text-white shadow-sm"
-                : "bg-gray-100 text-gray-600 hover:text-gray-800"
-            }`}
-          >
-            {tab}
-          </button>
-        ))}
+        <TabsComponent
+          data={tabs}
+          activeTab={activeTab}
+          setActiveTab={setActiveTab}
+        />
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-5 text-black">
-        {perusahaan.length !== 0 ? (
+        {perusahaan && !isLoading ? (
           perusahaan.map((data, index) => (
             <div
               className="relative bg-white flex flex-col md:flex-row space-x-5 p-6 px-10 md:px-5 rounded-2xl justify-between items-end md:items-center 
@@ -212,7 +214,13 @@ const NonAdminSekolah: React.FC = () => {
             </div>
           ))
         ) : (
-          <div className="text-center py-12 col-span-2 ">
+          <div className="md:col-span-2">
+            <Loader />
+          </div>
+        )}
+
+        {perusahaan.length === 0 && !isLoading && (
+          <div className="text-center py-12 col-span-2">
             <NotFoundComponent text="Tidak ada sekolah yang ditemukan." />
           </div>
         )}

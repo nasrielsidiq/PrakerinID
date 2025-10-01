@@ -19,6 +19,7 @@ import RenderBlocks from "@/components/RenderBlocks";
 
 interface Company {
   photo_profile?: string | null;
+  mou: boolean;
   company: {
     name: string;
     description: string | null;
@@ -49,6 +50,8 @@ const DetailPerusahaanPage = ({
 }) => {
   const { id } = use(params);
   const [company, setCompany] = useState<Company>({
+    photo_profile: null,
+    mou: false,
     company: {
       name: "",
       description: null,
@@ -155,7 +158,7 @@ const DetailPerusahaanPage = ({
               <span className="">Chat Perusahaan</span>
               <Lock className="w-4" />
             </Link>
-            {Cookies.get("authorization") === "school" && (
+            {Cookies.get("authorization") === "school" && !company.mou && (
               <Link
                 href={`/dashboard/perusahaan/${id}/mou`}
                 className="bg-accent text-white px-4 py-2 rounded-md text-sm font-medium transition-colors flex items-center space-x-2 whitespace-nowrap cursor-pointer"

@@ -133,7 +133,7 @@ const BuatKerjaSamaPage = ({ params }: { params: Promise<{ id: string }> }) => {
 
       await alertSuccess("Pengajuan kerja sama berhasil di kirim!");
 
-      route.push(`/dashboard/sekolah/${id}`);
+      route.push(`/dashboard/perusahaan/${id}`);
     } catch (error: AxiosError | unknown) {
       if (error instanceof AxiosError) {
         const responseError = error.response?.data.errors;
@@ -319,14 +319,14 @@ const BuatKerjaSamaPage = ({ params }: { params: Promise<{ id: string }> }) => {
         {/* Action Buttons */}
         <div className="flex flex-col sm:flex-row gap-3 mt-8 justify-end">
           <Link
-            href={`/dashboard/sekolah/${id}`}
+            href={`/dashboard/perushaaan/${id}`}
             onClick={async (e) => {
               e.preventDefault();
               const isConfirm = await alertConfirm(
                 "Apakah anda yakin ingin membatalkan!"
               );
               if (isConfirm) {
-                route.push(`/dashboard/sekolah/${id}`);
+                route.push(`/dashboard/perushaaan/${id}`);
               }
             }}
             className="px-6 py-2 border border-gray-300 text-gray-700 rounded-md hover:bg-gray-50 transition-colors cursor-pointer"

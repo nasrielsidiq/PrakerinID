@@ -23,7 +23,7 @@ interface Perusahaan {
   name: string;
   city_regency: string;
   province: string;
-  mou: false;
+  mou: boolean;
 }
 
 interface CompanyCount {
@@ -85,6 +85,7 @@ const NonadminPerusahaan: React.FC = () => {
         name: item.company.name,
         city_regency: item.city_regency.name,
         province: item.province.name,
+        mou: item.mou,
       }));
       setPerushaan(data);
       setPages({
@@ -227,7 +228,9 @@ const NonadminPerusahaan: React.FC = () => {
             </div>
           ))
         ) : (
-          <LoaderData />
+          <div className="md:col-span-2">
+            <LoaderData />
+          </div>
         )}
         {perusahaan.length === 0 && loading !== true && (
           <div className="text-center py-12 col-span-2 ">

@@ -21,6 +21,7 @@ import Image from "next/image";
 import RenderBlocks from "@/components/RenderBlocks";
 
 interface SchoolDetail {
+  email: string;
   photo_profile: string | null;
   school: {
     name: string;
@@ -38,12 +39,14 @@ interface SchoolDetail {
   province: {
     name: string;
   };
+  mou: boolean;
 }
 
 const DetailSekolahPage = ({ params }: { params: Promise<{ id: string }> }) => {
   const { id } = use(params);
   const [authorization, setAuthorization] = useState<string>();
   const [company, setCompany] = useState<SchoolDetail>({
+    email: "",
     photo_profile: null,
     school: {
       name: "",
@@ -61,6 +64,7 @@ const DetailSekolahPage = ({ params }: { params: Promise<{ id: string }> }) => {
     province: {
       name: "",
     },
+    mou: false,
   });
 
   const fetchData = async () => {
@@ -134,26 +138,33 @@ const DetailSekolahPage = ({ params }: { params: Promise<{ id: string }> }) => {
               </div>
               <div className="flex items-center space-x-2 text-gray-600">
                 <Globe className="w-4 h-4 flex-shrink-0" />
-                <a
-                  href="http://makerindo.co.id"
-                  className="text-sm text-blue-600 hover:underline"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                >
-                  {company.school.website ?? "Tidak ada website"}
-                </a>
+
+                {company.school.website === null ? (
+                  <p className="text-sm text-gray-600">Tidak ada website</p>
+                ) : (
+                  <Link
+                    href={company.school.website}
+                    className="text-sm text-blue-600 hover:underline"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
+                    {company.school.website}
+                  </Link>
+                )}
               </div>
             </div>
           </div>
           <div className="flex gap-2">
             <Link
-              href={`/dashboard/sekolah/${id}/chat`}
+              href={`https://mail.google.com/mail/?view=cm&fs=1&to=${company.email}&su=Halo&body=Isi%20pesan%20di%20sini`}
+              target="_blank"
+              rel="noopener noreferrer"
               className="bg-vip text-white px-4 py-2 rounded-md text-sm font-medium transition-colors flex items-center space-x-2 whitespace-nowrap cursor-pointer"
             >
-              <span className="">Chat Sekolah</span>
+              <span>Chat Sekolah</span>
               <Lock className="w-4" />
             </Link>
-            {authorization === "company" && (
+            {authorization === "company" && !company.mou && (
               <Link
                 href={`/dashboard/sekolah/${id}/mou`}
                 className="bg-accent text-white px-4 py-2 rounded-md text-sm font-medium transition-colors flex items-center space-x-2 whitespace-nowrap cursor-pointer"

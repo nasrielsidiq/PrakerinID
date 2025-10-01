@@ -47,8 +47,8 @@ interface CreateJobOpening {
   duration_id: string;
   description: any;
   tests: string[];
-  start_date: Date ;
-  close_date: Date;
+  start_date: Date;
+  closing_date: Date;
 }
 
 type type = "part_time" | "full_time" | "";
@@ -75,25 +75,48 @@ const tambahLowonganPage: React.FC = () => {
     description: "",
     tests: [],
     start_date: new Date(),
-    close_date: new Date(),
+    closing_date: new Date(),
   });
+
+  const formatDateTime = (date: Date) => {
+    // Pastikan date adalah objek Date
+    const pad = (n: number) => n.toString().padStart(2, "0");
+    return (
+      date.getFullYear() +
+      "-" +
+      pad(date.getMonth() + 1) +
+      "-" +
+      pad(date.getDate()) +
+      " " +
+      pad(date.getHours()) +
+      ":" +
+      pad(date.getMinutes()) +
+      ":" +
+      pad(date.getSeconds())
+    );
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    console.log("Form submitted", formData);
     try {
       setIsSubmitting(true);
       formData.is_available = formData.is_available === "true" ? true : false;
       formData.is_paid = formData.is_paid === "true" ? true : false;
 
-      await API.post(ENDPOINTS.JOB_OPENINGS, formData, {
+      // Format tanggal sebelum dikirim
+      const payload = {
+        ...formData,
+        start_date: formatDateTime(new Date(formData.start_date)),
+        closing_date: formatDateTime(new Date(formData.closing_date)),
+      };
+
+      await API.post(ENDPOINTS.JOB_OPENINGS, payload, {
         headers: {
           Authorization: `Bearer ${Cookies.get("userToken")}`,
         },
       });
 
       await alertSuccess("Lowongan berhasil ditambahkan!");
-
       route.replace("/dashboard/lowongan");
     } catch (error: AxiosError | unknown) {
       await alertError("Gagal menambahkan lowongan!");
@@ -163,7 +186,7 @@ const tambahLowonganPage: React.FC = () => {
       // alertError("Tanggal mulai tidak boleh kurang dari hari ini!");
       return;
     }
-    setFormData({ ...formData, close_date: selectedDate });
+    setFormData({ ...formData, closing_date: selectedDate });
   };
 
   useEffect(() => {
@@ -416,8 +439,8 @@ const tambahLowonganPage: React.FC = () => {
             <input
               type="date"
               value={
-                formData.close_date
-                  ? new Date(formData.close_date).toISOString().split("T")[0]
+                formData.closing_date
+                  ? new Date(formData.closing_date).toISOString().split("T")[0]
                   : ""
               }
               onChange={handleChangeCloseDate}

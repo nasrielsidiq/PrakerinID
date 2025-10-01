@@ -5,6 +5,7 @@ import { use, useEffect, useState } from "react";
 import { API, ENDPOINTS } from "../../../../../utils/config";
 import Cookies from "js-cookie";
 import Link from "next/link";
+import { alertConfirm } from "@/libs/alert";
 
 interface Task {
   id: string;
@@ -30,6 +31,7 @@ const DetailTasklistPage = ({
     description: "",
     link: "",
   });
+  const [authorization, setAuthorization] = useState<string>("");
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -59,6 +61,16 @@ const DetailTasklistPage = ({
     }
   };
 
+  const handleChange = async (e: React.ChangeEvent<HTMLSelectElement>) => {
+    const confirm = await alertConfirm(
+      "Apakah anda yakin mengubah status tugas ini?"
+    );
+
+    if (!confirm) return;
+
+    // const
+  };
+
   const fetchDetailTask = async () => {
     try {
       const response = await API.get(`${ENDPOINTS.TASKS}/${id}`, {
@@ -77,6 +89,7 @@ const DetailTasklistPage = ({
   useEffect(() => {
     console.log("Task ID:", id);
     fetchDetailTask();
+    setAuthorization(Cookies.get("authorization") as string);
   }, []);
 
   return (
@@ -118,12 +131,32 @@ const DetailTasklistPage = ({
               </span>
             </div>
           </div>
-          <Link
-            href={`/dashboard/tasklist/${id}/report`}
-            className="bg-accent text-white px-4 py-2 rounded-md text-sm font-medium transition-colors flex items-center space-x-2 whitespace-nowrap"
-          >
-            <span className="">Report</span>
-          </Link>
+          <div className="flex items-center gap-8">
+            <div className="flex gap-4 items-center">
+              <label htmlFor="status" className="font-medium">
+                Pilih Status Tugas
+              </label>
+              <select
+                id="status"
+                onChange={handleChange}
+                className="rounded-xl border px-4 py-2 border-gray-300 focus:border-transparent focus:outline-transparent focus:ring-2 focus:ring-accent text-md transition-colors"
+              >
+                <option value="Belum">Belum</option>
+                <option value="cancelled">Dibatalkan</option>
+                <option value="in_progress">Sedang</option>
+                <option value="completed">Selesai</option>
+              </select>
+            </div>
+
+            {authorization === "student" && (
+              <Link
+                href={`/dashboard/tasklist/${id}/report`}
+                className="bg-accent text-white px-4 py-2 rounded-md text-sm font-medium transition-colors flex items-center space-x-2 whitespace-nowrap"
+              >
+                <span className="">Report</span>
+              </Link>
+            )}
+          </div>
         </div>
         <h3 className="text-lg font-semibold text-gray-900 mb-4">Deskripsi</h3>
         <div className="text-gray-700 text-sm leading-relaxed space-y-3 mb-5">
