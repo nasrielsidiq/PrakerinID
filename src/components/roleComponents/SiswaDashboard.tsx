@@ -29,7 +29,7 @@ interface InternshipApplicationCount {
 interface InternshipApplication {
   id: string;
   job_opening: {
-    title: string;  
+    title: string;
     // company: string;
     // location: string;
   };

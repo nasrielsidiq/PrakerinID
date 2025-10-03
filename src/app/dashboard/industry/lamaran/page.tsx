@@ -16,6 +16,11 @@ import Cookies from "js-cookie";
 import useDebounce from "@/hooks/useDebounce";
 import Link from "next/link";
 import NotFoundComponent from "@/components/NotFoundComponent";
+import TabsComponent from "@/components/TabsCompenent";
+import PaginationComponent from "@/components/PaginationComponent";
+import { Pages } from "@/models/pagination";
+import page from "@/app/hubungi-cs/page";
+import Loader from "@/components/loader";
 
 interface Lamaran {
   id: number;
@@ -43,6 +48,8 @@ interface InternshipApplication {
   };
 }
 
+type ActiveTab = "Semua" | "Diterima" | "Pengajuan" | "Ditolak";
+
 const lamaranPage: React.FC = () => {
   const router = useRouter();
   const [inputSearch, setInputSearch] = useState("");
@@ -50,24 +57,56 @@ const lamaranPage: React.FC = () => {
   const [internshipApplications, setInternshipApplications] = useState<
     InternshipApplication[]
   >([]);
+  const [isLoading, setIsLoading] = useState<boolean>(false);
+  const tabs: ActiveTab[] = ["Semua", "Diterima", "Pengajuan", "Ditolak"];
+  const [activeTab, setActiveTab] = useState<ActiveTab>("Semua");
+  const [isReload, setIsReload] = useState<boolean>(false);
+
+  const [pages, setPages] = useState<Pages>({
+    activePages: 1,
+    pages: 1,
+  });
 
   const fetchInternshipAplication = async () => {
+    if (isLoading) return;
+    setIsLoading(true);
+
+    let status: string | undefined = undefined;
+    switch (activeTab) {
+      case "Diterima":
+        status = "accepted";
+        break;
+      case "Pengajuan":
+        status = "in_progress";
+        break;
+      case "Ditolak":
+        status = "rejected";
+        break;
+    }
+
     try {
       const response = await API.get(ENDPOINTS.INTERNSHIP_APPLICATIONS, {
         params: {
           search: inputSearch,
+          limit: 10,
+          page: pages.activePages,
+          status: status,
         },
         headers: {
           Authorization: `Bearer ${Cookies.get("userToken")}`,
         },
       });
 
-      if (response.status === 200) {
-        console.log(response.data.data);
-        setInternshipApplications(response.data.data);
-      }
+      console.log(response.data.data);
+      setInternshipApplications(response.data.data);
+      setPages({
+        activePages: response.data.current_page,
+        pages: response.data.last_page,
+      });
     } catch (error) {
       console.log(error);
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -93,6 +132,13 @@ const lamaranPage: React.FC = () => {
     }
   };
 
+  const handleChangePage = (selectedPage: number) => {
+    setPages((prev) => ({
+      ...prev,
+      activePages: selectedPage,
+    }));
+  };
+
   useEffect(() => {
     if (inputSearch.trim() !== "") {
       if (!debouncedQuery) {
@@ -100,8 +146,14 @@ const lamaranPage: React.FC = () => {
         return;
       }
     }
+
+    setPages((prev) => ({ ...prev, activePages: 1 }));
+    setIsReload(!isReload);
+  }, [activeTab, debouncedQuery]);
+
+  useEffect(() => {
     fetchInternshipAplication();
-  }, [debouncedQuery]);
+  }, [pages.activePages, isReload]);
 
   const handleDownload = async (cvId: string) => {
     console.log("Downloading CV with ID:", cvId);
@@ -143,6 +195,14 @@ const lamaranPage: React.FC = () => {
         <h2 className="text-2xl mt-2">Lamaran Magang</h2>
       </div>
 
+      <div className="flex gap-2 mb-6">
+        <TabsComponent
+          data={tabs}
+          activeTab={activeTab}
+          setActiveTab={setActiveTab}
+        />
+      </div>
+
       <div className="rounded-t-2xl  bg-accent">
         <div className="relative">
           <Search
@@ -154,7 +214,7 @@ const lamaranPage: React.FC = () => {
             placeholder="Cari lamaran..."
             value={inputSearch}
             onChange={(e) => setInputSearch(e.target.value)}
-            className="w-full pl-10 pr-4 py-3 text-white placeholder-teal-200 rounded-2xl focus:outline-none focus:ring-2 focus:ring-teal-400"
+            className="w-full bg-accent text-white placeholder-teal-200 pl-10 pr-4 py-3 rounded-t-2xl focus:outline-none focus:ring-2 focus:ring-teal-300"
           />
         </div>
       </div>
@@ -189,50 +249,58 @@ const lamaranPage: React.FC = () => {
               </tr>
             </thead>
             <tbody className="bg-white divide-y divide-gray-200">
-              {internshipApplications.map((application, index) => (
-                <tr key={application.id} className="hover:bg-gray-50">
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                    {index + 1}
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                    {application.student.name}
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                    {application.school.name}
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                    {application.major ?? "-"}
-                  </td>
-                  <td
-                    className={`px-6 py-4 whitespace-nowrap text-sm ${changeStatusColor(
-                      application.status
-                    )}`}
-                  >
-                    {changeStatus(application.status)}
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-white">
-                    <button
-                      type="button"
-                      onClick={() =>
-                        handleDownload(application.curriculum_vitae.id)
-                      }
-                      className="bg-green-500 rounded-full py-1 px-2 cursor-pointer hover:bg-green-600"
+              {internshipApplications && !isLoading ? (
+                internshipApplications.map((application, index) => (
+                  <tr key={application.id} className="hover:bg-gray-50">
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                      {index + 1 + (pages.activePages - 1) * 10}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                      {application.student.name}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                      {application.school.name}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                      {application.major ?? "-"}
+                    </td>
+                    <td
+                      className={`px-6 py-4 whitespace-nowrap text-sm ${changeStatusColor(
+                        application.status
+                      )}`}
                     >
-                      Unduh
-                    </button>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                    <div className="flex space-x-2">
-                      <Link
-                        href={`/dashboard/industry/lamaran/${application.id}`}
-                        className="text-blue-600 hover:text-blue-800 cursor-pointer"
+                      {changeStatus(application.status)}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-white">
+                      <button
+                        type="button"
+                        onClick={() =>
+                          handleDownload(application.curriculum_vitae.id)
+                        }
+                        className="bg-green-500 rounded-full py-1 px-2 cursor-pointer hover:bg-green-600"
                       >
-                        <CircleAlert size={16} />
-                      </Link>
-                    </div>
+                        Unduh
+                      </button>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                      <div className="flex space-x-2">
+                        <Link
+                          href={`/dashboard/industry/lamaran/${application.id}`}
+                          className="text-blue-600 hover:text-blue-800 cursor-pointer"
+                        >
+                          <CircleAlert size={16} />
+                        </Link>
+                      </div>
+                    </td>
+                  </tr>
+                ))
+              ) : (
+                <tr>
+                  <td colSpan={7} className="p-4 text-center text-gray-500">
+                    <Loader />
                   </td>
                 </tr>
-              ))}
+              )}
             </tbody>
           </table>
         </div>
@@ -271,12 +339,19 @@ const lamaranPage: React.FC = () => {
           ))}
         </div>
 
-        {internshipApplications.length === 0 && (
+        {internshipApplications.length === 0 && !isLoading && (
           <div className="text-center py-12 col-span-2 ">
             <NotFoundComponent text="Belum ada orang yang melamar." />
           </div>
         )}
       </div>
+
+      <PaginationComponent
+        activePage={pages.activePages}
+        totalPages={pages.pages}
+        onPageChange={handleChangePage}
+        loading={isLoading}
+      />
     </main>
   );
 };

@@ -8,14 +8,6 @@ import {
   Tooltip,
 } from "recharts";
 
-const data = [
-  { name: "Dikaru Wahyudi", value: 52 },
-  { name: "Ahmad Agung", value: 35 },
-  { name: "Nama", value: 40 },
-  { name: "Dikaru Wahyudi", value: 52 },
-  { name: "Ahmad Agung", value: 35 },
-];
-
 const renderCustomizedLabel = (props: any) => {
   const { x, y, width, height, value } = props;
   return (
@@ -51,18 +43,25 @@ const CustomTooltip = ({ active, payload, label }: any) => {
 
 interface BarChartComponentProps {
   legend: string;
+  dataList: {
+    name: string;
+    value: number;
+  }[];
 }
 
-export default function BarChartComponent({ legend }: BarChartComponentProps) {
+export default function BarChartComponent({
+  legend,
+  dataList,
+}: BarChartComponentProps) {
   return (
     <div className="w-full h-full mx-auto bg-gray-50 rounded-lg p-6 shadow-sm">
       <h2 className="text-lg font-semibold text-gray-800 text-center mb-8">
-        {legend} {data.length}
+        {legend} {dataList.length}
       </h2>
       <div className="h-80">
         <ResponsiveContainer width="100%" height="100%">
           <BarChart
-            data={data}
+            data={dataList}
             margin={{
               top: 10,
               right: 20,
@@ -76,7 +75,7 @@ export default function BarChartComponent({ legend }: BarChartComponentProps) {
               axisLine={true}
               tickLine={true}
               tick={{
-                fontSize: data.length <= 5 ? 12 : 0,
+                fontSize: dataList.length <= 5 ? 12 : 0,
                 fill: "#374151",
                 fontWeight: "500",
               }}
@@ -110,7 +109,7 @@ export default function BarChartComponent({ legend }: BarChartComponentProps) {
               radius={[4, 4, 0, 0]}
               label={renderCustomizedLabel}
             >
-              {data.map((entry, index) => (
+              {dataList.map((entry, index) => (
                 <Cell key={`cell-${index}`} fill={"var(--color-accent)"} />
               ))}
             </Bar>

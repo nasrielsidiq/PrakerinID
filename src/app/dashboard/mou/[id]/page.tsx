@@ -230,14 +230,25 @@ const lamaranPage = ({ params }: { params: Promise<{ id: string }> }) => {
                   </div>
                   <div className="flex items-center space-x-2 text-gray-600">
                     <Globe className="w-4 h-4 flex-shrink-0" />
-                    <a
-                      href="http://makerindo.co.id"
-                      className="text-sm text-blue-600 hover:underline"
-                      target="_blank"
-                      rel="noopener noreferrer"
-                    >
-                      {data.partner.website ?? "-"}
-                    </a>
+                    {data.partner.website ? (
+                      <Link
+                        href={data.partner.website}
+                        className="text-sm text-blue-600 hover:underline"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                      >
+                        {data.partner.website.replace(/^https?:\/\//, "")}
+                      </Link>
+                    ) : (
+                      <Link
+                        href="http://makerindo.co.id"
+                        className="text-sm text-blue-600 hover:underline"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                      >
+                        makerindo.co.id
+                      </Link>
+                    )}
                   </div>
                 </div>
               </div>

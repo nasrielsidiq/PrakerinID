@@ -62,12 +62,14 @@ interface SchoolForm {
 interface StudentForm {
   name: string;
   date_of_birth: string;
+  phone_number: string;
   address: string;
   class: string;
   portofolio_link: string;
   skill: string;
-  sosial_media_link: string;
+  social_media_link: string;
   gender: string;
+  school_name: string;
   major_id: string;
 }
 
@@ -80,7 +82,7 @@ interface FormErrors {
 }
 
 export default function ProfilePage() {
-  const [authorization, setAuthorization] = useState("super_admin");
+  const [authorization, setAuthorization] = useState("");
   const [userForm, setUserForm] = useState<UserForm>({
     photo_profile: null,
     username: "",
@@ -111,14 +113,15 @@ export default function ProfilePage() {
   const [studentForm, setStudentForm] = useState<StudentForm>({
     name: "",
     date_of_birth: "",
-    // school: "",
+    phone_number: "",
+    school_name: "",
     gender: "",
     address: "",
     major_id: "",
     class: "",
     portofolio_link: "",
     skill: "",
-    sosial_media_link: "",
+    social_media_link: "",
   });
   const [descriptionForm, setDescriptionForm] = useState<DescriptionForm>({
     description: "",
@@ -137,6 +140,7 @@ export default function ProfilePage() {
   const [showConfirmPassword, setShowConfirmPassword] =
     useState<boolean>(false);
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
+  const [majors, setMajors] = useState<any[]>([]);
 
   const fetchProfile = async () => {
     try {
@@ -167,22 +171,24 @@ export default function ProfilePage() {
           case "school":
             setSchoolForm(response.data.data.school);
             setDescriptionForm({
-              description: null,
+              description: response.data.data.school.description,
             });
             break;
           case "student":
             setStudentForm({
               name: response.data.data.student?.name || "",
+              phone_number: response.data.data.student?.phone_number || "",
               date_of_birth: response.data.data.student?.date_of_birth || "",
               address: response.data.data.student?.address || "",
               class: response.data.data.student?.class || "",
               portofolio_link:
                 response.data.data.student?.portofolio_link || "",
               skill: response.data.data.student?.skill || "",
-              sosial_media_link:
-                response.data.data.student?.sosial_media_link || "",
+              social_media_link:
+                response.data.data.student?.social_media_link || "",
               gender: response.data.data.student?.gender || "",
               major_id: response.data.data.student?.major_id || "",
+              school_name: response.data.data.student?.school_name || "",
             });
             break;
         }
@@ -239,7 +245,8 @@ export default function ProfilePage() {
         }
       );
 
-      fetchProfile();
+      fetchData();
+      setFormErrors({});
       console.log("Response", response.data.data);
       alertSuccess(text);
     } catch (error: AxiosError | unknown) {
@@ -301,11 +308,21 @@ export default function ProfilePage() {
       const provinces = API.get(`${ENDPOINTS.PROVINCES}`);
       const cityRegencies = API.get(`${ENDPOINTS.CITY_REGENCIES}`);
       const sectors = API.get(`${ENDPOINTS.SECTORS}`);
-      const response = await Promise.all([provinces, cityRegencies, sectors]);
+      const major = API.get(`${ENDPOINTS.MAJORS}`);
+
+      const response = await Promise.all([
+        provinces,
+        cityRegencies,
+        sectors,
+        Cookies.get("authorization") === "student" ? major : undefined,
+      ]);
       console.log(response);
       setProvinces(response[0].data.data);
       setCityRegencies(response[1].data.data);
       setSectors(response[2].data.data);
+      if (Cookies.get("authorization") === "student") {
+        setMajors(response[3]?.data.data);
+      }
       await fetchProfile();
     } catch (error: AxiosError | unknown) {
       if (error instanceof AxiosError) {
@@ -339,8 +356,8 @@ export default function ProfilePage() {
   };
 
   useEffect(() => {
-    fetchData();
     setAuthorization(Cookies.get("authorization") as string);
+    fetchData();
   }, []);
 
   useEffect(() => {
@@ -873,6 +890,7 @@ export default function ProfilePage() {
               onSubmit={(e) => handleSubmit(e, "school")}
             >
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                {/* Nama Sekolah */}
                 <div>
                   <label
                     htmlFor="school-name"
@@ -888,9 +906,18 @@ export default function ProfilePage() {
                     onChange={(e) =>
                       setSchoolForm({ ...schoolForm, name: e.target.value })
                     }
-                    className="w-full border-gray-300 rounded-md shadow-sm focus:ring-cyan-500 focus:border-cyan-500 sm:text-sm p-2"
+                    className={`w-full border  rounded-md shadow-sm sm:text-sm p-2 focus:ring-2 focus:ring-accent focus:border-transparent focus:outline-none transition-colors ${
+                      formErrors.name ? "border-red-500" : "border-gray-300"
+                    }`}
                   />
+                  {formErrors.name && (
+                    <p className="mt-1 text-sm text-red-500">
+                      {formErrors.name}
+                    </p>
+                  )}
                 </div>
+
+                {/* NPSN */}
                 <div>
                   <label
                     htmlFor="school-npsn"
@@ -906,9 +933,55 @@ export default function ProfilePage() {
                     onChange={(e) => {
                       setSchoolForm({ ...schoolForm, npsn: e.target.value });
                     }}
-                    className="w-full border-gray-300 rounded-md shadow-sm focus:ring-cyan-500 focus:border-cyan-500 sm:text-sm p-2"
+                    className={`w-full border  rounded-md shadow-sm sm:text-sm p-2 focus:ring-2 focus:ring-accent focus:border-transparent focus:outline-none transition-colors ${
+                      formErrors.npsn ? "border-red-500" : "border-gray-300"
+                    }`}
                   />
+                  {formErrors.npsn && (
+                    <p className="mt-1 text-sm text-red-500">
+                      {formErrors.npsn}
+                    </p>
+                  )}
                 </div>
+
+                {/* Provinsi */}
+                <div>
+                  <label
+                    htmlFor="school-province"
+                    className="block text-sm font-medium text-gray-700 mb-1"
+                  >
+                    Provinsi
+                  </label>
+                  <select
+                    id="school-province"
+                    value={schoolForm.province_id || ""}
+                    onChange={(e) => {
+                      setSchoolForm({
+                        ...schoolForm,
+                        province_id: e.target.value,
+                      });
+                    }}
+                    className={`w-full border  rounded-md shadow-sm sm:text-sm p-2 focus:ring-2 focus:ring-accent focus:border-transparent focus:outline-none transition-colors ${
+                      formErrors.province_id
+                        ? "border-red-500"
+                        : "border-gray-300"
+                    }`}
+                  >
+                    <option value="">Pilih Provinsi</option>
+                    {provinces.map((province) => (
+                      <option key={province.id} value={province.id}>
+                        {province.name}
+                      </option>
+                    ))}
+                  </select>
+                  {formErrors.province_id && (
+                    <p className="mt-1 text-sm text-red-500">
+                      {formErrors.province_id}
+                    </p>
+                  )}
+                </div>
+
+                {/* Kota Kabupaten */}
                 <div>
                   <label
                     htmlFor="company-city-regency"
@@ -918,6 +991,10 @@ export default function ProfilePage() {
                   </label>
                   <select
                     id="school-city-regency"
+                    disabled={
+                      schoolForm.province_id === null ||
+                      schoolForm.province_id === ""
+                    }
                     value={schoolForm.city_regency_id}
                     onChange={(e) => {
                       setSchoolForm({
@@ -925,7 +1002,11 @@ export default function ProfilePage() {
                         city_regency_id: e.target.value,
                       });
                     }}
-                    className="w-full border-gray-300 rounded-md shadow-sm focus:ring-cyan-500 focus:border-cyan-500 sm:text-sm p-2"
+                    className={`w-full border  rounded-md shadow-sm sm:text-sm p-2 focus:ring-2 focus:ring-accent focus:border-transparent focus:outline-none transition-colors ${
+                      formErrors.city_regency_id
+                        ? "border-red-500"
+                        : "border-gray-300"
+                    }`}
                   >
                     <option value="">Pilih Kota/Kabupaten</option>
                     {cityRegencies.map((cityRegency) => (
@@ -934,7 +1015,14 @@ export default function ProfilePage() {
                       </option>
                     ))}
                   </select>
+                  {formErrors.city_regency_id && (
+                    <p className="mt-1 text-sm text-red-500">
+                      {formErrors.city_regency_id}
+                    </p>
+                  )}
                 </div>
+
+                {/* Alamat Sekolah/Kampus */}
                 <div>
                   <label
                     htmlFor="school-address"
@@ -950,9 +1038,18 @@ export default function ProfilePage() {
                       setSchoolForm({ ...schoolForm, address: e.target.value });
                     }}
                     placeholder="JL. PELABUHAN II CIPOHO SUKABUMI"
-                    className="w-full border-gray-300 rounded-md shadow-sm focus:ring-cyan-500 focus:border-cyan-500 sm:text-sm p-2"
+                    className={`w-full border  rounded-md shadow-sm sm:text-sm p-2 focus:ring-2 focus:ring-accent focus:border-transparent focus:outline-none transition-colors ${
+                      formErrors.address ? "border-red-500" : "border-gray-300"
+                    }`}
                   />
+                  {formErrors.address && (
+                    <p className="mt-1 text-sm text-red-500">
+                      {formErrors.address}
+                    </p>
+                  )}
                 </div>
+
+                {/* Status */}
                 <div>
                   <label
                     htmlFor="school-status"
@@ -966,13 +1063,22 @@ export default function ProfilePage() {
                     onChange={(e) => {
                       setSchoolForm({ ...schoolForm, status: e.target.value });
                     }}
-                    className="w-full border-gray-300 rounded-md shadow-sm focus:ring-cyan-500 focus:border-cyan-500 sm:text-sm p-2"
+                    className={`w-full border  rounded-md shadow-sm sm:text-sm p-2 focus:ring-2 focus:ring-accent focus:border-transparent focus:outline-none transition-colors ${
+                      formErrors.status ? "border-red-500" : "border-gray-300"
+                    }`}
                   >
                     <option value="">Pilih status</option>
                     <option value="negeri">Negeri</option>
                     <option value="swasta">Swasta</option>
                   </select>
+                  {formErrors.status && (
+                    <p className="mt-1 text-sm text-red-500">
+                      {formErrors.status}
+                    </p>
+                  )}
                 </div>
+
+                {/* Akreditasi */}
                 <div>
                   <label
                     htmlFor="school-accreditation"
@@ -989,14 +1095,25 @@ export default function ProfilePage() {
                         accreditation: e.target.value,
                       })
                     }
-                    className="w-full border-gray-300 rounded-md shadow-sm focus:ring-cyan-500 focus:border-cyan-500 sm:text-sm p-2"
+                    className={`w-full border  rounded-md shadow-sm sm:text-sm p-2 focus:ring-2 focus:ring-accent focus:border-transparent focus:outline-none transition-colors ${
+                      formErrors.accreditation
+                        ? "border-red-500"
+                        : "border-gray-300"
+                    }`}
                   >
                     <option value="">Pilih akreditasi</option>
                     <option value="A">A</option>
                     <option value="B">B</option>
                     <option value="C">C</option>
                   </select>
+                  {formErrors.accreditation && (
+                    <p className="mt-1 text-sm text-red-500">
+                      {formErrors.accreditation}
+                    </p>
+                  )}
                 </div>
+
+                {/* No Telepon */}
                 <div>
                   <label
                     htmlFor="school-phone-number"
@@ -1015,9 +1132,20 @@ export default function ProfilePage() {
                       });
                     }}
                     placeholder="+62 812-3456-7890"
-                    className="w-full border-gray-300 rounded-md shadow-sm focus:ring-cyan-500 focus:border-cyan-500 sm:text-sm p-2"
+                    className={`w-full border  rounded-md shadow-sm sm:text-sm p-2 focus:ring-2 focus:ring-accent focus:border-transparent focus:outline-none transition-colors ${
+                      formErrors.phone_number
+                        ? "border-red-500"
+                        : "border-gray-300"
+                    }`}
                   />
+                  {formErrors.phone_number && (
+                    <p className="mt-1 text-sm text-red-500">
+                      {formErrors.phone_number}
+                    </p>
+                  )}
                 </div>
+
+                {/* Website Resmi */}
                 <div>
                   <label
                     htmlFor="school-website"
@@ -1036,16 +1164,25 @@ export default function ProfilePage() {
                       });
                     }}
                     placeholder="https://smkn2smi.sch.id/"
-                    className="w-full border-gray-300 rounded-md shadow-sm focus:ring-cyan-500 focus:border-cyan-500 sm:text-sm p-2"
+                    className={`w-full border  rounded-md shadow-sm sm:text-sm p-2 focus:ring-2 focus:ring-accent focus:border-transparent focus:outline-none transition-colors ${
+                      formErrors.website ? "border-red-500" : "border-gray-300"
+                    }`}
                   />
+                  {formErrors.website && (
+                    <p className="mt-1 text-sm text-red-500">
+                      {formErrors.website}
+                    </p>
+                  )}
                 </div>
               </div>
+
               <div className="flex justify-end pt-4">
                 <button
                   type="submit"
-                  className="bg-cyan-600 hover:bg-cyan-700 text-white font-semibold py-2 px-4 rounded-lg shadow-md transition-colors duration-300 cursor-pointer"
+                  disabled={isSubmitting}
+                  className="bg-accent hover:bg-accent-hover text-white font-semibold py-2 px-4 rounded-lg shadow-md transition-colors duration-300 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                  Simpan
+                  {isSubmitting ? "Sedang menyimpan..." : "Simpan"}
                 </button>
               </div>
             </form>
@@ -1066,6 +1203,7 @@ export default function ProfilePage() {
               onSubmit={(e) => handleSubmit(e, "student")}
             >
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                {/* Nama Lengkap */}
                 <div>
                   <label
                     htmlFor="name"
@@ -1080,9 +1218,18 @@ export default function ProfilePage() {
                     onChange={(e) =>
                       setStudentForm({ ...studentForm, name: e.target.value })
                     }
-                    className="w-full border-gray-300 rounded-md shadow-sm focus:ring-cyan-500 focus:border-cyan-500 sm:text-sm p-2"
+                    className={`w-full border  rounded-md shadow-sm sm:text-sm p-2 focus:ring-2 focus:ring-accent focus:border-transparent focus:outline-none transition-colors ${
+                      formErrors.name ? "border-red-500" : "border-gray-300"
+                    }`}
                   />
+                  {formErrors.name && (
+                    <p className="mt-1 text-sm text-red-500">
+                      {formErrors.name}
+                    </p>
+                  )}
                 </div>
+
+                {/* Tanggal Lahir */}
                 <div>
                   <label
                     htmlFor="birth"
@@ -1093,9 +1240,27 @@ export default function ProfilePage() {
                   <input
                     id="birth"
                     type="date"
-                    className="w-full border-gray-300 rounded-md shadow-sm focus:ring-cyan-500 focus:border-cyan-500 sm:text-sm p-2"
+                    value={studentForm?.date_of_birth}
+                    onChange={(e) =>
+                      setStudentForm({
+                        ...studentForm,
+                        date_of_birth: e.target.value,
+                      })
+                    }
+                    className={`w-full border  rounded-md shadow-sm sm:text-sm p-2 focus:ring-2 focus:ring-accent focus:border-transparent focus:outline-none transition-colors ${
+                      formErrors.date_of_birth
+                        ? "border-red-500"
+                        : "border-gray-300"
+                    }`}
                   />
+                  {formErrors.date_of_birth && (
+                    <p className="mt-1 text-sm text-red-500">
+                      {formErrors.date_of_birth}
+                    </p>
+                  )}
                 </div>
+
+                {/* Asal Sekolah */}
                 <div>
                   <label
                     htmlFor="school"
@@ -1107,10 +1272,17 @@ export default function ProfilePage() {
                     disabled={true}
                     id="school"
                     type="text"
-                    defaultValue="SMKN NEGERI 1 CIPAGALO"
-                    className="w-full border-gray-300 rounded-md shadow-sm focus:ring-cyan-500 focus:border-cyan-500 sm:text-sm p-2"
+                    value={studentForm?.school_name}
+                    placeholder="SMKN NEGERI 1 CIPAGALO"
+                    className={`w-full border  rounded-md shadow-sm sm:text-sm p-2 focus:ring-2 focus:ring-accent focus:border-transparent focus:outline-none transition-colors ${
+                      formErrors.school_name
+                        ? "border-red-500"
+                        : "border-gray-300"
+                    }`}
                   />
                 </div>
+
+                {/* Jenis Kelamin */}
                 <div>
                   <label
                     htmlFor="gender"
@@ -1124,13 +1296,22 @@ export default function ProfilePage() {
                     onChange={(e) =>
                       setStudentForm({ ...studentForm, gender: e.target.value })
                     }
-                    className="w-full border-gray-300 rounded-md shadow-sm focus:ring-cyan-500 focus:border-cyan-500 sm:text-sm p-2"
+                    className={`w-full border  rounded-md shadow-sm sm:text-sm p-2 focus:ring-2 focus:ring-accent focus:border-transparent focus:outline-none transition-colors ${
+                      formErrors.gender ? "border-red-500" : "border-gray-300"
+                    }`}
                   >
                     <option value="">Pilih Jenis Kelamin</option>
                     <option value="male">Laki-laki</option>
                     <option value="female">Perempuan</option>
                   </select>
+                  {formErrors.gender && (
+                    <p className="mt-1 text-sm text-red-500">
+                      {formErrors.gender}
+                    </p>
+                  )}
                 </div>
+
+                {/* Alamat */}
                 <div>
                   <label
                     htmlFor="address"
@@ -1149,9 +1330,18 @@ export default function ProfilePage() {
                         address: e.target.value,
                       })
                     }
-                    className="w-full border-gray-300 rounded-md shadow-sm focus:ring-cyan-500 focus:border-cyan-500 sm:text-sm p-2"
+                    className={`w-full border  rounded-md shadow-sm sm:text-sm p-2 focus:ring-2 focus:ring-accent focus:border-transparent focus:outline-none transition-colors ${
+                      formErrors.address ? "border-red-500" : "border-gray-300"
+                    }`}
                   />
+                  {formErrors.address && (
+                    <p className="mt-1 text-sm text-red-500">
+                      {formErrors.address}
+                    </p>
+                  )}
                 </div>
+
+                {/* Jurusan */}
                 <div>
                   <label
                     htmlFor="school-phone-number"
@@ -1168,11 +1358,25 @@ export default function ProfilePage() {
                         major_id: e.target.value,
                       })
                     }
-                    className="w-full border-gray-300 rounded-md shadow-sm focus:ring-cyan-500 focus:border-cyan-500 sm:text-sm p-2"
+                    className={`w-full border  rounded-md shadow-sm sm:text-sm p-2 focus:ring-2 focus:ring-accent focus:border-transparent focus:outline-none transition-colors ${
+                      formErrors.major_id ? "border-red-500" : "border-gray-300"
+                    }`}
                   >
                     <option value="">Pilih Jurusan</option>
+                    {majors.map((major) => (
+                      <option key={major.id} value={major.id}>
+                        {major.name}
+                      </option>
+                    ))}
                   </select>
+                  {formErrors.major_id && (
+                    <p className="mt-1 text-sm text-red-500">
+                      {formErrors.major_id}
+                    </p>
+                  )}
                 </div>
+
+                {/* Kelas */}
                 <div>
                   <label
                     htmlFor="class"
@@ -1186,15 +1390,56 @@ export default function ProfilePage() {
                     onChange={(e) =>
                       setStudentForm({ ...studentForm, class: e.target.value })
                     }
-                    className="w-full border-gray-300 rounded-md shadow-sm focus:ring-cyan-500 focus:border-cyan-500 sm:text-sm p-2"
+                    className={`w-full border  rounded-md shadow-sm sm:text-sm p-2 focus:ring-2 focus:ring-accent focus:border-transparent focus:outline-none transition-colors ${
+                      formErrors.class ? "border-red-500" : "border-gray-300"
+                    }`}
                   >
                     <option value="">Pilih Kelas</option>
                     <option value="10">X</option>
                     <option value="11">XI</option>
                     <option value="12">XII</option>
-                    <option value="college">Kuliah</option>
+                    <option value="collage">Kuliah</option>
                   </select>
+                  {formErrors.class && (
+                    <p className="mt-1 text-sm text-red-500">
+                      {formErrors.class}
+                    </p>
+                  )}
                 </div>
+
+                {/* No Telepon */}
+                <div>
+                  <label
+                    htmlFor="student-phone-number"
+                    className="block text-sm font-medium text-gray-700 mb-1"
+                  >
+                    No Telepon
+                  </label>
+                  <input
+                    id="student-phone-number"
+                    type="tel"
+                    placeholder="+62 812-3456-7890"
+                    value={studentForm?.phone_number || ""}
+                    onChange={(e) =>
+                      setStudentForm({
+                        ...studentForm,
+                        phone_number: e.target.value,
+                      })
+                    }
+                    className={`w-full border  rounded-md shadow-sm sm:text-sm p-2 focus:ring-2 focus:ring-accent focus:border-transparent focus:outline-none transition-colors ${
+                      formErrors.phone_number
+                        ? "border-red-500"
+                        : "border-gray-300"
+                    }`}
+                  />
+                  {formErrors.phone_number && (
+                    <p className="mt-1 text-sm text-red-500">
+                      {formErrors.phone_number}
+                    </p>
+                  )}
+                </div>
+
+                {/* Link Portofolio */}
                 <div>
                   <label
                     htmlFor="portfolio"
@@ -1213,9 +1458,20 @@ export default function ProfilePage() {
                         portofolio_link: e.target.value,
                       })
                     }
-                    className="w-full border-gray-300 rounded-md shadow-sm focus:ring-cyan-500 focus:border-cyan-500 sm:text-sm p-2"
+                    className={`w-full border  rounded-md shadow-sm sm:text-sm p-2 focus:ring-2 focus:ring-accent focus:border-transparent focus:outline-none transition-colors ${
+                      formErrors.portofolio_link
+                        ? "border-red-500"
+                        : "border-gray-300"
+                    }`}
                   />
+                  {formErrors.portofolio_link && (
+                    <p className="mt-1 text-sm text-red-500">
+                      {formErrors.portofolio_link}
+                    </p>
+                  )}
                 </div>
+
+                {/* Keahlian */}
                 <div>
                   <label
                     htmlFor="skills"
@@ -1234,38 +1490,60 @@ export default function ProfilePage() {
                         skill: e.target.value,
                       })
                     }
-                    className="w-full border-gray-300 rounded-md shadow-sm focus:ring-cyan-500 focus:border-cyan-500 sm:text-sm p-2"
+                    className={`w-full border  rounded-md shadow-sm sm:text-sm p-2 focus:ring-2 focus:ring-accent focus:border-transparent focus:outline-none transition-colors ${
+                      formErrors.skill ? "border-red-500" : "border-gray-300"
+                    }`}
                   />
+                  {formErrors.skill && (
+                    <p className="mt-1 text-sm text-red-500">
+                      {formErrors.skill}
+                    </p>
+                  )}
                 </div>
+
+                {/* Link Sosial Media */}
                 <div>
                   <label
                     htmlFor="social"
                     className="block text-sm font-medium text-gray-700 mb-1"
                   >
-                    Link Sosial Media
+                    Link Linkedin
                   </label>
                   <input
                     id="social"
                     type="url"
                     placeholder="https://linkedin.com/in/username"
-                    value={studentForm?.sosial_media_link}
+                    value={studentForm?.social_media_link}
                     onChange={(e) =>
                       setStudentForm({
                         ...studentForm,
-                        sosial_media_link: e.target.value,
+                        social_media_link: e.target.value,
                       })
                     }
-                    className="w-full border-gray-300 rounded-md shadow-sm focus:ring-cyan-500 focus:border-cyan-500 sm:text-sm p-2"
+                    className={`w-full border  rounded-md shadow-sm sm:text-sm p-2 focus:ring-2 focus:ring-accent focus:border-transparent focus:outline-none transition-colors ${
+                      formErrors.social_media_link
+                        ? "border-red-500"
+                        : "border-gray-300"
+                    }`}
                   />
+                  {formErrors.social_media_link && (
+                    <p className="mt-1 text-sm text-red-500">
+                      {formErrors.social_media_link}
+                    </p>
+                  )}
                 </div>
               </div>
+
               <div className="flex justify-end pt-4">
-                <button
-                  type="submit"
-                  className="bg-cyan-600 hover:bg-cyan-700 text-white font-semibold py-2 px-4 rounded-lg shadow-md transition-colors duration-300 cursor-pointer"
-                >
-                  Simpan
-                </button>
+                <div className="flex justify-end pt-4">
+                  <button
+                    type="submit"
+                    disabled={isSubmitting}
+                    className="bg-accent hover:bg-accent-hover text-white font-semibold py-2 px-4 rounded-lg shadow-md transition-colors duration-300 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    {isSubmitting ? "Sedang menyimpan..." : "Simpan"}
+                  </button>
+                </div>
               </div>
             </form>
           </div>

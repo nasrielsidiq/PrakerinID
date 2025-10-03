@@ -15,6 +15,7 @@ import { API, ENDPOINTS } from "../../../utils/config";
 import { getGreeting } from "@/utils/getGreeting";
 import Image from "next/image";
 import { alertSuccess } from "@/libs/alert";
+import Loader from "@/components/loader";
 
 interface Profile {
   photo_profile?: string | null;
@@ -24,20 +25,12 @@ interface Profile {
 }
 
 const Dashboard: React.FC = () => {
-  const [role, setRole] = useState<string>();
+  const [role, setRole] = useState<string>("");
   const [profile, setProfile] = useState<Profile>({
     name: "",
   });
 
-  useEffect(() => {
-    setRole(Cookies.get("authorization"));
-  }, []);
-
-  const RolePage: React.FC = () => {
-    if (role === "company") return <IndustryDashboard />;
-    if (role === "student") return <SiswaDashboard />;
-    if (role === "school") return <SchoolDashboard />;
-  };
+  const [isLoading, setIsLoading] = useState<boolean>(true);
 
   const fetchProfile = async () => {
     try {
@@ -81,10 +74,11 @@ const Dashboard: React.FC = () => {
   useEffect(() => {
     fetchProfile();
     alertLogin();
+    setRole(Cookies.get("authorization") as string);
   }, []);
 
   return (
-    <main className="p-6">
+    <main className="p-6 relative">
       {/* Welcome Section */}
       <h1 className="text-accent-dark mb-5 font-medium">Dashboard</h1>
 
@@ -109,7 +103,15 @@ const Dashboard: React.FC = () => {
           </div>
         </div>
       </div>
-      <RolePage />
+      {/* <RolePage /> */}
+
+      {role && role === "student" && <SiswaDashboard />}
+      {role && role === "company" && (
+        <IndustryDashboard isLoading={isLoading} setIsLoading={setIsLoading} />
+      )}
+      {role && role === "school" && (
+        <SchoolDashboard isLoading={isLoading} setIsLoading={setIsLoading} />
+      )}
     </main>
   );
 };

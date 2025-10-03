@@ -49,15 +49,17 @@ interface JobOpening {
   field: {
     name: string;
   };
-  type: {
-    title: string;
-    description: string;
-    type: Type;
-    link: string
-  }
+  test: Test[];
 }
 
-type Type = "practice" | "theory"; 
+interface Test {
+  title?: string;
+  description?: string;
+  type?: Type;
+  link?: string;
+}
+
+type Type = "practice" | "theory" | "other";
 
 const DetailLowongan = ({ params }: { params: Promise<{ id: string }> }) => {
   const { id } = use(params);
@@ -92,7 +94,7 @@ const DetailLowongan = ({ params }: { params: Promise<{ id: string }> }) => {
       duration_unit: "",
       duration_value: 0,
     },
-    type: []
+    test: [], // ubah menjadi array kosong agar bisa menerima data array
   });
 
   const fetchJobOpening = async () => {
@@ -150,11 +152,19 @@ const DetailLowongan = ({ params }: { params: Promise<{ id: string }> }) => {
       case "remote":
         return "Kerja di jarak jauh (Remote/WFH)";
       case "hybrid":
-        return "Hibrida (Hybrid)";
+        return "Campuran";
       case "field":
         return "Kerja lapangan (Field Work)";
       default:
         return "";
+    }
+  };
+
+  const getTypeTest = (type: Type | undefined): string => {
+    if (type === "practice") {
+      return "Test Praktik";
+    } else {
+      return "Test Teori";
     }
   };
 
@@ -391,19 +401,23 @@ const DetailLowongan = ({ params }: { params: Promise<{ id: string }> }) => {
           <h3 className="text-lg font-semibold text-gray-900 mb-4">
             Deskripsi
           </h3>
-          <div className="text-gray-600">
+          <div className="text-gray-600 py-6 mb-6">
             <RenderBlocks data={jobOpening.description} />
           </div>
-          <h3 className="text-lg font-semibold text-gray-900 mb-4">
-            Test
-          </h3>
-          <div className="bg-white py-6 mb-6">
-              {
-                jobOpening.test && jobOpening.test.map((test, index) => (
-                  
-                  <div key={index} className="text-lg fw-medium">{test.title}</div>
-                ))
-              }
+          <h3 className="text-lg font-semibold text-gray-900 mb-4">Test</h3>
+          <div className="py-6 mb-6">
+            {jobOpening.test &&
+              jobOpening.test.map((test, index) => (
+                <div key={index} className="bg-white shadow-md my-5 p-5">
+                  <span className="text-lg font-medium">
+                    {test.title}{" "}
+                    <span className="text-gray-400">
+                      - {getTypeTest(test.type)}
+                    </span>
+                  </span>
+                  <p>{test.description}</p>
+                </div>
+              ))}
           </div>
         </div>
       </div>

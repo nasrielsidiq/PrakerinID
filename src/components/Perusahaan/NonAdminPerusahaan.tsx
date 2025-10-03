@@ -45,6 +45,7 @@ const NonadminPerusahaan: React.FC = () => {
   const [perusahaan, setPerushaan] = useState<Perusahaan[]>([]);
   const tabs: ActiveTab[] = ["Semua", "Sudah Kerja Sama", "Belum Kerja Sama"];
   const [activeTab, setActiveTab] = useState<ActiveTab>("Semua");
+  const [isReload, setIsReload] = useState<boolean>(false);
   const [companyCount, setCompanyCount] = useState<CompanyCount>({
     company_count: 0,
     mou_count: 0,
@@ -65,7 +66,7 @@ const NonadminPerusahaan: React.FC = () => {
           search: inputSearch,
           role: "company",
           page: selectedPages,
-          limit: 6,
+          limit: 8,
           is_mou:
             activeTab === "Semua"
               ? undefined
@@ -121,12 +122,13 @@ const NonadminPerusahaan: React.FC = () => {
       }
     }
 
-    fetchCompany(pages.activePages);
-  }, [debouncedQuery, activeTab, pages.activePages]);
+    setPages((prev) => ({ ...prev, activePages: 1 }));
+    setIsReload(!isReload);
+  }, [activeTab, debouncedQuery]);
 
   useEffect(() => {
-    fetchCompanyCount();
-  }, []);
+    fetchCompany();
+  }, [pages.activePages, isReload]);
 
   const handleChangePage = (selectedPage: number) => {
     setPages((prev) => ({
@@ -134,6 +136,10 @@ const NonadminPerusahaan: React.FC = () => {
       activePages: selectedPage,
     }));
   };
+
+  useEffect(() => {
+    fetchCompanyCount();
+  }, []);
 
   return (
     <>
@@ -165,7 +171,7 @@ const NonadminPerusahaan: React.FC = () => {
               onChange={(e) => setInputSearch(e.target.value)}
               value={inputSearch}
               placeholder="Cari perusahaan..."
-              className="text-gray-600 w-full px-4 py-3 pl-12 focus:outline-none focus:ring-2 focus:ring-prakerin focus:border-transparent transition-all duration-300"
+              className="text-gray-600 w-full px-4 py-3 pl-12 shadow-sm focus:outline-none focus:ring-2 focus:ring-accent focus:border-transparent transition-all duration-300 rounded-2xl"
             />
             <Search className="absolute left-4 top-3.5 w-5 h-5 text-gray-400" />
           </div>
@@ -238,6 +244,7 @@ const NonadminPerusahaan: React.FC = () => {
           </div>
         )}
       </div>
+
       <PaginationComponent
         activePage={pages.activePages}
         totalPages={pages.pages}

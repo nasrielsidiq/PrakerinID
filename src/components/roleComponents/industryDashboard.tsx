@@ -1,10 +1,8 @@
 import {
   Award,
-  BadgeCheck,
   Briefcase,
-  BriefcaseBusiness,
   CircleArrowRight,
-  FileText,
+  Info,
   Search,
   Users,
 } from "lucide-react";
@@ -18,32 +16,48 @@ import { API, ENDPOINTS } from "../../../utils/config";
 import { RatingSummary } from "@/models/feedback";
 import { mapRatingToData } from "@/utils/mapRatingToData";
 import NotFoundComponent from "../NotFoundComponent";
-
-interface InternshipApplication {
-  id: string;
-  student: {
-    name: string;
-  };
-  school: {
-    name: string;
-  };
-  status: string;
-}
+import Loader from "../loader";
 
 interface Summary {
   internship_count: number;
   job_opening_count: number;
   achievement_count: number;
+  task: {
+    cancelled: number;
+    completed: number;
+    in_progress: number;
+    pending: number;
+    students: {
+      name: string;
+      completed_tasks: number;
+    }[];
+  };
 }
 
-export default function IndustryDashboard() {
-  const [internshipApplications, setInternshipApplications] = useState<
-    InternshipApplication[]
-  >([]);
+interface Task {
+  id: number;
+  title: string;
+  due_date: string;
+}
+
+export default function IndustryDashboard({
+  isLoading,
+  setIsLoading,
+}: {
+  isLoading: boolean;
+  setIsLoading: React.Dispatch<React.SetStateAction<boolean>>;
+}) {
   const [summary, setSummary] = useState<Summary>({
     internship_count: 0,
     job_opening_count: 0,
     achievement_count: 0,
+    task: {
+      cancelled: 0,
+      completed: 0,
+      in_progress: 0,
+      pending: 0,
+      students: [],
+    },
   });
   const [ratingSummary, setRatingSummary] = useState<RatingSummary>({
     rating_count: 0,
@@ -54,6 +68,12 @@ export default function IndustryDashboard() {
     rating_4: 0,
     rating_5: 0,
   });
+
+  const [tasks, setTasks] = useState<Task[]>([]);
+
+  // const [inputSearch, setInputSearch] = useState("");
+  // const debouncedQuery = useDebounce(inputSearch, 1000);
+  // });
 
   const fetchData = async () => {
     try {
@@ -78,11 +98,30 @@ export default function IndustryDashboard() {
           Authorization: `Bearer ${Cookies.get("userToken")}`,
         },
       });
+
+      const taskCount = API.get(`${ENDPOINTS.TASKS}/count`, {
+        headers: {
+          Authorization: `Bearer ${Cookies.get("userToken")}`,
+        },
+      });
+
+      const task = await API.get(`${ENDPOINTS.TASKS}`, {
+        params: {
+          // search: inputSearch,
+          limit: 10,
+        },
+        headers: {
+          Authorization: `Bearer ${Cookies.get("userToken")}`,
+        },
+      });
+
       const response = await Promise.all([
         internshipCount,
         jobOpeningCount,
         achievementCount,
         rating,
+        taskCount,
+        task,
       ]);
 
       console.log(response);
@@ -90,16 +129,34 @@ export default function IndustryDashboard() {
         internship_count: response[0].data.data,
         job_opening_count: response[1].data.data,
         achievement_count: response[2].data.data,
+        task: response[4].data.data,
       });
       setRatingSummary(response[3].data.data);
+      setTasks(response[5].data.data);
     } catch (error) {
       console.error(error);
+    } finally {
+      setIsLoading(false);
     }
+  };
+
+  const getDeadline = (deadline: string) => {
+    const deadlineArray = deadline.split("-");
+
+    return `${deadlineArray[2]}-${deadlineArray[1]}-${deadlineArray[0]}`;
   };
 
   useEffect(() => {
     fetchData();
   }, []);
+
+  if (isLoading) {
+    return (
+      <div className="flex justify-center items-center h-screen absolute inset-0 z-10 bg-blue-50">
+        <Loader width={64} height={64} />
+      </div>
+    );
+  }
 
   const ratingColors = ["#ff0000", "#ff6600", "#ffcc00", "#66cc00", "#009900"]; // contoh warna
 
@@ -174,139 +231,111 @@ export default function IndustryDashboard() {
 
         <div className="flex gap-6">
           <div className="w-1/2 ">
-            <BarChartComponent legend="Grafik Distribusi Tugas Selesai Siswa Magang" />
+            <BarChartComponent
+              legend="Grafik Distribusi Tugas Selesai Siswa Magang"
+              dataList={summary.task.students.map((item) => {
+                return {
+                  name: item.name,
+                  value: item.completed_tasks,
+                };
+              })}
+            />
           </div>
           <div className="w-1/2 ">
             <PieChartCompenent
+              tooltip="Persentase Status Tugas"
               legend="Distribusi Status Tugas"
-              dataList={mapRatingToData(ratingSummary, ratingColors)}
+              dataList={[
+                {
+                  name: "Selesai",
+                  value: summary.task.completed,
+                  color: "#4ade80", // Hijau
+                },
+                {
+                  name: "Sedang Berjalan",
+                  value: summary.task.in_progress,
+                  color: "#60a5fa", // Biru
+                },
+                {
+                  name: "Tertunda",
+                  value: summary.task.pending,
+                  color: "#facc15", // Kuning
+                },
+                {
+                  name: "Dibatalkan",
+                  value: summary.task.cancelled,
+                  color: "#f87171", // Merah
+                },
+              ]}
             />
           </div>
         </div>
       </div>
 
       <div>
-        <div className="rounded-t-2xl  bg-accent">
+        <div className="bg-white rounded-2xl shadow-sm overflow-hidden">
+          {/* Search Bar */}
           <div className="relative">
-            <Search
-              className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"
-              size={20}
-            />
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
             <input
               type="text"
-              placeholder="Cari tugas yang mendekati tenggat waktu..."
+              placeholder="Cari tugas..."
               // value={inputSearch}
               // onChange={(e) => setInputSearch(e.target.value)}
-              className="w-full pl-10 pr-4 py-3 text-white placeholder-teal-200 rounded-2xl focus:outline-none focus:ring-2 focus:ring-teal-400"
+              className="w-full bg-accent text-white placeholder-teal-200 pl-10 pr-4 py-3 rounded-t-2xl focus:outline-none focus:ring-2 focus:ring-teal-300"
             />
           </div>
-        </div>
-
-        <div className="bg-white rounded-b-2xl shadow-md overflow-hidden">
-          {/* Desktop Table */}
-          <div className="hidden md:block overflow-x-auto">
+          <div className="overflow-x-auto">
             <table className="w-full">
-              <thead className="bg-gray-50">
+              <thead className="bg-gray-50 border-b">
                 <tr>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="text-left p-3 font-medium text-gray-600 uppercase">
                     No
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Nama
+                  <th className="text-left p-3 font-medium text-gray-600 uppercase">
+                    Nama Tugas
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Bidang
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Tugas
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="text-left p-3 font-medium text-gray-600 uppercase">
                     Tenggat Waktu
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Status
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="text-left p-3 font-medium text-gray-600 uppercase">
                     Aksi
                   </th>
                 </tr>
               </thead>
-              <tbody className="bg-white divide-y divide-gray-200">
-                {/* {internshipApplications.map((application, index) => (
-                <tr key={application.id} className="hover:bg-gray-50">
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                    {index + 1}
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                    {application.student.name}
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                    {application.school.name}
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                    Masih dummy
-                  </td>
-                  <td
-                    className={`px-6 py-4 whitespace-nowrap text-sm ${changeStatusColor(
-                      application.status
-                    )}`}
-                  >
-                    {changeStatus(application.status)}
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-white">
-                    <span className="bg-green-500 rounded-full p-1">Unduh</span>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                    <div className="flex space-x-2">
-                      <button
-                        onClick={() => router.push(`lamaran/${application.id}`)}
-                        className="text-blue-600 hover:text-blue-800 cursor-pointer"
-                      >
-                        <CircleAlert size={16} />
-                      </button>
-                    </div>
-                  </td>
-                </tr>
-              ))} */}
+              <tbody>
+                {tasks && !isLoading ? (
+                  tasks.map((task, index) => (
+                    <tr key={task.id} className="border-b hover:bg-gray-50">
+                      <td className="p-4 text-gray-800">{index + 1}</td>
+                      <td className="p-4 text-gray-800">{task.title}</td>
+                      <td className="p-4 text-gray-600">
+                        {getDeadline(task.due_date)}
+                      </td>
+
+                      <td className="p-4 flex items-center">
+                        <Link
+                          href={`/dashboard/tasklist/${task.id}`}
+                          className="w-fit h-fit text-blue-600 hover:text-blue-600/75 rounded-full transition-colors cursor-pointer"
+                        >
+                          <Info className="w-4 h-4 " />
+                        </Link>
+                      </td>
+                    </tr>
+                  ))
+                ) : (
+                  <tr>
+                    <td colSpan={5} className="text-center p-4 text-gray-600">
+                      <Loader />
+                    </td>
+                  </tr>
+                )}
               </tbody>
             </table>
           </div>
 
-          {/* Mobile Cards */}
-          <div className="md:hidden">
-            {/* {internshipApplications.map((application, index) => (
-            <div key={application.id} className="p-4 -b -gray-200">
-              <div className="flex items-center justify-between mb-3">
-                <h3 className="font-medium text-gray-900">
-                  {application.student.name}
-                </h3>
-                <span className="text-sm text-gray-500">#{index + 1}</span>
-              </div>
-
-              <div className="flex flex-wrap gap-2 mb-3">
-                <button className="bg-green-500 hover:bg-green-600 text-white px-3 py-1 rounded text-xs font-medium flex items-center">
-                  <Download size={12} className="mr-1" />
-                  Unduh
-                </button>
-                <button className="bg-blue-500 hover:bg-blue-600 text-white px-3 py-1 rounded text-xs font-medium flex items-center">
-                  <Eye size={12} className="mr-1" />
-                  Lihat
-                </button>
-              </div>
-
-              <div className="flex justify-end space-x-2">
-                <button className="text-blue-600 hover:text-blue-800 p-1">
-                  <Edit size={16} />
-                </button>
-                <button className="text-red-600 hover:text-red-800 p-1">
-                  <Trash2 size={16} />
-                </button>
-              </div>
-            </div>
-          ))} */}
-          </div>
-
-          {internshipApplications.length === 0 && (
+          {/* Empty State (if no tasks) */}
+          {tasks.length === 0 && !isLoading && (
             <div className="text-center py-12 col-span-2 ">
               <NotFoundComponent text="Anda belum memiliki tugas." />
             </div>

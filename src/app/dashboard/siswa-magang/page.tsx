@@ -1,5 +1,5 @@
 "use client";
-import { MapPin, UserCircle, UsersRound } from "lucide-react";
+import { MapPin, Search, UserCircle, UsersRound } from "lucide-react";
 import { useEffect, useState } from "react";
 import Cookies from "js-cookie";
 import SiswaLowongan from "@/components/roleComponents/SiswaLowongan";
@@ -13,6 +13,7 @@ import { timeAgo } from "@/utils/timeAgo";
 import NotFoundComponent from "@/components/NotFoundComponent";
 import PaginationComponent from "@/components/PaginationComponent";
 import { Pages } from "@/models/pagination";
+import TabsComponent from "@/components/TabsCompenent";
 
 interface Lowongan {
   title: string;
@@ -46,10 +47,10 @@ interface JobOpening {
 interface StudentIntership {
   id: string;
   email: string;
-  phone_number: string | null;
   photo_profile: string | null;
   student: {
     name: string;
+    phone_number: string | null;
   };
   school: {
     name: string;
@@ -59,6 +60,8 @@ interface StudentIntership {
   };
 }
 
+type ActiveTab = "Semua" | "Sedang Magang" | "Sudah Magang";
+
 const SiswMagangPage: React.FC = () => {
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [page, setPage] = useState<Pages>({
@@ -66,6 +69,8 @@ const SiswMagangPage: React.FC = () => {
     pages: 1,
   });
   const [data, setData] = useState<StudentIntership[]>([]);
+  const tabs: ActiveTab[] = ["Semua", "Sedang Magang", "Sudah Magang"];
+  const [activeTab, setActiveTab] = useState<ActiveTab>("Semua");
 
   const fetchData = async () => {
     if (isLoading) return;
@@ -103,12 +108,35 @@ const SiswMagangPage: React.FC = () => {
   }, [page.activePages]);
 
   return (
-    <main className=" p-6">
+    <main className="p-6">
       <h1 className="text-accent-dark text-sm mb-5">Siswa Magang</h1>
-      <div className="flex items-center  space-x-2 font-extrabold text-accent">
+      <div className="flex items-center  space-x-2 font-extrabold text-accent mb-6">
         <UsersRound className="w-5 h-5" />
         <h2 className="text-2xl mt-2">Siswa Magang</h2>
       </div>
+
+      <div className="flex gap-2 mb-6">
+        <TabsComponent
+          data={tabs}
+          activeTab={activeTab}
+          setActiveTab={setActiveTab}
+        />
+      </div>
+
+      <div className="justify-end flex mb-6">
+        <div className="relative bg-white rounded-2xl ">
+          <input
+            type="text"
+            // onChange={(e) => setInputSearch(e.target.value)}
+            // value={inputSearch}
+            placeholder="Cari sekolah..."
+            className="text-gray-600 w-full px-4 py-3 pl-12 rounded-2xl shadow-md focus:outline-none focus:ring-2 focus:ring-accent focus:border-transparent transition-all duration-300"
+          />
+
+          <Search className="absolute left-4 top-3.5 w-5 h-5 text-gray-400" />
+        </div>
+      </div>
+
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 p-6">
         {data.length !== 0 ? (
           <>
@@ -143,7 +171,8 @@ const SiswMagangPage: React.FC = () => {
                         </h5>
                       </div>
                       <p className="text-sm text-gray-500">
-                        Kontak : {item.email} | {item.phone_number ?? "-"}
+                        Kontak : {item.email} |{" "}
+                        {item.student.phone_number ?? "-"}
                       </p>
                     </div>
                   </div>
@@ -165,6 +194,14 @@ const SiswMagangPage: React.FC = () => {
           </div>
         )}
       </div>
+
+      {/* Pagination Section */}
+      <PaginationComponent
+        activePage={page.activePages}
+        loading={isLoading}
+        onPageChange={handlePageChange}
+        totalPages={page.pages}
+      />
     </main>
   );
 };

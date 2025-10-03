@@ -13,17 +13,7 @@ import { RatingSummary } from "@/models/feedback";
 import { API, ENDPOINTS } from "../../../utils/config";
 import Cookies from "js-cookie";
 import { mapRatingToData } from "@/utils/mapRatingToData";
-
-interface InternshipApplication {
-  id: string;
-  student: {
-    name: string;
-  };
-  school: {
-    name: string;
-  };
-  status: string;
-}
+import Loader from "../loader";
 
 interface Summary {
   student_count: number;
@@ -33,10 +23,13 @@ interface Summary {
   achievement_count: number;
 }
 
-export default function SchoolDashboard() {
-  const [internshipApplications, setInternshipApplications] = useState<
-    InternshipApplication[]
-  >([]);
+export default function SchoolDashboard({
+  isLoading,
+  setIsLoading,
+}: {
+  isLoading: boolean;
+  setIsLoading: React.Dispatch<React.SetStateAction<boolean>>;
+}) {
   const [summary, setSummary] = useState<Summary>({
     student_count: 0,
     student_internship_count: 0,
@@ -97,6 +90,8 @@ export default function SchoolDashboard() {
       setRatingSummary(response[3].data.data);
     } catch (error) {
       console.error(error);
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -105,6 +100,14 @@ export default function SchoolDashboard() {
   }, []);
 
   const ratingColors = ["#ff0000", "#ff6600", "#ffcc00", "#66cc00", "#009900"]; // contoh warna
+
+  if (isLoading) {
+    return (
+      <div className="flex justify-center items-center h-screen absolute inset-0 z-10 bg-blue-50">
+        <Loader width={64} height={64} />
+      </div>
+    );
+  }
 
   return (
     <div className="flex flex-col gap-8">
@@ -201,7 +204,18 @@ export default function SchoolDashboard() {
             <PieChartCompenent
               legend="Distribusi Total Siswa dan Lowongan"
               tooltip="Persentasi Rating"
-              dataList={mapRatingToData(ratingSummary, ratingColors)}
+              dataList={[
+                {
+                  name: "Total Siswa",
+                  value: summary.student_count,
+                  color: "#4f46e5",
+                },
+                {
+                  name: "Lowongan",
+                  value: summary.job_opening_count,
+                  color: "#22c55e",
+                },
+              ]}
             />
           </div>
           <div className="w-1/2 ">
@@ -228,8 +242,19 @@ export default function SchoolDashboard() {
           <div className="w-1/2 ">
             <PieChartCompenent
               legend="Distribusi Total Perusahaan dan Lowongan"
-              tooltip="Persentase Rating"
-              dataList={mapRatingToData(ratingSummary, ratingColors)}
+              tooltip="Persentase Total Perusahaan dan Lowongan"
+              dataList={[
+                {
+                  name: "Perusahaan",
+                  value: summary.company_count,
+                  color: "#4f46e5",
+                },
+                {
+                  name: "Lowongan",
+                  value: summary.job_opening_count,
+                  color: "#22c55e",
+                },
+              ]}
             />
           </div>
           <div className="w-1/2 ">

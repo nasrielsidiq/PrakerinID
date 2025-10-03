@@ -1,35 +1,68 @@
 "use client";
-import { Bookmark, Clock4, Lock, MapPin, MessageCircle } from "lucide-react";
+import {
+  Bookmark,
+  Clock4,
+  Lock,
+  MapPin,
+  MessageCircle,
+  GraduationCap,
+  Users,
+  Clock,
+  BriefcaseBusiness,
+  Calendar,
+} from "lucide-react";
 import Link from "next/link";
 import { use, useEffect, useState } from "react";
 import { API, ENDPOINTS } from "../../../../utils/config";
 import DescriptionRenderer from "@/components/RenderBlocks";
+import RenderBlocks from "@/components/RenderBlocks";
+import Cookies from "js-cookie";
+
 // import dayjs from "dayjs";
 import { getDurationUnit } from "@/utils/getDurationUnit";
 import { getTypeJobOpening } from "@/utils/getTypeJobOpening";
 
 interface Lowongan {
+  id: string;
   title: string;
+  description: any;
+  grade: string;
+  location: string;
+  qouta: number;
   type: string;
-
+  start_date: string;
+  closing_date: string;
   company: {
-    name: string;
-  };
-  duration: {
-    duration_value: number;
-    duration_unit: string;
-  };
-  province: {
     name: string;
   };
   city_regency: {
     name: string;
   };
-  is_paid: boolean,
-  // type: string;
-  // close: string;
-  description: any;
+  province: {
+    name: string;
+  };
+  save_job_opening: boolean;
+  user: {
+    photo_profile: string;
+  };
+  duration: {
+    duration_unit: string;
+    duration_value: number;
+  };
+  field: {
+    name: string;
+  };
+  test: Test[];
 }
+
+interface Test {
+  title?: string;
+  description?: string;
+  type?: Type;
+  link?: string;
+}
+
+type Type = "practice" | "theory" | "other";
 
 const DetailLowonganPage = ({
   params,
@@ -37,16 +70,114 @@ const DetailLowonganPage = ({
   params: Promise<{ id: string }>;
 }) => {
   const [data, setData] = useState<Lowongan>({
+    id: "",
     title: "",
+    description: "",
+    grade: "",
+    location: "",
+    qouta: 0,
     type: "",
-    company: { name: "" },
-    duration: { duration_value: 0, duration_unit: "" },
-    province: { name: "" },
-    city_regency: { name: "" },
-    description: null,
-    is_paid: false,
+    start_date: "",
+    closing_date: "",
+    company: {
+      name: "",
+    },
+    city_regency: {
+      name: "",
+    },
+    province: {
+      name: "",
+    },
+    save_job_opening: false,
+    user: {
+      photo_profile: "",
+    },
+    field: {
+      name: "",
+    },
+    duration: {
+      duration_unit: "",
+      duration_value: 0,
+    },
+    test: [], // ubah menjadi array kosong agar bisa menerima data array
   }); // Replace 'any' with your actual data type
   const { id } = use(params);
+
+  const handleClickFavorite = async (
+    e: React.MouseEvent<HTMLButtonElement>,
+    id: string
+  ) => {
+    e.preventDefault();
+    e.stopPropagation();
+    try {
+      const response = await API.post(
+        `${ENDPOINTS.SAVE_JOB_OPENINGS}`,
+        {
+          job_opening_id: id,
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${Cookies.get("userToken")}`,
+          },
+        }
+      );
+      setData((prev) => ({
+        ...prev,
+        save_job_opening: !prev.save_job_opening,
+      }));
+    } catch (error) {
+      console.log(error);
+    }
+  };
+
+  const getGrade = (grade: "smk" | "mahasiswa" | "all"): string => {
+    switch (grade) {
+      case "smk":
+        return "SMK";
+      case "mahasiswa":
+        return "Mahasiswa";
+      case "all":
+        return "Semua";
+      default:
+        return "";
+    }
+  };
+
+  const getType = (type: "full_time" | "part_time"): string => {
+    switch (type) {
+      case "full_time":
+        return "Penuh Waktu (Full-time)";
+      case "part_time":
+        return "Paruh Waktu (Part-time)";
+      default:
+        return "";
+    }
+  };
+
+  const getLocation = (
+    location: "onsite" | "remote" | "hybrid" | "field"
+  ): string => {
+    switch (location) {
+      case "onsite":
+        return "Kerja di kantor (Onsite/WFO)";
+      case "remote":
+        return "Kerja di jarak jauh (Remote/WFH)";
+      case "hybrid":
+        return "Campuran";
+      case "field":
+        return "Kerja lapangan (Field Work)";
+      default:
+        return "";
+    }
+  };
+
+  const getTypeTest = (type: Type | undefined) => {
+    if (type === "practice") {
+      return "Test Praktik";
+    } else {
+      return "Test Teori";
+    }
+  };
 
   const fetchData = async () => {
     try {
@@ -118,13 +249,24 @@ const DetailLowonganPage = ({
                   <Lock className="w-4 h-4" />
                 </Link>
 
-                <button className="flex items-center justify-center gap-2 text-gray-600 hover:text-blue-600 px-4 py-2 border border-gray-300 hover:border-blue-300 rounded-lg font-medium transition-colors">
-                  <Bookmark className="w-4 h-4" />
+                <button
+                  type="button"
+                  className={`flex items-center justify-center gap-2 hover:text-blue-600 hover:bg-white px-4 py-2 border border-gray-300 hover:border-blue-300 rounded-lg font-medium transition-colors ${
+                    data.save_job_opening
+                      ? "text-white border-blue-500 bg-blue-500"
+                      : "text-gray-400"
+                  }`}
+                  onClick={(e) => handleClickFavorite(e, data.id)}
+                >
+                  <Bookmark
+                    className={`w-4 h-4 `}
+                    fill={data.save_job_opening ? "currentColor" : "none"}
+                  />
                   <span>Simpan</span>
                 </button>
 
                 <Link
-                  href={"#"}
+                  href={`/dashboard/lowongan/${id}/apply`}
                   className="bg-teal-600 hover:bg-teal-700 text-white px-6 py-2 rounded-lg font-medium transition-colors"
                 >
                   Lamar Sekarang
@@ -135,31 +277,126 @@ const DetailLowonganPage = ({
             {/* Divider */}
             <div className="border-t border-gray-200"></div>
 
-            <div className="flex py-3 space-x-2 text-sm ">
-              <MapPin className="text-accent" />
-              <div className="my-auto">
-                <span>{getTypeJobOpening(data.type)} | </span>
-                <span>
-                  {data && data.duration?.duration_value}{" "}
-                  {getDurationUnit(data && data.duration?.duration_unit)}
-                  {" | "}
-                </span>
-                <span>{data && data?.is_paid ? "Paid" : "Unpaid"} Internship</span>
-              </div>
-            </div>
+            <div className="bg-white py-6 mb-6">
+              <h3 className="text-lg font-semibold text-gray-900 mb-4">
+                Informasi Lowongan
+              </h3>
 
-            <div className="flex py-3 space-x-2 text-sm ">
-              <Clock4 className="text-accent" />
-              <div className="my-auto">
-                <span>Pendaftaran ditutup: </span>
-                {/* <span>{data && data.close}</span> */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm">
+                {/* Tingkat Pendidikan */}
+                <div className="flex items-start space-x-3 p-3 rounded-lg border border-gray-100 shadow-sm hover:shadow-md transition">
+                  <GraduationCap className="w-5 h-5 text-accent shrink-0 mt-1" />
+                  <div>
+                    <p className="text-gray-500">Tingkat Pendidikan</p>
+                    <p className="font-medium text-gray-900">
+                      {getGrade(data.grade as "smk" | "mahasiswa" | "all")}
+                    </p>
+                  </div>
+                </div>
+
+                {/* Lokasi Magang */}
+                <div className="flex items-start space-x-3 p-3 rounded-lg border border-gray-100 shadow-sm hover:shadow-md transition">
+                  <MapPin className="w-5 h-5 text-accent shrink-0 mt-1" />
+                  <div>
+                    <p className="text-gray-500">Lokasi Magang</p>
+                    <p className="font-medium text-gray-900">
+                      {getLocation(
+                        data.location as
+                          | "onsite"
+                          | "remote"
+                          | "hybrid"
+                          | "field"
+                      )}
+                    </p>
+                  </div>
+                </div>
+
+                {/* Kuota Magang */}
+                <div className="flex items-start space-x-3 p-3 rounded-lg border border-gray-100 shadow-sm hover:shadow-md transition">
+                  <Users className="w-5 h-5 text-accent shrink-0 mt-1" />
+                  <div>
+                    <p className="text-gray-500">Kuota Magang</p>
+                    <p className="font-medium text-gray-900">
+                      {data.qouta} Orang
+                    </p>
+                  </div>
+                </div>
+
+                {/* Jenis Magang */}
+                <div className="flex items-start space-x-3 p-3 rounded-lg border border-gray-100 shadow-sm hover:shadow-md transition">
+                  <Clock className="w-5 h-5 text-accent shrink-0 mt-1" />
+                  <div>
+                    <p className="text-gray-500">Jenis Magang</p>
+                    <p className="font-medium text-gray-900">
+                      {getType(data.type as "full_time" | "part_time")}
+                    </p>
+                  </div>
+                </div>
+
+                {/* Bidang Magang */}
+                <div className="flex items-start space-x-3 p-3 rounded-lg border border-gray-100 shadow-sm hover:shadow-md transition">
+                  <BriefcaseBusiness className="w-5 h-5 text-accent shrink-0 mt-1" />
+                  <div>
+                    <p className="text-gray-500">Bidang Magang</p>
+                    <p className="font-medium text-gray-900">
+                      {data.field.name}
+                    </p>
+                  </div>
+                </div>
+
+                {/* Durasi Magang */}
+                <div className="flex items-start space-x-3 p-3 rounded-lg border border-gray-100 shadow-sm hover:shadow-md transition">
+                  <Calendar className="w-5 h-5 text-accent shrink-0 mt-1" />
+                  <div>
+                    <p className="text-gray-500">Durasi Magang</p>
+                    <p className="font-medium text-gray-900">
+                      {data.duration.duration_value}{" "}
+                      {getDurationUnit(data.duration.duration_unit)}
+                    </p>
+                  </div>
+                </div>
+                <div className="flex items-start space-x-3 p-3 rounded-lg border border-gray-100 shadow-sm hover:shadow-md transition">
+                  <Calendar className="w-5 h-5 text-accent shrink-0 mt-1" />
+                  <div>
+                    <p className="text-gray-500">Waktu Mulai Magang</p>
+                    <p className="font-medium text-gray-900">
+                      {data.start_date}
+                    </p>
+                  </div>
+                </div>
+                <div className="flex items-start space-x-3 p-3 rounded-lg border border-gray-100 shadow-sm hover:shadow-md transition">
+                  <Calendar className="w-5 h-5 text-accent shrink-0 mt-1" />
+                  <div>
+                    <p className="text-gray-500">Batas Pendaftaran</p>
+                    <p className="font-medium text-gray-900">
+                      {data.closing_date}
+                    </p>
+                  </div>
+                </div>
               </div>
             </div>
 
             {/* Content Area - Placeholder for job description */}
-            <div className="mt-6 text-gray-600">
-              {/* <iframe src="/doc/taksonomi prakerin id.pdf" className="w-full h-screen border-0 bg-white/0" ></iframe> */}
-              <DescriptionRenderer data={data && data.description} />
+            <h3 className="text-lg font-semibold text-gray-900 mb-4">
+              Deskripsi
+            </h3>
+            <div className="text-gray-600 py-6 mb-6">
+              <RenderBlocks data={data.description} />
+            </div>
+            <h3 className="text-lg font-semibold text-gray-900 mb-4">Test</h3>
+            <div className="py-6 mb-6">
+              {data.test &&
+                data.test.map((test, index) => (
+                  <div key={index} className="bg-white shadow-md my-5 p-5">
+                    <span className="text-lg font-medium">
+                      {test.title}{" "}
+                      <span className="text-gray-400">
+                        - {getTypeTest(test.type)}
+                      </span>
+                    </span>
+                    <p>{test.description}</p>
+                  </div>
+                ))}
             </div>
           </div>
         </div>

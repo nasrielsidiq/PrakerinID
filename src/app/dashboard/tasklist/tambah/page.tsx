@@ -174,6 +174,7 @@ const TambahTugas: React.FC = () => {
           <input
             type="text"
             name="name"
+            placeholder="Masukkan judul tugas"
             className={`w-full p-2 border rounded-lg pr-12 focus:ring-2 outline-none transition-colors bg-gray-200 focus:border-transparent focus:ring-accent  ${
               error.title ? "border-red-500" : "border-gray-300"
             }`}
@@ -210,6 +211,7 @@ const TambahTugas: React.FC = () => {
           <input
             type="text"
             name="link"
+            placeholder="Masukkan link tugas (optional)"
             className={`w-full p-2 border rounded-lg pr-12 focus:ring-2 outline-none transition-colors bg-gray-200 focus:border-transparent focus:ring-accent  ${
               error.link ? "border-red-500" : "border-gray-300"
             }`}
@@ -224,6 +226,7 @@ const TambahTugas: React.FC = () => {
         <div className="grid grid-cols-1 gap-2">
           <label htmlFor="description">Deskripsi</label>
           <textarea
+            placeholder="Masukkan deskripsi tugas"
             name="description"
             className={`w-full p-2 border rounded-lg pr-12 focus:ring-2 outline-none transition-colors bg-gray-200 focus:border-transparent focus:ring-accent  ${
               error.description ? "border-red-500" : "border-gray-300"

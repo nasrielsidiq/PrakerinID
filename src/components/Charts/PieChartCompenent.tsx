@@ -91,7 +91,7 @@ export default function PieChartComponent({
                 <Cell key={`cell-${data.name}`} fill={data.color} />
               ))}
             </Pie>
-            <Tooltip content={<CustomTooltip tooltip={tooltip} />} />
+            <Tooltip content={<CustomTooltip tooltip={tooltip} />}/>
           </PieChart>
         </ResponsiveContainer>
       </div>

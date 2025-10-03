@@ -170,6 +170,7 @@ const CreatePage: React.FC = () => {
           <input
             type="text"
             name="name"
+            placeholder="Masukkan nama CV"
             className={`w-full p-2 border rounded-lg pr-12 focus:ring-2 outline-none transition-colors bg-gray-200 focus:border-accent border-gray-300 ${
               errors.name ? "border-red-500" : "border-gray-300"
             }`}

@@ -77,7 +77,7 @@ const DetailTasklistPage = ({
     }
 
     try {
-      const a =await API.patch(
+      await API.patch(
         `${ENDPOINTS.TASKS}/${id}`,
         { status: newValue },
         {
@@ -86,8 +86,6 @@ const DetailTasklistPage = ({
           },
         }
       );
-
-      console.log(a);
 
       fetchDetailTask();
       await alertSuccess("Status tugas berhasil diubah.");
