@@ -276,6 +276,15 @@ const JurusanPage: React.FC = () => {
         value: item.id,
         label: item.name,
       }));
+      
+      // Jika ada nilai yang dipilih, pastikan tetap ada di options
+      if (formData.province_id) {
+        const selectedOption = provinceOptions.find(opt => opt.value === formData.province_id);
+        if (selectedOption && !mapped.find((opt: ProvinceOption) => opt.value === formData.province_id)) {
+           mapped.unshift(selectedOption);
+        }
+      }
+      
       setProvinceOptions(mapped);
     } catch (error) {
       console.error(error);

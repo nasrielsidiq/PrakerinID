@@ -58,7 +58,7 @@ export default function LoginPage() {
         recaptcha_token: data.recaptcha_token,
       });
 
-      // console.log(response.data);
+      console.log(response);
 
       Cookies.set("userToken", response.data.token, {
         expires: isRemember ? 30 : 1,
