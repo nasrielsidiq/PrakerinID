@@ -158,6 +158,7 @@ export default function ProfilePage() {
   const [schoolProvinceOptions, setSchoolProvinceOptions] = useState<ProvinceOption[]>([]);
 
   const debouncedProvinceSearch = useDebounce(provinceSearch, 500);
+  const debouncedSchoolProvinceSearch = useDebounce(schoolProvinceSearch, 500);
 
 
   const fetchProfile = async () => {
@@ -380,21 +381,50 @@ export default function ProfilePage() {
 
   const fetchProvinceOptions = async () => {
     try {
+      // Prefer whichever search is active (company or school). If both empty, returns default list.
+      const searchQuery = debouncedProvinceSearch || debouncedSchoolProvinceSearch || "";
+
       const response = await API.get(ENDPOINTS.PROVINCES, {
         params: {
           is_accepted: true,
-          search: debouncedProvinceSearch,
+          search: searchQuery,
           limit: 5,
           is_limit: true,
         },
       });
-      console.log("fetchProvinceOptions", response.data.data);
+      // map results to react-select shape
       const mapped = response.data.data.map((item: Province) => ({
         value: item.id,
         label: item.name,
       }));
+
+      // Ensure currently selected provinces (company/school) remain available in options
+      const ensureIds: string[] = [];
+      if (companyForm.province_id && !mapped.find((o: ProvinceOption) => o.value === companyForm.province_id)) {
+        ensureIds.push(companyForm.province_id);
+      }
+      if (schoolForm.province_id && !mapped.find((o: ProvinceOption) => o.value === schoolForm.province_id)) {
+        // avoid duplicate id
+        if (!ensureIds.includes(schoolForm.province_id)) ensureIds.push(schoolForm.province_id);
+      }
+
+      // Fetch missing selected provinces individually and prepend them so select still shows them
+      for (const id of ensureIds) {
+        try {
+          const single = await API.get(`${ENDPOINTS.PROVINCES}/${id}`);
+          const p: Province = single.data.data;
+          // prepend to mapped if label present
+          if (p && p.id) {
+            mapped.unshift({ value: p.id, label: p.name });
+          }
+        } catch (err) {
+          // ignore failure to fetch single province
+          console.error("Could not fetch province by id", id, err);
+        }
+      }
+
       setProvinceOptions(mapped);
-      setSchoolProvinceOptions(mapped);
+      setSchoolProvinceOptions(mapped); 
       
     } catch (error) {
       console.error(error);
@@ -408,8 +438,9 @@ export default function ProfilePage() {
 
   
   useEffect(() => {
-      fetchProvinceOptions();
-  }, [debouncedProvinceSearch, authorization]);
+    // fetch when either search input changes (company or school) or authorization/province selections change
+    fetchProvinceOptions();
+  }, [debouncedProvinceSearch, debouncedSchoolProvinceSearch, authorization, companyForm.province_id, schoolForm.province_id]);
 
   useEffect(() => {
     fetchCityRegencies();

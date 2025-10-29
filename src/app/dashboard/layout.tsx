@@ -416,7 +416,7 @@ export default function DashboardLayout({
           </div>
           {!isActive ? (
             <div className="px-5">
-            <span className="text-red-500 text-xs">*Akun Kamu belum Aktif silahkan konfirmasi ke admin untuk mengaktifkan akun</span>
+            <span className="text-red-500 text-xs">*Akun Kamu belum Aktif silahkan Lengkapi data Profile konfirmasi ke admin untuk mengaktifkan akun</span>
             </div>
           ):null}
           {visibleMenuItems.map((item) => (
