@@ -389,7 +389,7 @@ export default function ProfilePage() {
           is_accepted: true,
           search: searchQuery,
           limit: 5,
-          is_limit: true,
+          // is_limit: true,
         },
       });
       // map results to react-select shape

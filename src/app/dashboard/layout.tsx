@@ -553,7 +553,7 @@ export default function DashboardLayout({
 
         <footer className="bg-white py-4 px-6">
           <p className="text-center text-sm text-gray-500">
-            © 2025 Prakerin ID. All rights reserved.
+            © 2025 Prakerin.ID. Semua hak dilindungi undang-undang. | v1.0 Alpha
           </p>
         </footer>
       </div>
