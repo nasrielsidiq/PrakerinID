@@ -18,6 +18,7 @@ interface FormData {
   recaptcha_token: string;
   image?: File | null;
   role: string;
+  type: string;
 }
 
 interface FormErrors {
@@ -48,6 +49,7 @@ const PrakerinRegistrationIndustryForm: React.FC<
     password_confirmation: "",
     recaptcha_token: "",
     role: "company",
+    type: "c"
   });
 
   const [showPassword, setShowPassword] = useState<boolean>(false);
@@ -140,6 +142,7 @@ const PrakerinRegistrationIndustryForm: React.FC<
         recaptcha_token: "",
         image: null,
         role: "company",
+        type: "c"
       });
       setProfileImage(null);
 

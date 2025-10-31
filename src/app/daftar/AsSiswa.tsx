@@ -21,6 +21,7 @@ interface FormData {
   recaptcha_token: string;
   role: string;
   image?: File | null;
+  type: string;
 }
 
 
@@ -53,6 +54,7 @@ const PrakerinRegistrationSiswaForm: React.FC<
     password_confirmation: "",
     recaptcha_token: "",
     role: "student",
+    type: "s"
   });
 
   const [showPassword, setShowPassword] = useState<boolean>(false);
@@ -149,6 +151,7 @@ const PrakerinRegistrationSiswaForm: React.FC<
         password_confirmation: "",
         recaptcha_token: "",
         role: "student",
+        type: "s"
       });
       
       setProfileImage(null);
