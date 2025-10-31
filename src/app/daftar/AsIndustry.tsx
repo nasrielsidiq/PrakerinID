@@ -49,7 +49,7 @@ const PrakerinRegistrationIndustryForm: React.FC<
     password_confirmation: "",
     recaptcha_token: "",
     role: "company",
-    type: "c"
+    type: "school"
   });
 
   const [showPassword, setShowPassword] = useState<boolean>(false);

@@ -54,7 +54,7 @@ const PrakerinRegistrationSiswaForm: React.FC<
     password_confirmation: "",
     recaptcha_token: "",
     role: "student",
-    type: "s"
+    type: "school"
   });
 
   const [showPassword, setShowPassword] = useState<boolean>(false);
